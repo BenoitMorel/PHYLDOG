@@ -58,7 +58,15 @@ knowledge of the CeCILL license and that you accept its terms.
 
 extern "C" {
 #include <pll/pll.h>
+#include <pllmodules/pll.h>
+#include <pllmodules/pllmod_algorithm.h>
+#include <pllmodules/pll_binary.h>
+#include <pllmodules/pll_msa.h>
+#include <pllmodules/pll_optimize.h>
+#include <pllmodules/pll_tree.h>
+#include <pllmodules/pllmod_util.h>
 }
+
 /*extern "C" {
 #include <pll/pllInternal.h>
 }*/

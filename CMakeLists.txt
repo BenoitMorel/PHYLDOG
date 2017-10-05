@@ -66,6 +66,14 @@ ENDIF(NOT PLL_LIBNAME)
 
 IMPROVED_FIND_LIBRARY(PLL_LIBRARIES ${PLL_LIBNAME} pll/pll.h)
 
+IMPROVED_FIND_LIBRARY(PLLMODULES_LIBRARIES "pll" pllmodules/pll.h)
+IMPROVED_FIND_LIBRARY(PLLMODULES_LIBRARIES "pll_algorithm" pllmodules/pllmod_algorithm.h)
+IMPROVED_FIND_LIBRARY(PLLMODULES_LIBRARIES "pll_binary" pllmodules/pll_binary.h)
+IMPROVED_FIND_LIBRARY(PLLMODULES_LIBRARIES "pll_msa" pllmodules/pll_msa.h)
+IMPROVED_FIND_LIBRARY(PLLMODULES_LIBRARIES "pll_optimize" pllmodules/pll_optimize.h)
+IMPROVED_FIND_LIBRARY(PLLMODULES_LIBRARIES "pll_tree" pllmodules/pll_tree.h)
+IMPROVED_FIND_LIBRARY(PLLMODULES_LIBRARIES "pll_util" pllmodules/pllmod_util.h)
+
 # #Boost libraries:
 # SET(Boost_USE_STATIC_LIBS ON)
 # find_package(Boost COMPONENTS mpi serialization REQUIRED)

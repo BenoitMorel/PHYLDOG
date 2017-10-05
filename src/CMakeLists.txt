@@ -32,6 +32,7 @@ target_link_libraries(phyldog
   ${Boost_MPI_LIBRARY}
   ${MPI_LIBRARIES}
   ${PLL_LIBRARIES}
+  ${PLLMODULES_LIBRARIES}
   ${BPP_LIBRARIES}
 )
 

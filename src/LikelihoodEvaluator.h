@@ -270,6 +270,13 @@ private:
   void initialize_PLL();
   
   /**
+  * Initialize libpll2 with the right data
+  */
+  void initialize_libpll2(pInfo *, unsigned int);
+  unsigned int root_index_;
+  pll_unode_t *get_pll_utree_root(pll_utree_t * utree);
+
+  /**
    * Writes alignment files for PLL: the alignment and the partition file
    * @param prefix the family name, so many alignment/partitions files can
    * 			co-exist in the same working directory.

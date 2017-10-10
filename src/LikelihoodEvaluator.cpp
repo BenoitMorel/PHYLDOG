@@ -417,11 +417,23 @@ pllmod_treeinfo_t * LikelihoodEvaluator::build_treeinfo()
   return treeinfo;
 }
 
-  
 void LikelihoodEvaluator::optimize_treeinfo(pllmod_treeinfo_t *treeinfo)
+{
+  double previousLogl = get_likelihood_treeinfo(treeinfo); 
+  double newLogl = previousLogl;
+  do {
+    previousLogl = newLogl;
+    optimize_treeinfo_iter(treeinfo);
+    newLogl = get_likelihood_treeinfo(treeinfo);
+  } while (newLogl - previousLogl > tolerance_);
+}
+
+
+double LikelihoodEvaluator::optimize_treeinfo_iter(pllmod_treeinfo_t *treeinfo)
 {
   double new_loglh;
   unsigned int params_to_optimize = treeinfo->params_to_optimize[0]; // todobenoit read it from treeinfo
+  
   /* optimize SUBSTITUTION RATES */
   if (params_to_optimize & PLLMOD_OPT_PARAM_SUBST_RATES)
   {

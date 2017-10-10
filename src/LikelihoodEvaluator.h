@@ -274,6 +274,7 @@ private:
   */
   pllmod_treeinfo_t * build_treeinfo();
   void optimize_treeinfo(pllmod_treeinfo_t *treeinfo);
+  double optimize_treeinfo_iter(pllmod_treeinfo_t *treeinfo);
   double get_likelihood_treeinfo(pllmod_treeinfo_t *treeinfo);
 
   pll_unode_t * get_pll_utree_root(pll_utree_t * utree);

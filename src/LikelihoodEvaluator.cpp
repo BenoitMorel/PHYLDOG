@@ -304,7 +304,6 @@ unsigned int * read_from_fasta(const char *fasta_file, pll_sequences &sequences)
   long seq_len;
   long seqno;
   int length;
-
   while (pll_fasta_getnext(fasta, &head, &head_len, &seq, &seq_len, &seqno))
   {
     sequences.push_back(pll_sequence(head, seq, seq_len));
@@ -358,7 +357,8 @@ pllmod_treeinfo_t * LikelihoodEvaluator::build_treeinfo()
   unsigned int partitions_number = 1; // todobenoit handle partitions!!!
 
   // sequences 
-  const char* fasta_file = (fileNamePrefix + "alignment.fasta").c_str();
+  std::string fileName = fileNamePrefix + "alignment.fasta"; 
+  const char* fasta_file = fileName.c_str();
   pll_sequences sequences;
   unsigned int *pattern_weights = read_from_fasta(fasta_file, sequences);
 
@@ -551,6 +551,8 @@ void LikelihoodEvaluator::initialize_PLL()
 
 
   if(logLikelihood == 0) {
+    logLikelihood = PLL_evaluate(&tree) * scaler_;
+    /*
     logLikelihood = PLL_evaluate(&tree, false) * scaler_;
     pllmod_treeinfo_t *treeinfo = build_treeinfo();
     std::cout <<  "pllmod_ll after PLL_evaluate: " << get_likelihood_treeinfo(treeinfo) << std::endl;
@@ -560,6 +562,7 @@ void LikelihoodEvaluator::initialize_PLL()
     std::cout << "oldpll ll  before PLL opt = " << logLikelihood << std::endl;
     logLikelihood = PLL_evaluate(&tree, true) * scaler_;
     std::cout << "oldpll ll  after PLL Opt= " << logLikelihood << std::endl;
+    */
     //printOldPll(PLL_partitions);
   }
 
@@ -635,9 +638,18 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate, bo
 
  // pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
  // pllOptimizeModelParameters(PLL_instance, PLL_partitions, 0.1);
+    
+  pllmod_treeinfo_t *treeinfo = build_treeinfo();
+  std::cout <<  "pllmod_ll after PLL_evaluate: " << get_likelihood_treeinfo(treeinfo) << std::endl;
+  optimize_treeinfo(treeinfo); 
+  std::cout <<  "pllmod_ll after pll_mod_opt: " << get_likelihood_treeinfo(treeinfo) << std::endl;
+  
+  std::cout << "oldpll ll  before PLL opt = " << PLL_instance->likelihood << std::endl;
 
   if (optimize)
     pllOptimizeModelParameters(PLL_instance, PLL_partitions, tolerance_);
+  
+  std::cout << "oldpll ll  after PLL Opt= " << PLL_instance->likelihood << std::endl;
 
   // getting the new tree with new branch lengths
   pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);

@@ -206,7 +206,7 @@ private:
    * @param prefix a BPP tree
    * @return the logLikelihood
    */
-  double PLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
+  double PLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate, bool opt = true);
 
  /**
    * Get the log likelihood of a tree and modify this tree to match
@@ -272,8 +272,11 @@ private:
   /**
   * Initialize libpll2 with the right data
   */
-  void initialize_libpll2(pInfo *);
-  pll_unode_t *get_pll_utree_root(pll_utree_t * utree);
+  pllmod_treeinfo_t * build_treeinfo();
+  void optimize_treeinfo(pllmod_treeinfo_t *treeinfo);
+  double get_likelihood_treeinfo(pllmod_treeinfo_t *treeinfo);
+
+  pll_unode_t * get_pll_utree_root(pll_utree_t * utree);
   pll_utree_t * create_utree();
 
   /**

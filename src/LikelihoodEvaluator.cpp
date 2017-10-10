@@ -72,6 +72,23 @@ extern "C" {
 #include "ReconciliationTools.h"
 
 
+// constants taken from RAXML
+#define DEF_LH_EPSILON            0.1
+#define OPT_LH_EPSILON            0.1
+#define RAXML_PARAM_EPSILON       0.001  //0.01
+#define RAXML_BFGS_FACTOR         1e7
+
+#define RAXML_BRLEN_SMOOTHINGS    32
+#define RAXML_BRLEN_DEFAULT       0.1
+#define RAXML_BRLEN_MIN           1.0e-6
+#define RAXML_BRLEN_MAX           100.
+#define RAXML_BRLEN_TOLERANCE     1.0e-7
+
+#define RAXML_FREERATE_MIN        0.001
+#define RAXML_FREERATE_MAX        100.
+
+#define RAXML_BRLEN_SCALER_MIN    0.01
+#define RAXML_BRLEN_SCALER_MAX    100.
 
 
 using namespace std;
@@ -331,8 +348,11 @@ pll_utree_t * LikelihoodEvaluator::create_utree()
   return utree;
 }
 
-void LikelihoodEvaluator::initialize_libpll2(pInfo *oldPartition)
+pllmod_treeinfo_t * LikelihoodEvaluator::build_treeinfo()
 {
+
+  pInfo *oldPartition = PLL_partitions->partitionData[0];
+
   WHEREAMI( __FILE__ , __LINE__ );
   // partitions descriptors
   unsigned int partitions_number = 1; // todobenoit handle partitions!!!
@@ -394,11 +414,112 @@ void LikelihoodEvaluator::initialize_libpll2(pInfo *oldPartition)
         params_indices,
         0); // todobenoit check that we don't need it
 
-  double ll = pllmod_treeinfo_compute_loglh(treeinfo, 0);
-  std::cout << "libpll ll = " << ll << std::endl;
-  
+  return treeinfo;
 }
 
+  
+void LikelihoodEvaluator::optimize_treeinfo(pllmod_treeinfo_t *treeinfo)
+{
+  double new_loglh;
+  unsigned int params_to_optimize = treeinfo->params_to_optimize[0]; // todobenoit read it from treeinfo
+  /* optimize SUBSTITUTION RATES */
+  if (params_to_optimize & PLLMOD_OPT_PARAM_SUBST_RATES)
+  {
+    new_loglh = -1 * pllmod_algo_opt_subst_rates_treeinfo(treeinfo,
+                                                          0,
+                                                          PLLMOD_OPT_MIN_SUBST_RATE,
+                                                          PLLMOD_OPT_MAX_SUBST_RATE,
+                                                          RAXML_BFGS_FACTOR,
+                                                          RAXML_PARAM_EPSILON);
+  }
+  
+  /* optimize BASE FREQS */
+  if (params_to_optimize & PLLMOD_OPT_PARAM_FREQUENCIES)
+  {
+    new_loglh = -1 * pllmod_algo_opt_frequencies_treeinfo(treeinfo,
+                                                          0,
+                                                          PLLMOD_OPT_MIN_FREQ,
+                                                          PLLMOD_OPT_MAX_FREQ,
+                                                          RAXML_BFGS_FACTOR,
+                                                          RAXML_PARAM_EPSILON);
+  }
+
+  /* optimize ALPHA */
+  if (params_to_optimize & PLLMOD_OPT_PARAM_ALPHA)
+  {
+    new_loglh = -1 * pllmod_algo_opt_onedim_treeinfo(treeinfo,
+                                                      PLLMOD_OPT_PARAM_ALPHA,
+                                                      PLLMOD_OPT_MIN_ALPHA,
+                                                      PLLMOD_OPT_MAX_ALPHA,
+                                                      RAXML_PARAM_EPSILON);
+  }
+
+  if (params_to_optimize & PLLMOD_OPT_PARAM_PINV)
+  {
+    new_loglh = -1 * pllmod_algo_opt_onedim_treeinfo(treeinfo,
+                                                      PLLMOD_OPT_PARAM_PINV,
+                                                      PLLMOD_OPT_MIN_PINV,
+                                                      PLLMOD_OPT_MAX_PINV,
+                                                      RAXML_PARAM_EPSILON);
+  }
+
+  /* optimize FREE RATES and WEIGHTS */
+  if (params_to_optimize & PLLMOD_OPT_PARAM_FREE_RATES)
+  {
+    new_loglh = -1 * pllmod_algo_opt_rates_weights_treeinfo (treeinfo,
+                                                          RAXML_FREERATE_MIN,
+                                                          RAXML_FREERATE_MAX,
+                                                          RAXML_BFGS_FACTOR,
+                                                          RAXML_PARAM_EPSILON);
+
+    /* normalize scalers and scale the branches accordingly */
+    if (treeinfo->brlen_linkage == PLLMOD_TREE_BRLEN_SCALED &&
+        treeinfo->partition_count > 1)
+      pllmod_treeinfo_normalize_brlen_scalers(treeinfo);
+
+  }
+  
+  if (params_to_optimize & PLLMOD_OPT_PARAM_BRANCHES_ITERATIVE)
+  {
+    double brlen_smooth_factor = 0.25; // magical number from raxml
+    new_loglh = -1 * pllmod_opt_optimize_branch_lengths_local_multi(treeinfo->partitions,
+                                                                    treeinfo->partition_count,
+                                                                    treeinfo->root,
+                                                                    treeinfo->param_indices,
+                                                                    treeinfo->deriv_precomp,
+                                                                    treeinfo->brlen_scalers,
+                                                                    RAXML_BRLEN_MIN,
+                                                                    RAXML_BRLEN_MAX,
+                                                                    tolerance_,
+                                                                    brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS,
+                                                                    -1,  /* radius */
+                                                                    1,    /* keep_update */
+                                                                    treeinfo->parallel_context,
+                                                                    treeinfo->parallel_reduce_cb
+                                                                    );
+  }
+
+  /* optimize brlen scalers, if needed */
+  if (treeinfo->brlen_linkage == PLLMOD_TREE_BRLEN_SCALED &&
+      treeinfo->partition_count > 1)
+  {
+    new_loglh = -1 * pllmod_algo_opt_onedim_treeinfo(treeinfo,
+                                                    PLLMOD_OPT_PARAM_BRANCH_LEN_SCALER,
+                                                    RAXML_BRLEN_SCALER_MIN,
+                                                    RAXML_BRLEN_SCALER_MAX,
+                                                    RAXML_PARAM_EPSILON);
+
+    /* normalize scalers and scale the branches accordingly */
+    pllmod_treeinfo_normalize_brlen_scalers(treeinfo);
+  }
+
+}
+
+
+double LikelihoodEvaluator::get_likelihood_treeinfo(pllmod_treeinfo_t *treeinfo)
+{
+  return pllmod_treeinfo_compute_loglh(treeinfo, 0);
+}
 
 void LikelihoodEvaluator::initialize_PLL()
 {
@@ -430,10 +551,16 @@ void LikelihoodEvaluator::initialize_PLL()
 
 
   if(logLikelihood == 0) {
-    logLikelihood = PLL_evaluate(&tree) * scaler_;
+    logLikelihood = PLL_evaluate(&tree, false) * scaler_;
+    pllmod_treeinfo_t *treeinfo = build_treeinfo();
+    std::cout <<  "pllmod_ll after PLL_evaluate: " << get_likelihood_treeinfo(treeinfo) << std::endl;
+    optimize_treeinfo(treeinfo); 
+    std::cout <<  "pllmod_ll after pll_mod_opt: " << get_likelihood_treeinfo(treeinfo) << std::endl;
+    
+    std::cout << "oldpll ll  before PLL opt = " << logLikelihood << std::endl;
+    logLikelihood = PLL_evaluate(&tree, true) * scaler_;
+    std::cout << "oldpll ll  after PLL Opt= " << logLikelihood << std::endl;
     //printOldPll(PLL_partitions);
-    initialize_libpll2(PLL_partitions->partitionData[0]);
-    std::cout << "oldpll ll = " << logLikelihood << std::endl;
   }
 
   
@@ -453,7 +580,7 @@ void LikelihoodEvaluator::setTree(TreeTemplate<Node> * newTree)
 
 
 
-double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
+double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate, bool optimize)
 {
   WHEREAMI( __FILE__ , __LINE__ );
 
@@ -509,7 +636,8 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
  // pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
  // pllOptimizeModelParameters(PLL_instance, PLL_partitions, 0.1);
 
-  pllOptimizeModelParameters(PLL_instance, PLL_partitions, tolerance_);
+  if (optimize)
+    pllOptimizeModelParameters(PLL_instance, PLL_partitions, tolerance_);
 
   // getting the new tree with new branch lengths
   pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);

@@ -316,44 +316,24 @@ void print(const char* msg, T *data, unsigned int size)
   std::cout << std::endl;
 }
 
-void printOldPll(partitionList *partitions)
-{
-  std::cout << "Print PLL partitions " << std::endl;
-  pInfo *partition = partitions->partitionData[0];
-
-  if (!partition->empiricalFrequencies)
-    return;
-  std::cout << "  partitions number: " << partitions->numberOfPartitions << std::endl;
-  std::cout << "  width: " << partition->width << std::endl;
-  std::cout << "  alpha: " << partition->alpha << std::endl;
-  print<double>("    freq:", partition->frequencies, 4); 
-  print<double>("    emp freq:", partition->empiricalFrequencies, 4); 
-  print<double>("    subst rates:", partition->substRates, 6); 
-  print<double>("    gamma rates:", partition->gammaRates, 4); 
-  std::cout << "End print PLL Partitions" << std::endl;
-}
-
-void printLibpll(pll_partition_t *partition)
-{
-  std::cout << "Print libpll partitions " << std::endl;
-  std::cout << " partition sites: " <<  partition->sites << std::endl;
-  print<double>("    freq:", partition->frequencies[0], 4); 
-  print<double>("    subst rates:", partition->subst_params[0], 6); 
-  print<double>("    gamma rates:", partition->rates, 4); 
-  print<double>("    gamma rates weights:", partition->rate_weights, 4); 
-  std::cout << "End libpll partitions " << std::endl;
-  
-}
-
 pll_unode_t *LikelihoodEvaluator::get_pll_utree_root(pll_utree_t * utree)
 {
-  return utree->nodes[utree->tip_count + utree->inner_count - 1 - root_index_];
+  return utree->nodes[utree->tip_count + utree->inner_count - 1];
 }
 
-void LikelihoodEvaluator::initialize_libpll2(pInfo *oldPartition, unsigned int root_index)
+pll_utree_t * LikelihoodEvaluator::create_utree()
+{
+  std::string newick = bpp::TreeTemplateTools::treeToParenthesis(*tree);
+  pll_rtree_t * rtree = pll_rtree_parse_newick_string(newick.c_str());
+  pll_utree_t * utree = pll_rtree_unroot(rtree);
+  pll_rtree_destroy(rtree, free);
+  pll_utree_reset_template_indices(get_pll_utree_root(utree), utree->tip_count);
+  return utree;
+}
+
+void LikelihoodEvaluator::initialize_libpll2(pInfo *oldPartition)
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  root_index_ = root_index;
   // partitions descriptors
   unsigned int partitions_number = 1; // todobenoit handle partitions!!!
 
@@ -362,15 +342,16 @@ void LikelihoodEvaluator::initialize_libpll2(pInfo *oldPartition, unsigned int r
   pll_sequences sequences;
   unsigned int *pattern_weights = read_from_fasta(fasta_file, sequences);
 
-
+  pll_utree_t * utree = create_utree();
+  std::map<std::string, int> labelling;
+  for (unsigned int i = 0 ; i < utree->tip_count; ++i)
+  {
+    pll_unode_t *node = utree->nodes[i];
+    assert(!node->next);
+    labelling[node->label] = i;
+  }
+ 
   // tree
-  std::string newick = bpp::TreeTemplateTools::treeToParenthesis(*tree);
-  pll_rtree_t * rtree = pll_rtree_parse_newick_string(newick.c_str());
-  pll_utree_t * utree = pll_rtree_unroot(rtree);
-  pll_utree_reset_template_indices(get_pll_utree_root(utree), utree->tip_count);
-  std::cout << "BPP TREE: " << newick << std::endl;
-  std::cout << "libpll2 tree" << pll_utree_export_newick(get_pll_utree_root(utree), 0) << std::endl;
-  
   unsigned int brlen_linkage = PLLMOD_TREE_BRLEN_SCALED; // todobenoit is it the same model as raxml?
   pll_unode_t *uroot = get_pll_utree_root(utree); //todobenoit why does choice of the root matter?
   pllmod_treeinfo_t * treeinfo = pllmod_treeinfo_create(uroot, 
@@ -393,8 +374,10 @@ void LikelihoodEvaluator::initialize_libpll2(pInfo *oldPartition, unsigned int r
   pll_set_pattern_weights(partition, pattern_weights);
   // add sequences to partitions
   const unsigned int *charmap = pll_map_nt; // todobenoit do not hardcode that
-  for (unsigned int i = 0; i < sequences.size(); ++i) 
-    pll_set_tip_states(partition, i, charmap, sequences[i].seq);
+  for (unsigned int i = 0; i < sequences.size(); ++i) {
+    unsigned int tip = labelling[strictToReal[sequences[i].label]];
+    pll_set_tip_states(partition, tip, charmap, sequences[i].seq);
+  }
   // model
 
   pll_set_category_rates(partition, oldPartition->gammaRates);
@@ -412,7 +395,6 @@ void LikelihoodEvaluator::initialize_libpll2(pInfo *oldPartition, unsigned int r
         0); // todobenoit check that we don't need it
 
   double ll = pllmod_treeinfo_compute_loglh(treeinfo, 0);
-  printLibpll(partition);
   std::cout << "libpll ll = " << ll << std::endl;
   
 }
@@ -449,15 +431,9 @@ void LikelihoodEvaluator::initialize_PLL()
 
   if(logLikelihood == 0) {
     logLikelihood = PLL_evaluate(&tree) * scaler_;
-    printOldPll(PLL_partitions);
-    initialize_libpll2(PLL_partitions->partitionData[0], 0);
+    //printOldPll(PLL_partitions);
+    initialize_libpll2(PLL_partitions->partitionData[0]);
     std::cout << "oldpll ll = " << logLikelihood << std::endl;
-    /*
-    initialize_libpll2(PLL_partitions->partitionData[0], 1);
-    std::cout << "oldpll ll = " << logLikelihood << std::endl;
-    initialize_libpll2(PLL_partitions->partitionData[0], 2);
-    std::cout << "oldpll ll = " << logLikelihood << std::endl;
-    */
   }
 
   
@@ -529,12 +505,11 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
 
   //std::cout << "Old partition before opt:" << std::endl;
   //printOldPll(PLL_partitions);
-  std::cout << "old libpll ll without optim: " << PLL_instance->likelihood * scaler_ << "(scaler=" << scaler_ << ")" << std::endl;
 
  // pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
  // pllOptimizeModelParameters(PLL_instance, PLL_partitions, 0.1);
 
-//  pllOptimizeModelParameters(PLL_instance, PLL_partitions, tolerance_);
+  pllOptimizeModelParameters(PLL_instance, PLL_partitions, tolerance_);
 
   // getting the new tree with new branch lengths
   pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);

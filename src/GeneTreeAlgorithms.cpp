@@ -1949,6 +1949,7 @@ size_t findBestGeneTreeAmongSeveralCandidates(vector<Tree*> &trees,
 
         if (considerSequenceLikelihood )
         {
+            std::cout << "setAlternativeTree algo candidate 1" << std::endl;
             levaluator->setAlternativeTree(candidateTree);
             candidateSequenceLk = levaluator->getAlternativeLogLikelihood();
         }
@@ -2097,6 +2098,7 @@ size_t findBestGeneTreeAmongSeveralCandidates(vector<Tree*> &trees,
                {
 
                  if (computeSequenceLikelihoodForSPR) {
+                   std::cout << "setAlternativeTree algo SPR 1" << std::endl;
                    levaluator->setAlternativeTree(treeForSPR);
                    logL = candidateScenarioLk + levaluator->getAlternativeLogLikelihood();
                  }

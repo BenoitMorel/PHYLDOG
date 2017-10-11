@@ -462,7 +462,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     grandFatherForNNI->removeSon(uncleForNNI);
     parentForNNI->addSon(uncleForNNI);
     grandFatherForNNI->addSon(sonForNNI);
-
+    
     //Now we root the tree sent to findMLReconciliation as in rootedTree_
     int id = treeForNNI->getRootNode()->getId();
     if(TreeTemplateTools::hasNodeWithId(*(rootedTree_->getRootNode()->getSon(0)),id)) {
@@ -486,6 +486,8 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     {
       if  (candidateScenarioLk >  scenarioLikelihood_)
       { //If it is worth computing the sequence likelihood
+                std::cout << "setAlternativeTree NNI 1" << std::endl;
+                levaluator_->applyNNI(nodeId, 0);
                 levaluator_->setAlternativeTree(treeForNNI);
 
         double tot = -( candidateScenarioLk + levaluator_->getAlternativeLogLikelihood() ) + ( getSequenceLikelihood() + scenarioLikelihood_ ) ;
@@ -1033,6 +1035,8 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
 	      }
 	      treeForSPR = (*it).second->clone();
 
+              std::cout << "setAlternativeTree SPR 1" << std::endl;
+
               levaluator_->setAlternativeTree(treeForSPR);
 
 	      logL = candidateScenarioLk + levaluator_->getAlternativeLogLikelihood();
@@ -1233,6 +1237,7 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 
       unsigned int numEval = 0;
 
+      std::cout << "setAlternativeTree SPR 2" << std::endl;
       levaluator_->setAlternativeTree(treeForSPR);
 
       logL = candidateScenarioLk + levaluator_->getAlternativeLogLikelihood();

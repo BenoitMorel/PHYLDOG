@@ -95,6 +95,7 @@ class LikelihoodEvaluator
 public:
   
   enum LikelihoodMethod{PLL,BPP};
+  static int hackmode;
   
   
 private:
@@ -206,7 +207,7 @@ private:
    * @param prefix a BPP tree
    * @return the logLikelihood
    */
-  double PLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate, bool opt = true);
+  double PLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
 
  /**
    * Get the log likelihood of a tree and modify this tree to match
@@ -268,7 +269,8 @@ private:
   * Initialize PLL with the right data
   */
   void initialize_PLL();
-  
+ 
+public: //todobenoit private
   /**
   * Initialize libpll2 with the right data
   */
@@ -276,9 +278,17 @@ private:
   void optimize_treeinfo(pllmod_treeinfo_t *treeinfo);
   double optimize_treeinfo_iter(pllmod_treeinfo_t *treeinfo);
   double get_likelihood_treeinfo(pllmod_treeinfo_t *treeinfo);
-
+  void utreeRealToStrict(pllmod_treeinfo_t *treeinfo);
   pll_unode_t * get_pll_utree_root(pll_utree_t * utree);
   pll_utree_t * create_utree();
+  void applyNNI(unsigned int nodeId, unsigned int type);
+  void rollbackLastMove();
+  pll_unode_t *getLibpllNode(unsigned int nodeId);
+
+  pllmod_treeinfo_t *currentTreeinfo;
+  pll_utree_t *currentUtree;
+  pll_tree_rollback_t rollbackInfo;
+private: 
 
   /**
    * Writes alignment files for PLL: the alignment and the partition file

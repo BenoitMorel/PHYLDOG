@@ -47,24 +47,35 @@ public:
     realToStrict(realToStrict), strictToReal(strictToReal) {}
 
 
+   struct TreeinfoSortCell {
+    pll_unode_t *node;
+    std::string str;
+    std::map<unsigned int, bool> printLeftFirst;
+    friend bool operator< (const TreeinfoSortCell &c1, const TreeinfoSortCell &c2) {
+      return c1.str < c2.str;
+    }
+  };
+
   std::string getTreeinfoString(pllmod_treeinfo_t *treeinfo, 
       LabelConversion conversion=NO_CONVERSION,
       bool printBL=false)
   {
-    std::map<unsigned int, bool> printLeftFirst;
-    std::string leftStr, rightStr;
-    pll_unode_t *root = treeinfo->root;
-    treeInfoSortRec(root, conversion, leftStr, printLeftFirst);
-    treeInfoSortRec(root->back, conversion, rightStr, printLeftFirst);
-  
-
+    std::vector<TreeinfoSortCell> cells(3);
+    cells[0].node = treeinfo->root->back;
+    cells[1].node = treeinfo->root->next->back;
+    cells[2].node = treeinfo->root->next->next->back;
+    for (unsigned int i = 0; i < cells.size(); ++i) {
+      treeInfoSortRec(cells[i].node, conversion, cells[i].str, cells[i].printLeftFirst);
+    }
+    std::sort(cells.begin(), cells.end());
     std::ostringstream os;
     os << "(";
-    printTreeinfoRec((leftStr < rightStr) ? root : root->back, 
-        conversion, printBL, printLeftFirst, os);
-    os << ",";
-    printTreeinfoRec(!(leftStr < rightStr) ? root : root->back, 
-        conversion, printBL, printLeftFirst, os);
+    for (unsigned int i = 0; i < cells.size(); ++i) {
+      printTreeinfoRec(cells[i].node, conversion, printBL, cells[i].printLeftFirst, os);
+      if (i < cells.size() - 1) {
+        os << ",";
+      }
+    }
     os << ");";
     return os.str();
   }

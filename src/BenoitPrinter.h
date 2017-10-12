@@ -57,8 +57,9 @@ public:
   };
 
   std::string getTreeinfoString(pllmod_treeinfo_t *treeinfo, 
-      LabelConversion conversion=NO_CONVERSION,
-      bool printBL=false)
+      bool printBL=false,
+      bool printId=false,
+      LabelConversion conversion=NO_CONVERSION)
   {
     std::vector<TreeinfoSortCell> cells(3);
     cells[0].node = treeinfo->root->back;
@@ -71,7 +72,7 @@ public:
     std::ostringstream os;
     os << "(";
     for (unsigned int i = 0; i < cells.size(); ++i) {
-      printTreeinfoRec(cells[i].node, conversion, printBL, cells[i].printLeftFirst, os);
+      printTreeinfoRec(cells[i].node, printBL, printId, conversion, cells[i].printLeftFirst, os);
       if (i < cells.size() - 1) {
         os << ",";
       }
@@ -80,9 +81,10 @@ public:
     return os.str();
   }
 
-  std::string getBPPNodeString(bpp::Node *node, 
-      LabelConversion conversion=NO_CONVERSION,
-      bool printBL=false)
+  std::string getBPPNodeString(const bpp::Node *node, 
+      bool printBL=false,
+      bool printId=false,
+      LabelConversion conversion=NO_CONVERSION)
   {
     std::map<unsigned int, std::vector<unsigned int> > printLeftFirst;
     std::string leftStr;
@@ -91,7 +93,7 @@ public:
   
 
     std::ostringstream os;
-    printBPPNodeRec(node, conversion, printBL, printLeftFirst, os);
+    printBPPNodeRec(node, printBL, printId, conversion, printLeftFirst, os);
     os << ";";
     return os.str();
   }
@@ -133,7 +135,7 @@ private:
     }
   };
 
-  void bppNodeSortRec(bpp::Node *node, 
+  void bppNodeSortRec(const bpp::Node *node, 
       LabelConversion conversion,
       std::string &firstLeaf,
       std::map<unsigned int, std::vector<unsigned int> > &printLeftFirst)
@@ -143,7 +145,7 @@ private:
       return;
     }
     std::vector<StringSortCell> cells;
-    std::vector< bpp::Node * > & sons = node->getSons();
+    std::vector< bpp::Node * > & sons = ((bpp::Node*)node)->getSons(); //horrible const cast
     for (unsigned int i = 0; i < sons.size(); ++i) {
       StringSortCell cell; 
       bppNodeSortRec(sons[i], conversion, cell.str , printLeftFirst);
@@ -158,9 +160,10 @@ private:
     printLeftFirst[node->getId()] = sonsPos;
   }
 
-  void printBPPNodeRec(bpp::Node *node,
-      LabelConversion conversion,
+  void printBPPNodeRec(const bpp::Node *node,
       bool printBL,
+      bool printId,
+      LabelConversion conversion,
       std::map<unsigned int, std::vector<unsigned int> > &printLeftFirst,
       std::ostream &os)
   {
@@ -171,7 +174,7 @@ private:
       os << "(";
       std::vector<unsigned int> &sonsPos = printLeftFirst[node->getId()];
       for (unsigned int i = 0; i < sonsPos.size(); ++i) {
-        printBPPNodeRec(node->getSon(sonsPos[i]), conversion, printBL, printLeftFirst, os);
+        printBPPNodeRec(node->getSon(sonsPos[i]), printBL, printId, conversion, printLeftFirst, os);
         if (i < sonsPos.size() - 1)
           os << ",";
       }
@@ -182,11 +185,15 @@ private:
         os << ":" << node->getDistanceToFather();
       }
     }
+    if (printId) {
+      os << ":" << node->getId();
+    }
   }
   
   void printTreeinfoRec(pll_unode_t *node,
-      LabelConversion conversion,
       bool printBL,
+      bool printId,
+      LabelConversion conversion,
       std::map<unsigned int, bool> printLeftFirst,
       std::ostream &os)
   {
@@ -198,14 +205,17 @@ private:
 
       bool leftFirst = printLeftFirst[node->node_index];
       printTreeinfoRec(leftFirst ? node->next->back : node->next->next->back, 
-          conversion, printBL, printLeftFirst, os);
+          printBL, printId, conversion, printLeftFirst, os);
       os << ",";
       printTreeinfoRec(!leftFirst ? node->next->back : node->next->next->back, 
-          conversion, printBL, printLeftFirst, os);
+          printBL, printId, conversion, printLeftFirst, os);
       os << ")";
     }
     if (printBL) {
       os << ":" << node->length;
+    }
+    if (printId) {
+      os << ":" << node->node_index;
     }
   }
 
@@ -220,7 +230,7 @@ private:
       return realToStrict[node->label];
   }
   
-  std::string getBPPLabel(bpp::Node *node,
+  std::string getBPPLabel(const bpp::Node *node,
       LabelConversion conversion)
   {
     if (conversion == NO_CONVERSION)

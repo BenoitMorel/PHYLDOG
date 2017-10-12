@@ -441,6 +441,12 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     //We first estimate the likelihood of the scenario: if not better than the current scenario, no need to estimate the branch length !
     //We use the same procedure as in doNNI !
     const Node * son    = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->getNode(nodeId);
+       
+    std::cout << "***************************************************************" << std::endl;
+    std::cout << "***************************************************************" << std::endl;
+    std::cout << "bpp tree before NNI move around " << nodeId << std::endl;
+    std::cout << levaluator_->printer.getBPPNodeString((levaluator_->getTree())->getRootNode(), false, true, REAL_TO_STRICT) << std::endl;    
+
 
 
     if(!son->hasFather()) throw NodeException("DLGeneTreeLikelihood::testNNI(). Node 'son' must not be the root node.", nodeId);
@@ -458,6 +464,10 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     Node * parentForNNI = sonForNNI->getFather();
     Node * grandFatherForNNI = parentForNNI->getFather();
     Node * uncleForNNI = grandFatherForNNI->getSon(parentPosition > 1 ? 0 : 1 - parentPosition);
+    std::cout << "son " << sonForNNI->getId() << std::endl;
+    std::cout << "parent " << parentForNNI->getId() << std::endl;
+    std::cout << "grand parent " << grandFatherForNNI->getId() << std::endl;
+    std::cout << "uncle " << uncleForNNI->getId() << std::endl;
     parentForNNI->removeSon(sonForNNI);
     grandFatherForNNI->removeSon(uncleForNNI);
     parentForNNI->addSon(uncleForNNI);
@@ -474,6 +484,14 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     double candidateScenarioLk = 0;
     totalIterations_ = totalIterations_+1;
 
+    levaluator_->applyNNI(parentForNNI, grandFatherForNNI);
+
+    std::cout << "bpp tree after NNI move around  " << nodeId << std::endl;
+    std::cout << levaluator_->printer.getBPPNodeString(treeForNNI->getRootNode(), false, true, REAL_TO_STRICT) << std::endl;    
+    
+    
+    std::cout << "***************************************************************" << std::endl;
+    std::cout << "***************************************************************" << std::endl;
 
     candidateScenarioLk =  findMLReconciliationDR (spTree_, treeForNNI/*&rootedTree_*/,
 					       seqSp_, spId_,
@@ -486,7 +504,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     {
       if  (candidateScenarioLk >  scenarioLikelihood_)
       { //If it is worth computing the sequence likelihood
-                levaluator_->setAlternativeTree(treeForNNI);
+        levaluator_->setAlternativeTree(treeForNNI);
 
         double tot = -( candidateScenarioLk + levaluator_->getAlternativeLogLikelihood() ) + ( getSequenceLikelihood() + scenarioLikelihood_ ) ;
 
@@ -1367,6 +1385,8 @@ void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsign
     return;
   }
   bool test = true;
+  std::cout << "benoit hack build node map " << std::endl;
+  levaluator_->build_node_map(levaluator_->currentUtree, levaluator_->getTree());
   do
   {
     TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();

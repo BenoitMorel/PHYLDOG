@@ -97,6 +97,16 @@ using namespace bpp;
 
 int LikelihoodEvaluator::hackmode = 0;
 
+class LibpllNodeProperty: public Clonable {
+  public:
+    LibpllNodeProperty(unsigned int id) : id(id) {}
+
+    virtual Clonable *  clone () const {
+      return new LibpllNodeProperty(id);
+    }
+  unsigned int id;
+};
+
 void LikelihoodEvaluator::PLL_initializePLLInstance(){
   WHEREAMI( __FILE__ , __LINE__ );
   /* Set the PLL instance attributes */
@@ -361,6 +371,9 @@ void LikelihoodEvaluator::build_node_map(pll_utree_t *utree, bpp::TreeTemplate< 
   for (unsigned int i = 0; i < nodes.size(); ++i) {
     std::cout << nodes[i]->getId() << " ";
     vector<string> bppLeaves = TreeTemplateTools::getLeavesNames(*nodes[i]);
+    for (unsigned int j = 0; j < bppLeaves.size(); ++j) {
+      bppLeaves[j] = realToStrict[bppLeaves[j]];
+    }
     std::sort(bppLeaves.begin(), bppLeaves.end());
     bppLeavesToId[bppLeaves] = nodes[i]->getId();
     print_v<string>(bppLeaves); 
@@ -379,7 +392,9 @@ void LikelihoodEvaluator::build_node_map(pll_utree_t *utree, bpp::TreeTemplate< 
     print_v<string>(leaves); 
     bppIdToUtreeId[bppLeavesToId[leaves]] = i;
     strictLeavesToUtreeId[leaves] = i;
-    std::cout << "Mapping bpp " << bppLeavesToId[leaves] << " to libpll " << i << std::endl; 
+    std::cout << "Mapping bpp " << bppLeavesToId[leaves] << " to libpll " << i << std::endl;
+    LibpllNodeProperty prop(i);
+    bpptree->getNode(bppLeavesToId[leaves])->setNodeProperty("libpll", prop);
   }
 
 }
@@ -631,7 +646,37 @@ pll_unode_t *LikelihoodEvaluator::getLibpllNode(unsigned int nodeId)
   return currentUtree->nodes[bppIdToUtreeId[nodeId]];
 }
 
-  void LikelihoodEvaluator::applyNNI(bpp::Node *node, unsigned int type)
+void LikelihoodEvaluator::applyNNI(bpp::Node *node1, bpp::Node *node2)
+{
+  std::cout << "apply NNI" << std::endl;
+  LibpllNodeProperty *prop1 = 0;// dynamic_cast<LibpllNodeProperty *>(node1->getNodeProperty("libpll"));
+  LibpllNodeProperty *prop2 = 0;//dynamic_cast<LibpllNodeProperty *>(node2->getNodeProperty("libpll"));
+  try {
+    prop1 = dynamic_cast<LibpllNodeProperty *>(node1->getNodeProperty("libpll"));
+    prop2 = dynamic_cast<LibpllNodeProperty *>(node2->getNodeProperty("libpll"));
+  } catch (Exception e) {
+    std::cout << "EXCEPTION " << std::endl;
+  }
+  std::cout << " new libpllid1 " << prop1 << std::endl;
+  std::cout << " new libpllid1 " << prop1->id << std::endl;
+  std::cout << " new libpllid2 " << prop2 << std::endl;
+  std::cout << " new libpllid2 " << prop2->id << std::endl;
+
+
+  pll_unode_t *n1 = currentUtree->nodes[prop1->id];
+  pll_unode_t *n2 = currentUtree->nodes[prop2->id];
+  
+  std::cout << printer.getTreeinfoString(currentTreeinfo, false, true)  << std::endl;
+  std::cout << n1 << " " << n1->next << std::endl;
+  std::cout << n2 << " " << n2->next << std::endl;
+  
+  std::cout << n1 << " " << n1->back << " " << n1->next->back << " " << n1->next->next->back << std::endl;
+  std::cout << n2 << " " << n2->back << " " << n2->next->back << " " << n2->next->next->back << std::endl;
+
+}
+
+/*
+void LikelihoodEvaluator::applyNNI(bpp::Node *node, unsigned int type)
 {
   unsigned int nodeId = node->getId(); 
   std::vector<string> leaves = TreeTemplateTools::getLeavesNames(*node);
@@ -648,7 +693,8 @@ pll_unode_t *LikelihoodEvaluator::getLibpllNode(unsigned int nodeId)
     std::cout << "APPLY NNI FAILED " << pll_errmsg << std::endl;
   }
 }
-  
+*/  
+
 void LikelihoodEvaluator::rollbackLastMove()
 {
   std::cout << "rollback..." << std::endl;
@@ -779,16 +825,13 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
       utreeRealToStrict(currentTreeinfo);
       build_node_map(currentUtree, treeForPLL);
     }
-    std::cout << "PLL ll    before opt = " << PLL_instance->likelihood << std::endl;
-    std::cout << "libpll ll before opt = " << get_likelihood_treeinfo(currentTreeinfo) << std::endl;
+    std::cout << "PLL ll     = " << PLL_instance->likelihood << std::endl;
+    std::cout << "libpll ll  = " << get_likelihood_treeinfo(currentTreeinfo) << std::endl; 
+    std::cout << "benoitprinter treeinfo: " << printer.getTreeinfoString(currentTreeinfo, false, true) << std::endl;
+    std::cout << "benoitprinter bpp     : " << printer.getBPPNodeString(treeForPLL->getRootNode(), false, true) << std::endl;
     result_ll = PLL_instance->likelihood;
     pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);
     newickStingForPll.str(PLL_instance->tree_string);
-    std::cout << "input tree = " << newickStingForLibpll.str() << std::endl;  
-    std::cout << "currentTreeInfo = " << pll_utree_export_newick(currentTreeinfo->root, 0) << std::endl;  
-  
-    std::cout << "benoitprinter treeinfo: " << printer.getTreeinfoString(currentTreeinfo, NO_CONVERSION, true) << std::endl;
-    std::cout << "benoitprinter bpp     : " << printer.getBPPNodeString(treeForPLL->getRootNode(), NO_CONVERSION, true) << std::endl;
   } 
   
   // getting the new tree with new branch lengths

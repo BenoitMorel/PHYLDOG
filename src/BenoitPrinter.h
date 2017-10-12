@@ -73,8 +73,8 @@ public:
       LabelConversion conversion=NO_CONVERSION,
       bool printBL=false)
   {
-    std::map<unsigned int, bool> printLeftFirst;
-    std::string leftStr, rightStr;
+    std::map<unsigned int, std::vector<unsigned int> > printLeftFirst;
+    std::string leftStr;
     
     bppNodeSortRec(node, conversion, leftStr, printLeftFirst);
   
@@ -113,32 +113,44 @@ private:
     }
   }
 
+  
+  struct StringSortCell {
+    unsigned int sonPos;
+    std::string str;
+    friend bool operator< (const StringSortCell &c1, const StringSortCell &c2) {
+      return c1.str < c2.str;
+    }
+  };
+
   void bppNodeSortRec(bpp::Node *node, 
       LabelConversion conversion,
       std::string &firstLeaf,
-      std::map<unsigned int, bool> &printLeftFirst)
+      std::map<unsigned int, std::vector<unsigned int> > &printLeftFirst)
   {
     if (node->isLeaf()) {
       firstLeaf = getBPPLabel(node, conversion);
       return;
     }
-    std::string leftStr;
-    std::string rightStr;
-    bppNodeSortRec(node->getSon(0), conversion, leftStr, printLeftFirst);
-    bppNodeSortRec(node->getSon(1), conversion, rightStr, printLeftFirst);
-    if (leftStr < rightStr) {
-      firstLeaf = leftStr;
-      printLeftFirst[node->getId()] = true;
-    } else {
-      firstLeaf = rightStr;
-      printLeftFirst[node->getId()] = false;
+    std::vector<StringSortCell> cells;
+    std::vector< bpp::Node * > & sons = node->getSons();
+    for (unsigned int i = 0; i < sons.size(); ++i) {
+      StringSortCell cell; 
+      bppNodeSortRec(sons[i], conversion, cell.str , printLeftFirst);
+      cell.sonPos = i;
+      cells.push_back(cell);
     }
+    std::sort(cells.begin(), cells.end());
+    firstLeaf = cells[0].str;
+    std::vector<unsigned int> sonsPos;
+    for (unsigned int i = 0; i < cells.size(); ++i)
+      sonsPos.push_back(cells[i].sonPos);
+    printLeftFirst[node->getId()] = sonsPos;
   }
 
   void printBPPNodeRec(bpp::Node *node,
       LabelConversion conversion,
       bool printBL,
-      std::map<unsigned int, bool> printLeftFirst,
+      std::map<unsigned int, std::vector<unsigned int> > &printLeftFirst,
       std::ostream &os)
   {
     if (node->isLeaf())
@@ -146,11 +158,12 @@ private:
       os << getBPPLabel(node, conversion);
     } else {
       os << "(";
-
-      bool leftFirst = printLeftFirst[node->getId()];
-      printBPPNodeRec(node->getSon(leftFirst ? 0 : 1), conversion, printBL, printLeftFirst, os);
-      os << ",";
-      printBPPNodeRec(node->getSon(!leftFirst ? 0 : 1), conversion, printBL, printLeftFirst, os);
+      std::vector<unsigned int> &sonsPos = printLeftFirst[node->getId()];
+      for (unsigned int i = 0; i < sonsPos.size(); ++i) {
+        printBPPNodeRec(node->getSon(sonsPos[i]), conversion, printBL, printLeftFirst, os);
+        if (i < sonsPos.size() - 1)
+          os << ",";
+      }
       os << ")";
     }
     if (printBL) {

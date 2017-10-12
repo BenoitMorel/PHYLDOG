@@ -486,8 +486,6 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     {
       if  (candidateScenarioLk >  scenarioLikelihood_)
       { //If it is worth computing the sequence likelihood
-                std::cout << "setAlternativeTree NNI 1" << std::endl;
-                levaluator_->applyNNI(nodeId, 0);
                 levaluator_->setAlternativeTree(treeForNNI);
 
         double tot = -( candidateScenarioLk + levaluator_->getAlternativeLogLikelihood() ) + ( getSequenceLikelihood() + scenarioLikelihood_ ) ;

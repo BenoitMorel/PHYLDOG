@@ -50,6 +50,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include<Bpp/Phyl/TreeTemplate.h>
 #include<Bpp/Phyl/Likelihood/NNIHomogeneousTreeLikelihood.h>
 
+#include "BenoitPrinter.h"
 //From the BOOST library //SHOULD BE CORRECTED 13062017  
 //#include <boost/mpi.hpp>
 //#include <boost/serialization/string.hpp>
@@ -281,10 +282,15 @@ public: //todobenoit private
   void utreeRealToStrict(pllmod_treeinfo_t *treeinfo);
   pll_unode_t * get_pll_utree_root(pll_utree_t * utree);
   pll_utree_t * create_utree();
-  void applyNNI(unsigned int nodeId, unsigned int type);
+  void applyNNI(bpp::Node *node, unsigned int type);
   void rollbackLastMove();
   pll_unode_t *getLibpllNode(unsigned int nodeId);
 
+  void build_node_map(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree);
+  std::map<int, int> bppIdToUtreeId;
+  std::map<vector<string>, int> strictLeavesToUtreeId;
+
+  BenoitPrinter printer;
   pllmod_treeinfo_t *currentTreeinfo;
   pll_utree_t *currentUtree;
   pll_tree_rollback_t rollbackInfo;

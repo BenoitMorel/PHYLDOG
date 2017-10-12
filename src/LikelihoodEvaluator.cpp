@@ -787,10 +787,10 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
     std::cout << "input tree = " << newickStingForLibpll.str() << std::endl;  
     std::cout << "currentTreeInfo = " << pll_utree_export_newick(currentTreeinfo->root, 0) << std::endl;  
   
-    std::cout << "benoitprinter treeinfo: " << printer.getTreeinfoString(currentTreeinfo) << std::endl;
-    std::cout << "benoitprinter bpp     : " << printer.getBPPNodeString(treeForPLL->getRootNode()) << std::endl;
-   }
- 
+    std::cout << "benoitprinter treeinfo: " << printer.getTreeinfoString(currentTreeinfo, NO_CONVERSION, true) << std::endl;
+    std::cout << "benoitprinter bpp     : " << printer.getBPPNodeString(treeForPLL->getRootNode(), NO_CONVERSION, true) << std::endl;
+  } 
+  
   // getting the new tree with new branch lengths
 
   

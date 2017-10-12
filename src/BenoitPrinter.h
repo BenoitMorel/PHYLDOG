@@ -178,7 +178,9 @@ private:
       os << ")";
     }
     if (printBL) {
-      os << ":" << node->getDistanceToFather();
+      if (node->hasDistanceToFather()) {
+        os << ":" << node->getDistanceToFather();
+      }
     }
   }
   

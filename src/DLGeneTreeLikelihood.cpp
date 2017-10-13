@@ -444,8 +444,8 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
        
     std::cout << "***************************************************************" << std::endl;
     std::cout << "***************************************************************" << std::endl;
-    std::cout << "bpp tree before NNI move around " << nodeId << std::endl;
-    std::cout << levaluator_->printer.getBPPNodeString((levaluator_->getTree())->getRootNode(), false, true, REAL_TO_STRICT) << std::endl;    
+    //std::cout << "bpp tree before NNI move around " << nodeId << std::endl;
+    //std::cout << levaluator_->printer.getBPPNodeString((levaluator_->getTree())->getRootNode(), false, true, REAL_TO_STRICT) << std::endl;    
 
 
 
@@ -484,10 +484,9 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     double candidateScenarioLk = 0;
     totalIterations_ = totalIterations_+1;
 
-    levaluator_->applyNNI(parentForNNI, grandFatherForNNI);
 
-    std::cout << "bpp tree after NNI move around  " << nodeId << std::endl;
-    std::cout << levaluator_->printer.getBPPNodeString(treeForNNI->getRootNode(), false, false, REAL_TO_STRICT) << std::endl;    
+  //  std::cout << "bpp tree after NNI move around  " << nodeId << std::endl;
+  //  std::cout << levaluator_->printer.getBPPNodeString(treeForNNI->getRootNode(), false, false, REAL_TO_STRICT) << std::endl;    
    
 
     
@@ -505,6 +504,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     {
       if  (candidateScenarioLk >  scenarioLikelihood_)
       { //If it is worth computing the sequence likelihood
+        levaluator_->applyNNI(parentForNNI, grandFatherForNNI, sonForNNI, uncleForNNI);
         levaluator_->setAlternativeTree(treeForNNI);
 
         double tot = -( candidateScenarioLk + levaluator_->getAlternativeLogLikelihood() ) + ( getSequenceLikelihood() + scenarioLikelihood_ ) ;
@@ -512,7 +512,11 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
 
         if (tot < 0)
         {
+          std::cout << "improvment" << std::endl;
           tentativeScenarioLikelihood_= candidateScenarioLk;
+        } else {
+          std::cout << "rollback" << std::endl;
+          levaluator_->rollbackLastMove();
         }
         return tot;
 

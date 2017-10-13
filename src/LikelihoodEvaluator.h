@@ -282,7 +282,8 @@ public: //todobenoit private
   void utreeRealToStrict(pllmod_treeinfo_t *treeinfo);
   pll_unode_t * get_pll_utree_root(pll_utree_t * utree);
   pll_utree_t * create_utree();
-  void applyNNI(bpp::Node *node1, bpp::Node *node2);
+  void applyNNI(bpp::Node *node1, bpp::Node *node2, 
+      bpp::Node *toMove1, bpp::Node *toMove2);
   void rollbackLastMove();
   pll_unode_t *getLibpllNode(unsigned int nodeId);
 

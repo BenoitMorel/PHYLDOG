@@ -289,7 +289,7 @@ public: //todobenoit private
   void build_node_map(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree);
   std::map<int, int> bppIdToUtreeId;
   std::map<vector<string>, int> strictLeavesToUtreeId;
-
+  unsigned int rootBPPId;
   BenoitPrinter printer;
   pllmod_treeinfo_t *currentTreeinfo;
   pll_utree_t *currentUtree;

@@ -487,8 +487,9 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     levaluator_->applyNNI(parentForNNI, grandFatherForNNI);
 
     std::cout << "bpp tree after NNI move around  " << nodeId << std::endl;
-    std::cout << levaluator_->printer.getBPPNodeString(treeForNNI->getRootNode(), false, true, REAL_TO_STRICT) << std::endl;    
-    
+    std::cout << levaluator_->printer.getBPPNodeString(treeForNNI->getRootNode(), false, false, REAL_TO_STRICT) << std::endl;    
+   
+
     
     std::cout << "***************************************************************" << std::endl;
     std::cout << "***************************************************************" << std::endl;

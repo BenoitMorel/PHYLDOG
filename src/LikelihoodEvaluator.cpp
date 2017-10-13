@@ -368,6 +368,7 @@ void LikelihoodEvaluator::build_node_map(pll_utree_t *utree, bpp::TreeTemplate< 
   std::cout << "PRINT BPP NODES" << std::endl;
   std::vector< bpp::Node * > nodes = bpptree->getNodes();
   std::map<vector<string>, int> bppLeavesToId;
+  unsigned int max_leaves = 0;
   for (unsigned int i = 0; i < nodes.size(); ++i) {
     std::cout << nodes[i]->getId() << " ";
     vector<string> bppLeaves = TreeTemplateTools::getLeavesNames(*nodes[i]);
@@ -376,7 +377,10 @@ void LikelihoodEvaluator::build_node_map(pll_utree_t *utree, bpp::TreeTemplate< 
     }
     std::sort(bppLeaves.begin(), bppLeaves.end());
     bppLeavesToId[bppLeaves] = nodes[i]->getId();
-    print_v<string>(bppLeaves); 
+    if (bppLeaves.size() > max_leaves) {
+      max_leaves = bppLeaves.size();
+      rootBPPId = nodes[i]->getId();
+    }
   }
  
   std::cout << "PRINT UTREE NODES" << std::endl;
@@ -389,9 +393,6 @@ void LikelihoodEvaluator::build_node_map(pll_utree_t *utree, bpp::TreeTemplate< 
     fill_leaves_rec(node, leaves);
     std::sort(leaves.begin(), leaves.end());
     std::cout << node->node_index  << " " ;
-    print_v<string>(leaves); 
-    bppIdToUtreeId[bppLeavesToId[leaves]] = i;
-    strictLeavesToUtreeId[leaves] = i;
     std::cout << "Mapping bpp " << bppLeavesToId[leaves] << " to libpll " << i << std::endl;
     LibpllNodeProperty prop(i);
     bpptree->getNode(bppLeavesToId[leaves])->setNodeProperty("libpll", prop);
@@ -648,7 +649,12 @@ pll_unode_t *LikelihoodEvaluator::getLibpllNode(unsigned int nodeId)
 
 void LikelihoodEvaluator::applyNNI(bpp::Node *node1, bpp::Node *node2)
 {
-  std::cout << "apply NNI" << std::endl;
+  if (node1->getId() == rootBPPId || node2->getId() == rootBPPId) {
+    std::cout << "applyNNI: root case not implemented " << std::endl;
+    return;
+  }
+  std::cout << "pll tree beforee NNI move around  " << std::endl;
+  std::cout << printer.getTreeinfoString(currentTreeinfo, false, false, NO_CONVERSION) << std::endl;    
   LibpllNodeProperty *prop1 = 0;// dynamic_cast<LibpllNodeProperty *>(node1->getNodeProperty("libpll"));
   LibpllNodeProperty *prop2 = 0;//dynamic_cast<LibpllNodeProperty *>(node2->getNodeProperty("libpll"));
   try {
@@ -656,23 +662,48 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *node1, bpp::Node *node2)
     prop2 = dynamic_cast<LibpllNodeProperty *>(node2->getNodeProperty("libpll"));
   } catch (Exception e) {
     std::cout << "EXCEPTION " << std::endl;
+    return;
   }
-  std::cout << " new libpllid1 " << prop1 << std::endl;
   std::cout << " new libpllid1 " << prop1->id << std::endl;
-  std::cout << " new libpllid2 " << prop2 << std::endl;
   std::cout << " new libpllid2 " << prop2->id << std::endl;
-
+  
 
   pll_unode_t *n1 = currentUtree->nodes[prop1->id];
   pll_unode_t *n2 = currentUtree->nodes[prop2->id];
   
-  std::cout << printer.getTreeinfoString(currentTreeinfo, false, true)  << std::endl;
-  std::cout << n1 << " " << n1->next << std::endl;
-  std::cout << n2 << " " << n2->next << std::endl;
+  //&std::cout << printer.getTreeinfoString(currentTreeinfo, false, true)  << std::endl;
+  //std::cout << n1 << " " << n1->next << std::endl;
+  //std::cout << n2 << " " << n2->next << std::endl;
   
-  std::cout << n1 << " " << n1->back << " " << n1->next->back << " " << n1->next->next->back << std::endl;
-  std::cout << n2 << " " << n2->back << " " << n2->next->back << " " << n2->next->next->back << std::endl;
+ // std::cout << n1 << " " << n1->back << " " << n1->next->back << " " << n1->next->next->back << std::endl;
+  //std::cout << n2 << " " << n2->back << " " << n2->next->back << " " << n2->next->next->back << std::endl;
 
+
+  pll_unode_t *edge = 0;
+  if (n1 == n2->back || n1 == n2->next->back || n1 == n2->next->next->back)
+    edge = n1;
+  else if (n2 == n1->back || n2 == n1->next->back || n2 == n1->next->next->back)
+    edge = n2;
+  else {
+    std::cout << "Impossible to find the good NNI move" << std::endl;
+  }
+  if (!pllmod_utree_nni(edge, PLL_UTREE_MOVE_NNI_LEFT, &rollbackInfo)) {
+    std::cout << "failed applying nni : " << pll_errmsg << std::endl;
+  }
+  std::cout << rollbackInfo.NNI.edge << std::endl;
+  std::cout << ((pll_unode_t*)rollbackInfo.NNI.edge)->back << std::endl;
+  std::cout << "pll tree after NNI left move around  " << std::endl;
+  std::cout << printer.getTreeinfoString(currentTreeinfo, false, false, NO_CONVERSION) << std::endl;    
+
+  rollbackLastMove();
+  std::cout << "pll tree after rollback  " << std::endl;
+  std::cout << printer.getTreeinfoString(currentTreeinfo, false, false, NO_CONVERSION) << std::endl;    
+  
+  if (!pllmod_utree_nni(edge, PLL_UTREE_MOVE_NNI_RIGHT, &rollbackInfo)) {
+    std::cout << "failed applying nni : " << pll_errmsg << std::endl;
+  }
+  std::cout << "pll tree after NNI right move around  " << std::endl;
+  std::cout << printer.getTreeinfoString(currentTreeinfo, false, false, NO_CONVERSION) << std::endl;    
 }
 
 /*
@@ -698,7 +729,9 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *node, unsigned int type)
 void LikelihoodEvaluator::rollbackLastMove()
 {
   std::cout << "rollback..." << std::endl;
-  
+  std::cout << pll_errmsg << std::endl; 
+  std::cout << rollbackInfo.NNI.edge << std::endl;
+  std::cout << ((pll_unode_t*)rollbackInfo.NNI.edge)->back << std::endl;
   if (PLL_SUCCESS != pllmod_tree_rollback(&rollbackInfo)) {
     std::cout << "APPLY NNI FAILED" << std::endl;
   }

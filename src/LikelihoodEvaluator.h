@@ -282,14 +282,13 @@ public: //todobenoit private
   void utreeRealToStrict(pllmod_treeinfo_t *treeinfo);
   pll_unode_t * get_pll_utree_root(pll_utree_t * utree);
   pll_utree_t * create_utree();
-  void applyNNI(bpp::Node *node1, bpp::Node *node2, 
-      bpp::Node *toMove1, bpp::Node *toMove2);
+  void applyNNI(bpp::Node *bppParent, 
+    bpp::Node *bppGrandParent,
+    bpp::Node *bppSon, bpp::Node *bppUncle);
   void rollbackLastMove();
-  pll_unode_t *getLibpllNode(unsigned int nodeId);
+  pll_unode_t *getLibpllNode(bpp::Node *node);
 
-  void build_node_map(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree);
-  std::map<int, int> bppIdToUtreeId;
-  std::map<vector<string>, int> strictLeavesToUtreeId;
+  void mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree);
   unsigned int rootBPPId;
   BenoitPrinter printer;
   pllmod_treeinfo_t *currentTreeinfo;

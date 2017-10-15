@@ -444,10 +444,6 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
        
     std::cout << "***************************************************************" << std::endl;
     std::cout << "***************************************************************" << std::endl;
-    //std::cout << "bpp tree before NNI move around " << nodeId << std::endl;
-    //std::cout << levaluator_->printer.getBPPNodeString((levaluator_->getTree())->getRootNode(), false, true, REAL_TO_STRICT) << std::endl;    
-
-
 
     if(!son->hasFather()) throw NodeException("DLGeneTreeLikelihood::testNNI(). Node 'son' must not be the root node.", nodeId);
     const Node * parent = son->getFather();
@@ -464,10 +460,10 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     Node * parentForNNI = sonForNNI->getFather();
     Node * grandFatherForNNI = parentForNNI->getFather();
     Node * uncleForNNI = grandFatherForNNI->getSon(parentPosition > 1 ? 0 : 1 - parentPosition);
-    std::cout << "son " << sonForNNI->getId() << std::endl;
-    std::cout << "parent " << parentForNNI->getId() << std::endl;
-    std::cout << "grand parent " << grandFatherForNNI->getId() << std::endl;
-    std::cout << "uncle " << uncleForNNI->getId() << std::endl;
+    //std::cout << "son " << sonForNNI->getId() << std::endl;
+    //std::cout << "parent " << parentForNNI->getId() << std::endl;
+    //std::cout << "grand parent " << grandFatherForNNI->getId() << std::endl;
+    //std::cout << "uncle " << uncleForNNI->getId() << std::endl;
     parentForNNI->removeSon(sonForNNI);
     grandFatherForNNI->removeSon(uncleForNNI);
     parentForNNI->addSon(uncleForNNI);
@@ -490,9 +486,8 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
    
 
     
-    std::cout << "***************************************************************" << std::endl;
-    std::cout << "***************************************************************" << std::endl;
-
+        levaluator_->applyNNI(parentForNNI, grandFatherForNNI, sonForNNI, uncleForNNI);
+        levaluator_->rollbackLastMove();
     candidateScenarioLk =  findMLReconciliationDR (spTree_, treeForNNI/*&rootedTree_*/,
 					       seqSp_, spId_,
 					       lossExpectedNumbers_, duplicationExpectedNumbers_,
@@ -515,7 +510,6 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
           std::cout << "improvment" << std::endl;
           tentativeScenarioLikelihood_= candidateScenarioLk;
         } else {
-          std::cout << "rollback" << std::endl;
           levaluator_->rollbackLastMove();
         }
         return tot;
@@ -1391,7 +1385,7 @@ void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsign
   }
   bool test = true;
   std::cout << "benoit hack build node map " << std::endl;
-  levaluator_->build_node_map(levaluator_->currentUtree, levaluator_->getTree());
+  levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, levaluator_->getTree());
   do
   {
     TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();

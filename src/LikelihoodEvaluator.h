@@ -272,10 +272,18 @@ private:
   void initialize_PLL();
  
 public: //todobenoit private
+
+  struct rollback_nni_root_t{
+    pll_unode_t *edge;
+    pll_unode_t *son;
+    double t1;
+    double t2;
+  };
   /**
   * Initialize libpll2 with the right data
   */
   pllmod_treeinfo_t * build_treeinfo();
+  void reset_libpll_tree();
   void optimize_treeinfo(pllmod_treeinfo_t *treeinfo);
   double optimize_treeinfo_iter(pllmod_treeinfo_t *treeinfo);
   double get_likelihood_treeinfo(pllmod_treeinfo_t *treeinfo);
@@ -285,8 +293,13 @@ public: //todobenoit private
   void applyNNI(bpp::Node *bppParent, 
     bpp::Node *bppGrandParent,
     bpp::Node *bppSon, bpp::Node *bppUncle);
+  void applyNNIRoot(bpp::Node *bppParent, 
+    bpp::Node *bppGrandParent,
+    bpp::Node *bppSon, bpp::Node *bppUncle);
   void rollbackLastMove();
   pll_unode_t *getLibpllNode(bpp::Node *node);
+  void destroy_treeinfo();
+
 
   void mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree);
   unsigned int rootBPPId;
@@ -294,6 +307,7 @@ public: //todobenoit private
   pllmod_treeinfo_t *currentTreeinfo;
   pll_utree_t *currentUtree;
   pll_tree_rollback_t rollbackInfo;
+  rollback_nni_root_t rollbackRootInfo;
 private: 
 
   /**

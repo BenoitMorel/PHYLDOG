@@ -446,6 +446,7 @@ double COALGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
       { //If it is worth computing the sequence likelihood
         //Retrieving arrays of interest:
         
+        std::cout << "COAL setAlternativeTree" << std::endl;
         levaluator_->setAlternativeTree(treeForNNI);             
         double newLkMinusOldLk = levaluator_->getAlternativeLogLikelihood() -   getSequenceLikelihood();
         
@@ -703,6 +704,7 @@ void COALGeneTreeLikelihood::refineGeneTreeSPRsFast (map<string, string> params)
           {
             
             if (computeSequenceLikelihoodForSPR) {
+              std::cout << "COAL setAlternativeTree 2" << std::endl;
               levaluator_->setAlternativeTree ( treeForSPR );
               logL = candidateScenarioLk - levaluator_->getAlternativeLogLikelihood();
             }

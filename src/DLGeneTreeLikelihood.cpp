@@ -451,6 +451,9 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     if(!parent->hasFather()) throw NodeException("DLGeneTreeLikelihood::testNNI(). Node 'parent' must not be the root node.", parent->getId());
     const Node * grandFather = parent->getFather();
 
+
+    //std::cout << "BPP tree before: " << levaluator_->printer.getBPPNodeString(treeForNNI->getRootNode(), true, false) << std::endl;
+
     //From here: Bifurcation assumed.
     //In case of multifurcation, an arbitrary uncle is chosen.
     //If we are at root node with a trifurcation, this does not matter, since 2 NNI are possible (see doc of the NNISearchable interface).
@@ -469,6 +472,8 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     parentForNNI->addSon(uncleForNNI);
     grandFatherForNNI->addSon(sonForNNI);
     
+    //std::cout << "BPP tree after : " << levaluator_->printer.getBPPNodeString(treeForNNI->getRootNode(), true, false) << std::endl;
+    
     //Now we root the tree sent to findMLReconciliation as in rootedTree_
     int id = treeForNNI->getRootNode()->getId();
     if(TreeTemplateTools::hasNodeWithId(*(rootedTree_->getRootNode()->getSon(0)),id)) {
@@ -480,15 +485,15 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     double candidateScenarioLk = 0;
     totalIterations_ = totalIterations_+1;
 
+    //std::cout << "BPP tree plop  : " << levaluator_->printer.getBPPNodeString(treeForNNI->getRootNode(), true, false) << std::endl;
 
-  //  std::cout << "bpp tree after NNI move around  " << nodeId << std::endl;
-  //  std::cout << levaluator_->printer.getBPPNodeString(treeForNNI->getRootNode(), false, false, REAL_TO_STRICT) << std::endl;    
-   
-
-    
+   /* 
         levaluator_->applyNNI(parentForNNI, grandFatherForNNI, sonForNNI, uncleForNNI);
+        levaluator_->setAlternativeTree(treeForNNI);
         levaluator_->rollbackLastMove();
-    candidateScenarioLk =  findMLReconciliationDR (spTree_, treeForNNI/*&rootedTree_*/,
+    
+        */
+      candidateScenarioLk =  findMLReconciliationDR (spTree_, treeForNNI/*&rootedTree_*/,
 					       seqSp_, spId_,
 					       lossExpectedNumbers_, duplicationExpectedNumbers_,
 					       tentativeMLindex_,
@@ -500,6 +505,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
       if  (candidateScenarioLk >  scenarioLikelihood_)
       { //If it is worth computing the sequence likelihood
         levaluator_->applyNNI(parentForNNI, grandFatherForNNI, sonForNNI, uncleForNNI);
+        std::cout << "set alternative tree from testNNI" << std::endl;
         levaluator_->setAlternativeTree(treeForNNI);
 
         double tot = -( candidateScenarioLk + levaluator_->getAlternativeLogLikelihood() ) + ( getSequenceLikelihood() + scenarioLikelihood_ ) ;
@@ -1375,7 +1381,6 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
  ************************************************************************/
 void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsigned int verbose ) {
   WHEREAMI( __FILE__ , __LINE__ );
-
   double startingTime = 0;
 
   if (ApplicationTools::getBooleanParameter("optimization.topology", params, true, "", false, false) == false ) {
@@ -1383,8 +1388,9 @@ void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsign
     computeReconciliationLikelihood();
     return;
   }
+  std::cout << "** DLGeneTreeLikelihood::refineGeneTreeNNIs" << std::endl;
   bool test = true;
-  std::cout << "benoit hack build node map " << std::endl;
+  
   levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, levaluator_->getTree());
   do
   {

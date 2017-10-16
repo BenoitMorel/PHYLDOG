@@ -411,6 +411,7 @@ GeneTreeLikelihood & GeneTreeLikelihood::operator=(const GeneTreeLikelihood & li
 
 void GeneTreeLikelihood::setGeneTree(TreeTemplate<Node>* tree, TreeTemplate<Node>* rootedTree) {
   WHEREAMI( __FILE__ , __LINE__ );
+  std::cout << "** GeneTreeLikelihood::setGeneTree" << std::endl;
   if (rootedTree_) delete rootedTree_;
   rootedTree_= dynamic_cast<TreeTemplate<Node> *> (rootedTree->clone());
   //recreating geneTreeWithSpNames_
@@ -421,8 +422,12 @@ void GeneTreeLikelihood::setGeneTree(TreeTemplate<Node>* tree, TreeTemplate<Node
 	  {
 	    leaves[j]->setName(seqSp_.at(leaves[j]->getName()));
 	  }
+  levaluator_->reset_libpll_tree();
 	levaluator_->setAlternativeTree(rootedTree);
   levaluator_->acceptAlternativeTree();
+  // todobenoit: are the both necessary?
+  levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, rootedTree);
+  levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, tree);
 }
 
 void GeneTreeLikelihood::unload(){

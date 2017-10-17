@@ -426,8 +426,8 @@ void GeneTreeLikelihood::setGeneTree(TreeTemplate<Node>* tree, TreeTemplate<Node
 	levaluator_->setAlternativeTree(rootedTree);
   levaluator_->acceptAlternativeTree();
   // todobenoit: are the both necessary?
-  levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, rootedTree);
-  levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, tree);
+  levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, rootedTree, false);
+  levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, tree, false);
 }
 
 void GeneTreeLikelihood::unload(){

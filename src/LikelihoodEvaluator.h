@@ -292,22 +292,24 @@ public: //todobenoit private
   pll_utree_t * create_utree();
   void applyNNI(bpp::Node *bppParent, 
     bpp::Node *bppGrandParent,
-    bpp::Node *bppSon, bpp::Node *bppUncle);
+    bpp::Node *bppSon, bpp::Node *bppUncle,
+    bpp::Node *bppRoot);
   void applyNNIRoot(bpp::Node *bppParent, 
     bpp::Node *bppGrandParent,
     bpp::Node *bppSon, bpp::Node *bppUncle);
   void rollbackLastMove();
   pll_unode_t *getLibpllNode(bpp::Node *node);
   void destroy_treeinfo();
+  double libpll_evaluate();
 
 
-  void mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree);
-  unsigned int rootBPPId;
+  void mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree, bool bppStrict);
   BenoitPrinter printer;
   pllmod_treeinfo_t *currentTreeinfo;
   pll_utree_t *currentUtree;
   pll_tree_rollback_t rollbackInfo;
   rollback_nni_root_t rollbackRootInfo;
+  unsigned int movesNumber;
 private: 
 
   /**

@@ -172,6 +172,7 @@ int main(int args, char ** argv)
     exit(-1);
   }
 
+  srand(42);
 
   try {
     ApplicationTools::startTimer();

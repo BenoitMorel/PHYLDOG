@@ -366,23 +366,26 @@ void fill_leaves_rec(pll_unode_t *node, vector<string> &leaves)
   }
 }
 
-void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree)
+void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree, bool bppStrict)
 {
+  if (!hackmode) {
+    return;
+  }
   std::cout << "** LikelihoodEvaluator::mapUtreeToBPPTree" << std::endl;
   std::vector< bpp::Node * > nodes = bpptree->getNodes();
   std::map<vector<string>, int> bppLeavesToId;
-  unsigned int max_leaves = 0;
   for (unsigned int i = 0; i < nodes.size(); ++i) {
     vector<string> bppLeaves = TreeTemplateTools::getLeavesNames(*nodes[i]);
     for (unsigned int j = 0; j < bppLeaves.size(); ++j) {
-      bppLeaves[j] = realToStrict[bppLeaves[j]];
+      if (!bppStrict) {
+        bppLeaves[j] = realToStrict[bppLeaves[j]];
+      }
+      if (!bppLeaves.size()) {
+          std::cout << "invalid conv in mapfct" << std::endl;
+      }
     }
     std::sort(bppLeaves.begin(), bppLeaves.end());
     bppLeavesToId[bppLeaves] = nodes[i]->getId();
-    if (bppLeaves.size() > max_leaves) {
-      max_leaves = bppLeaves.size();
-      rootBPPId = nodes[i]->getId(); // hack
-    }
   }
 
   for (unsigned int i = 0; i < utree->tip_count + utree->inner_count; ++i) {
@@ -390,6 +393,12 @@ void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplat
     vector<string> leaves;
     fill_leaves_rec(node, leaves);
     std::sort(leaves.begin(), leaves.end());
+    if (!bppLeavesToId[leaves]) {
+      //std::cout << "null mapping, trying the other side!" << std::endl;
+      leaves.clear();
+      fill_leaves_rec(node->back, leaves);
+      std::sort(leaves.begin(), leaves.end());
+    }
     LibpllNodeProperty prop(i);
     bpptree->getNode(bppLeavesToId[leaves])->setNodeProperty("libpll", prop);
   }
@@ -397,7 +406,11 @@ void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplat
 
 void LikelihoodEvaluator::reset_libpll_tree()
 {
+  if (!hackmode) {
+    return;
+  }
   destroy_treeinfo();
+  movesNumber = 0;
 }
 
 void LikelihoodEvaluator::destroy_treeinfo()
@@ -420,6 +433,9 @@ void LikelihoodEvaluator::destroy_treeinfo()
 
 pllmod_treeinfo_t * LikelihoodEvaluator::build_treeinfo()
 {
+  if (!hackmode) {
+    return 0;
+  }
   std::cout << "** LikelihoodEvaluator::build_treeinfo" << std::endl;
 
   pInfo *oldPartition = PLL_partitions->partitionData[0];
@@ -610,6 +626,10 @@ void LikelihoodEvaluator::initialize_PLL()
 {
   WHEREAMI( __FILE__ , __LINE__ );
 
+  std::cout << "** LikelihoodEvaluator::initialize_PLL" << std::endl;
+
+  std::cout << "init " << this << std::endl;
+  std::cout << "load " << fileNamePrefix << std::endl;
   // #1 PREPARING
   // must have the strict names loaded
   loadStrictNamesFromAlignment_forPLL();
@@ -669,6 +689,19 @@ bool areEquals(pll_unode_t *n1, pll_unode_t *n2)
     return n1 == n2;
 }
 
+// returns the branch between n1 and n2 with the same index as n2
+pll_unode_t *get_branch(pll_unode_t *n1, pll_unode_t *n2) {
+  if (areEquals(n2->back, n1))   {
+    return n2;
+  }  else if (areEquals(n2->next->back, n1)) {
+    return n2->next;
+  }  else if (areEquals(n2->next->next->back, n1)) {
+    return n2->next->next;
+  }  else {
+    return 0;
+  }
+}
+
 void LikelihoodEvaluator::applyNNIRoot(bpp::Node *bppParent,
   bpp::Node *bppGrandParent,
   bpp::Node *bppSon, bpp::Node *bppUncle)
@@ -684,13 +717,9 @@ void LikelihoodEvaluator::applyNNIRoot(bpp::Node *bppParent,
     std::cout << "Exception ! " << e.what()<< std::endl;
     return;
   }
-  pll_unode_t *edge = 0;
-  if (areEquals(parent->back, uncle))   {
-    edge = parent;
-  }  else if (areEquals(parent, uncle->back)) {
-    edge = uncle->back;
-  }  else {
-    std::cout << "Impossible to find the good NNI move" << std::endl;
+  pll_unode_t *edge = get_branch(uncle, parent);
+  if (!edge) {
+    std::cout << "LikelihoodEvaluator::applyNNIRoot: Impossible to find the good NNI move" << std::endl;
     return;
   }
   if (areEquals(edge->next->back, son)) {
@@ -710,24 +739,26 @@ void LikelihoodEvaluator::applyNNIRoot(bpp::Node *bppParent,
   pllmod_utree_set_length(edge, t1/2.0);
 }
 
+
 void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent, 
     bpp::Node *bppGrandParent,
-    bpp::Node *bppSon, bpp::Node *bppUncle)
+    bpp::Node *bppSon, bpp::Node *bppUncle,
+    bpp::Node *bppRoot)
 {
+  if (!hackmode) {
+    return;
+  }
   std::cout << "** LikelihoodEvaluator::applyNNI" << std::endl;
-  std::cout << bppParent << " " << bppGrandParent << " " << bppSon << " " << bppUncle << std::endl;
-  std::cout << bppParent->getId() << std::endl;
-  std::cout << bppGrandParent->getId() << std::endl;
-  std::cout << bppSon->getId() << std::endl;
-  std::cout << bppUncle->getId() << std::endl;
-  if (bppParent->getId() == rootBPPId ||
-      bppGrandParent->getId() == rootBPPId) {
-    if (bppGrandParent->getId() == rootBPPId) {
+  movesNumber++;
+  std::cout << "moves: " << movesNumber << " " << fileNamePrefix << std::endl;
+  if (bppParent->getId() == bppRoot->getId() ||
+      bppGrandParent->getId() == bppRoot->getId()) {
+    if (bppGrandParent->getId() == bppRoot->getId()) {
       applyNNIRoot(bppParent, bppGrandParent, bppSon,bppUncle);
       return;
     }
     std::cout << "applyNNI: todobenoit: implement this case (root == parent)" << std::endl;
-    std::cout << rootBPPId << " " << bppParent->getId() << " " << bppGrandParent->getId()  << std::endl;
+    std::cout << bppRoot->getId() << " " << bppParent->getId() << " " << bppGrandParent->getId()  << std::endl;
     rollbackInfo.NNI.edge = 0;
     return;
   }
@@ -742,13 +773,9 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
     std::cout << "Exception ! " << e.what()<< std::endl;
     return;
   }
-  pll_unode_t *edge = 0;
-  if (areEquals(parent->back, grandParent))   {
-    edge = parent;
-  }  else if (areEquals(parent, grandParent->back)) {
-    edge = grandParent->back;
-  }  else {
-    std::cout << "Impossible to find the good NNI move" << std::endl;
+  pll_unode_t *edge = get_branch(grandParent, parent);
+  if (!edge) { 
+    std::cout << "LikelihoodEvaluator::applyNNI: Impossible to find the good NNI move" << std::endl;
     return;
   }
  
@@ -764,7 +791,11 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
 
 void LikelihoodEvaluator::rollbackLastMove()
 {
+  if (!hackmode) {
+    return;
+  }
   std::cout << "** LikelihoodEvaluator::rollbackLastMove" << std::endl;
+  movesNumber--;
   if (rollbackRootInfo.edge) {
     pllmod_utree_set_length(rollbackRootInfo.edge, rollbackRootInfo.t1);
     pllmod_utree_set_length(rollbackRootInfo.son, rollbackRootInfo.t2);
@@ -813,8 +844,6 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
   Newick newickForLibpll;
   stringstream newickStingForLibpll;
   newickForLibpll.write(**treeToEvaluate,newickStingForLibpll); 
-  
-  std::cout << "tree to evaluate " << newickStingForLibpll.str() << std::endl;
   
   convertTreeToStrict(treeForPLL);
 
@@ -877,29 +906,28 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
     std::cout << "PLL optimized tree: " << newickStingForPll.str() << std::endl;
   } 
   if (hackmode == 1) { // libpll mode but full reoptimization
-    // TODO benoit, return the branch lengths
-    pllmod_treeinfo_t *treeinfo = build_treeinfo();
+    if (!currentTreeinfo) {
+      currentTreeinfo = build_treeinfo();
+      utreeRealToStrict(currentTreeinfo);
+      mapUtreeToBPPTree(currentUtree, treeForPLL, true);
+      optimize_treeinfo(currentTreeinfo); 
+    } 
     
-    
-    result_ll = get_likelihood_treeinfo(treeinfo);
+    result_ll = get_likelihood_treeinfo(currentTreeinfo);
     std::cout << "libpll ll before opt = " << result_ll << std::endl;
-    optimize_treeinfo(treeinfo); 
-    result_ll = get_likelihood_treeinfo(treeinfo);
+    result_ll = get_likelihood_treeinfo(currentTreeinfo);
     std::cout << "libpll ll after  opt = " << result_ll << std::endl;
 
-    utreeRealToStrict(treeinfo);
-    newickStr = pll_utree_export_newick(treeinfo->root, 0);
+    newickStr = pll_utree_export_newick(currentTreeinfo->root, 0);
     newickStingForPll.str(newickStr);
     
-    pllmod_treeinfo_destroy_partition(treeinfo, 0);
-    pllmod_treeinfo_destroy(treeinfo);
     std::cout << "libpll optimized tree: " << newickStingForPll.str() << std::endl;
   }
   if (hackmode == 2) { //  experimentation
     if (!currentTreeinfo) {
       currentTreeinfo = build_treeinfo();
       utreeRealToStrict(currentTreeinfo);
-      mapUtreeToBPPTree(currentUtree, treeForPLL);
+      mapUtreeToBPPTree(currentUtree, treeForPLL, true);
     }
     double llPLL = PLL_instance->likelihood;
     double llLibpll = get_likelihood_treeinfo(currentTreeinfo);
@@ -908,8 +936,8 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
     if (fabs(llPLL - llLibpll) > 0.01) {
       std::cout << "Error: different likelihoods" << std::endl;
     }
-    std::cout << "benoitprinter treeinfo: " << printer.getTreeinfoString(currentTreeinfo, false, true) << std::endl;
-    std::cout << "benoitprinter bpp     : " << printer.getBPPNodeString(treeForPLL->getRootNode(), false, true) << std::endl;
+    //std::cout << "benoitprinter treeinfo: " << printer.getTreeinfoString(currentTreeinfo, false, true) << std::endl;
+    //std::cout << "benoitprinter bpp     : " << printer.getBPPNodeString(treeForPLL->getRootNode(), false, true) << std::endl;
     result_ll = PLL_instance->likelihood;
     pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);
     newickStingForPll.str(PLL_instance->tree_string);
@@ -1084,10 +1112,13 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
 
 void LikelihoodEvaluator::unload()
 {
+  std::cout << "**LikelihoodEvaluator::unload" << std::endl;
   if(!initialized)
     return;
   initialized = false;
   if(method == PLL){
+    initialized = true;
+    return;
     if(pll_model_already_initialized_){
       pllAlignmentDataDestroy(PLL_alignmentData);
       pllPartitionsDestroy(PLL_instance, &PLL_partitions);

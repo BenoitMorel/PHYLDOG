@@ -77,6 +77,7 @@ levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(
 params_(params), considerSequenceLikelihood_(true)
 {
   WHEREAMI( __FILE__ , __LINE__ );
+  valid = true;
   totalIterations_ = 0;
   counter_ = 0;
   spTree_ = spTree.clone();
@@ -102,14 +103,20 @@ params_(params), considerSequenceLikelihood_(true)
   bool cont = true;
   //method to optimize the gene tree root.
   bool rootOptimization = false;
-  if (!cont)
-      throw(Exception("Unable to load this family"));
+  if (!cont) {
+    std::cerr << "Unable to load this family. Hacked Exception (todobenoit)" << std::endl;
+    valid = false;
+    return;
+  }
 
   std::map<std::string, std::deque<std::string> > spSeq;
   getCorrespondanceSequenceSpeciesFromOptions(params_, cont, seqSp_, spSeq );
 
-  if (!cont)
-    throw(Exception("Unable to load this family"));
+  if (!cont){
+    std::cerr << "Unable to load this family. Hacked Exception (todobenoit)" << std::endl;
+    valid = false;
+    return;
+  }
   removeUselessSequencesFromAlignment( spTree_, levaluator_->getSites(), cont , spSeq, file) ;
 
   if (cont) {
@@ -228,7 +235,10 @@ params_(params), considerSequenceLikelihood_(true)
   }
   else
   {
-    throw geneTreeLikelihoodEx;
+    std::cerr <<  ". Hacked Exception (todobenoit)" << std::endl;
+    valid = false;
+    return;
+    //throw geneTreeLikelihoodEx;
   }
 
 

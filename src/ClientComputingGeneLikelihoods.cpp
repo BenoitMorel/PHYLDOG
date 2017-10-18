@@ -238,6 +238,13 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
         numDeletedFamilies_ = numDeletedFamilies_ +1;
         avoidedFamilyIds.push_back(i);
       }
+      if (!tl->valid) {
+        std::cout << "hacked exception (todobenoit)" << std::endl;
+        avoidFamily = true;
+        numDeletedFamilies_ = numDeletedFamilies_ +1;
+        avoidedFamilyIds.push_back(i);
+        tl = 0;
+      }
     }
     else if (reconciliationModel_ == "COAL")
     {

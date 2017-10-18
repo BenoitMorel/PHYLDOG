@@ -81,6 +81,8 @@ namespace mpi = boost::mpi;
  */
 class GeneTreeLikelihood
 {
+public:
+  bool valid;
 protected:
   /***
    * The new implementation of a likelihood estimator

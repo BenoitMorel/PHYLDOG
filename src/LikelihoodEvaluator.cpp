@@ -112,7 +112,6 @@ class LibpllNodeProperty: public Clonable {
 void LikelihoodEvaluator::PLL_initializePLLInstance(){
   WHEREAMI( __FILE__ , __LINE__ );
   /* Set the PLL instance attributes */
-  std::cout << "yoyorm hackmode = " << hackmode << std::endl;
   PLL_attributes.rateHetModel     = PLL_GAMMA;
   PLL_attributes.fastScaling      = PLL_TRUE;
   PLL_attributes.saveMemory       = PLL_FALSE;
@@ -130,6 +129,7 @@ LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
   WHEREAMI( __FILE__ , __LINE__ );
   loadDataFromParams();
   tolerance_ = 0.5;
+  movesNumber = 0;
 }
 
 void LikelihoodEvaluator::loadDataFromParams(){
@@ -272,6 +272,8 @@ void LikelihoodEvaluator::PLL_loadPartitions(string path)
 void LikelihoodEvaluator::PLL_connectTreeAndAlignment()
 {
   WHEREAMI( __FILE__ , __LINE__ );
+  std::cout << "** LikelihoodEvaluator::PLL_connectTreeAndAlignment " << std::endl;
+  
   pllTreeInitTopologyNewick (PLL_instance, PLL_newick, PLL_FALSE);
   WHEREAMI( __FILE__ , __LINE__ );
 
@@ -291,6 +293,7 @@ void LikelihoodEvaluator::PLL_connectTreeAndAlignment()
 void LikelihoodEvaluator::initialize_BPP_nniLk()
 {
   WHEREAMI( __FILE__ , __LINE__ );
+  std::cout << "** LikelihoodEvaluator::initialize_BPP_nniLk " << std::endl;
   nniLk = new NNIHomogeneousTreeLikelihood(*tree, *sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
 
   nniLk->initParameters();
@@ -410,7 +413,6 @@ void LikelihoodEvaluator::reset_libpll_tree()
     return;
   }
   destroy_treeinfo();
-  movesNumber = 0;
 }
 
 void LikelihoodEvaluator::destroy_treeinfo()
@@ -666,6 +668,8 @@ void LikelihoodEvaluator::initialize_PLL()
 void LikelihoodEvaluator::setTree(TreeTemplate<Node> * newTree)
 {
   WHEREAMI( __FILE__ , __LINE__ );
+  std::cout << "LikelihoodEvaluator::setTree" << std::endl;
+  std::cout << newTree << " " << printer.getBPPNodeString(newTree->getRootNode(), true, true) << std::endl;
   if(!isInitialized()){
     if(tree)
       delete tree;
@@ -1117,9 +1121,10 @@ void LikelihoodEvaluator::unload()
     return;
   initialized = false;
   if(method == PLL){
-    initialized = true;
-    return;
+    //initialized = true;
+    //return;
     if(pll_model_already_initialized_){
+      std::cout << "destroying PLL stuff" << std::endl;
       pllAlignmentDataDestroy(PLL_alignmentData);
       pllPartitionsDestroy(PLL_instance, &PLL_partitions);
       pllDestroyInstance(PLL_instance);
@@ -1151,6 +1156,7 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
 void LikelihoodEvaluator::initialize()
 {
   WHEREAMI( __FILE__ , __LINE__ );
+  std::cout << "LikelihoodEvaluator::initialize" << std::endl;
   if(initialized)
     return;
   //checking the alignment and the tree contain the same number of sequences

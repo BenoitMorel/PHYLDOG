@@ -496,6 +496,8 @@ void MPI_SpeciesTreeLikelihood::parseOptions()
   //Current step: information to give when the run is stopped for timing reasons,
   //or to get if given.
   currentStep_ = ApplicationTools::getIntParameter("current.step",params_,0);
+        std::cout << "NEW STEP " << currentStep_ << std::endl;
+        ApplicationTools::displayTime("Execution time");
   if (currentStep_ >= 3 && optimizeSpeciesTreeTopology_) {
     std::cout<<"Reading previous topology likelihoods"<<std::endl;
     inputNNIAndRootLks(NNILks_, rootLks_, params_, suffix_);
@@ -616,6 +618,8 @@ void MPI_SpeciesTreeLikelihood::MLSearch()
     MLSearchButNotOptimizeTopology();
 	  //    noMoreSPR=true;
     currentStep_ = 4;
+    std::cout << "NEW STEP 4" << std::endl;
+        ApplicationTools::displayTime("Execution time");
   }
 }
 
@@ -679,10 +683,14 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
         ApplicationTools::displayTime("Execution time so far:");
         if (branchExpectedNumbersOptimization_ != "no") {
           currentStep_ = 1;
+        std::cout << "NEW STEP " << currentStep_ << std::endl;
+        ApplicationTools::displayTime("Execution time");
         }
         else {
           //  noMoreSPR=true;
           currentStep_ = 3;
+        std::cout << "NEW STEP " << currentStep_ << std::endl;
+        ApplicationTools::displayTime("Execution time");
         }
       }
       else
@@ -741,8 +749,12 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
         lossExpectedNumbers_ = backupLossExpectedNumbers_;
         duplicationExpectedNumbers_ = backupDuplicationExpectedNumbers_;
       }
-      if (ApplicationTools::getTime() < timeLimit_)
+      if (ApplicationTools::getTime() < timeLimit_) {
+    std::cout << "NEW STEP 2" << std::endl;
+        ApplicationTools::displayTime("Execution time");
+        
         currentStep_ = 2;
+      }
     }
 
     /****************************************************************************
@@ -778,6 +790,8 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
           std::cout << "\n\n\t\t\tStep of SPRs and rerootings with optimization of the duplication and loss parameters over.\n\n"<< std::endl;
         ApplicationTools::displayTime("Execution time so far:");
         currentStep_ = 3;
+        std::cout << "NEW STEP " << currentStep_ << std::endl;
+        ApplicationTools::displayTime("Execution time");
       }
       else
       {
@@ -867,6 +881,8 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
                                                fixedOutgroupSpecies_, outgroupSpecies_);
         //NNI-based Optimizations ended
         currentStep_ = 4;
+        std::cout << "NEW STEP " << currentStep_ << std::endl;
+        ApplicationTools::displayTime("Execution time");
         stop_ = false;
 
         if (ApplicationTools::getTime() >= timeLimit_)
@@ -920,6 +936,8 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
         }
 
         currentStep_ = 4;
+        std::cout << "NEW STEP " << currentStep_ << std::endl;
+        ApplicationTools::displayTime("Execution time");
         stop_ = false;
 
 
@@ -989,6 +1007,8 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
       std::cout << "\n\n\t\t\tStep of final optimization over.\n\n"<< std::endl;
       ApplicationTools::displayTime("Execution time so far:");
       currentStep_ = 5;
+        std::cout << "NEW STEP " << currentStep_ << std::endl;
+        ApplicationTools::displayTime("Execution time");
       if (stop_==false)
       {
         stop_ = true;
@@ -1073,6 +1093,8 @@ void MPI_SpeciesTreeLikelihood::MLSearchButNotOptimizeTopology()
   {
     rearrange_ = true; //Now we rearrange gene trees
     currentStep_ = 4;
+        std::cout << "NEW STEP " << currentStep_ << std::endl;
+        ApplicationTools::displayTime("Execution time");
     if (ApplicationTools::getTime() < timeLimit_) {
       if (rearrange_) {
         if (currentTree_)
@@ -1120,6 +1142,8 @@ void MPI_SpeciesTreeLikelihood::MLSearchButNotOptimizeTopology()
       std::cout << "\n\n\t\t\tStep of final optimization over.\n\n"<< std::endl;
       ApplicationTools::displayTime("Execution time so far:");
       currentStep_ = 5;
+        std::cout << "NEW STEP " << currentStep_ << std::endl;
+        ApplicationTools::displayTime("Execution time");
       if (stop_==false)
       {
         stop_ = true;

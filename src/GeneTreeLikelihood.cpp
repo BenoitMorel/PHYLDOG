@@ -411,7 +411,8 @@ GeneTreeLikelihood & GeneTreeLikelihood::operator=(const GeneTreeLikelihood & li
 
 void GeneTreeLikelihood::setGeneTree(TreeTemplate<Node>* tree, TreeTemplate<Node>* rootedTree) {
   WHEREAMI( __FILE__ , __LINE__ );
-  std::cout << "** GeneTreeLikelihood::setGeneTree" << std::endl;
+  std::cout << "** GeneTreeLikelihood::setGeneTree " << this << std::endl;
+  std::cout << levaluator_->printer.getBPPNodeString(rootedTree->getRootNode(), true, true) << std::endl;
   if (rootedTree_) delete rootedTree_;
   rootedTree_= dynamic_cast<TreeTemplate<Node> *> (rootedTree->clone());
   //recreating geneTreeWithSpNames_

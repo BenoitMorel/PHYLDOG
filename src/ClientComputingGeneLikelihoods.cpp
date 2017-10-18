@@ -147,6 +147,7 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
   startRecordingTreesFrom_ = 0; //This int is incremented until the gene trees start to be backed-up, when we start the second phase of the algorithm.
   //  MPI_Barrier(world);
   broadcast(world_, stop_, server_);
+  unsigned int previousStep = currentStep_;
   broadcastsAllInformationButStop(world_, server_, rearrange_,
                                   lossExpectedNumbers_,
                                   duplicationExpectedNumbers_,
@@ -155,6 +156,15 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
                                   currentStep_,
                                   reconciliationModel_
   );
+  if (previousStep != currentStep_) {
+    std::cout << std::endl;
+    std::cout << std::endl;
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+    std::cout << "NEW STEP: " << previousStep << " to " << currentSpeciesTree_ << std::endl;
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+    std::cout << std::endl;
+    std::cout << std::endl;
+  }
   if ( numberOfGeneFamilies_ > 0)
   {
     if (spTree_) delete spTree_;
@@ -459,6 +469,7 @@ void ClientComputingGeneLikelihoods::MLSearch() {
   double startingTime, totalTime;
   while (!stop_)
   {
+    std::cout << "STEP " << currentStep_ << std::endl;
     logL_=0.0;
     resetVector(num0Lineages_);
     resetVector(num1Lineages_);
@@ -633,6 +644,7 @@ void ClientComputingGeneLikelihoods::MLSearch() {
       {
         startingTime = ApplicationTools::getTime();
       }
+      unsigned int previousStep = currentStep_;
       broadcastsAllInformationButStop(world_, server_, rearrange_,
                                       lossExpectedNumbers_,
                                       duplicationExpectedNumbers_,
@@ -640,6 +652,15 @@ void ClientComputingGeneLikelihoods::MLSearch() {
                                       currentSpeciesTree_,
                                       currentStep_,
                                       reconciliationModel_);
+      if (previousStep != currentStep_) {
+        std::cout << std::endl;
+        std::cout << std::endl;
+        std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+        std::cout << "NEW STEP: " << previousStep << " to " << currentStep_ << std::endl;
+        std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+        std::cout << std::endl;
+        std::cout << std::endl;
+      }
       if (timing)
       {
         totalTime = ApplicationTools::getTime() - startingTime;
@@ -660,6 +681,7 @@ void ClientComputingGeneLikelihoods::MLSearch() {
       //lk and the second one; in this case we set rearrange to false.
       //Then there is no need to reset the gene tree!
       if (resetGeneTrees_ && currentStep_ !=4 && rearrange_ == true) {
+        std::cout << "** ClientComputingGeneLikelihoods::MLSearch reset gene trees" << std::endl;
         if (reconciliationModel_ == "DL")
         {
           for (unsigned int i=0 ; i<allDatasets_.size() ; i++)

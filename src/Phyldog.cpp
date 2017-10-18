@@ -173,6 +173,7 @@ int main(int args, char ** argv)
   }
 
   srand(42);
+  RandomTools::setSeed(42);
 
   try {
     ApplicationTools::startTimer();

@@ -282,8 +282,13 @@ public: //todobenoit private
   /**
   * Initialize libpll2 with the right data
   */
-  pllmod_treeinfo_t * build_treeinfo();
+  double libpll_evaluate_fromscratch(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
+  double libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
+  
   void reset_libpll_tree();
+  
+
+  pllmod_treeinfo_t * build_treeinfo();
   void optimize_treeinfo(pllmod_treeinfo_t *treeinfo);
   double optimize_treeinfo_iter(pllmod_treeinfo_t *treeinfo);
   double get_likelihood_treeinfo(pllmod_treeinfo_t *treeinfo);

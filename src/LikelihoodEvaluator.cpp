@@ -273,7 +273,7 @@ void LikelihoodEvaluator::PLL_loadPartitions(string path)
 void LikelihoodEvaluator::PLL_connectTreeAndAlignment()
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  std::cout << "** LikelihoodEvaluator::PLL_connectTreeAndAlignment " << std::endl;
+  //std::cout << "** LikelihoodEvaluator::PLL_connectTreeAndAlignment " << std::endl;
   
   pllTreeInitTopologyNewick (PLL_instance, PLL_newick, PLL_FALSE);
   WHEREAMI( __FILE__ , __LINE__ );
@@ -294,7 +294,7 @@ void LikelihoodEvaluator::PLL_connectTreeAndAlignment()
 void LikelihoodEvaluator::initialize_BPP_nniLk()
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  std::cout << "** LikelihoodEvaluator::initialize_BPP_nniLk " << std::endl;
+  //std::cout << "** LikelihoodEvaluator::initialize_BPP_nniLk " << std::endl;
   nniLk = new NNIHomogeneousTreeLikelihood(*tree, *sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
 
   nniLk->initParameters();
@@ -372,7 +372,7 @@ void fill_leaves_rec(pll_unode_t *node, vector<string> &leaves)
 
 void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree, bool bppStrict)
 {
-  if (!hackmode) {
+  if (hackmode <= 1) {
     return;
   }
   std::cout << "** LikelihoodEvaluator::mapUtreeToBPPTree" << std::endl;
@@ -390,8 +390,10 @@ void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplat
     }
     std::sort(bppLeaves.begin(), bppLeaves.end());
     bppLeavesToId[bppLeaves] = nodes[i]->getId();
+    //print_v<string>(bppLeaves);
   }
 
+  unsigned int count = 0;
   for (unsigned int i = 0; i < utree->tip_count + utree->inner_count; ++i) {
     pll_unode_t *node = utree->nodes[i];
     vector<string> leaves;
@@ -403,14 +405,18 @@ void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplat
       fill_leaves_rec(node->back, leaves);
       std::sort(leaves.begin(), leaves.end());
     }
+    //print_v<string>(leaves);
     LibpllNodeProperty prop(i);
+    if (bppLeavesToId[leaves])
+      count++;
     bpptree->getNode(bppLeavesToId[leaves])->setNodeProperty("libpll", prop);
   }
+  std::cout << "sucess count " << count << std::endl;
 }
 
 void LikelihoodEvaluator::reset_libpll_tree()
 {
-  if (!hackmode) {
+  if (hackmode <= 1) {
     return;
   }
   destroy_treeinfo();
@@ -418,7 +424,7 @@ void LikelihoodEvaluator::reset_libpll_tree()
 
 void LikelihoodEvaluator::destroy_treeinfo()
 {
-  std::cout << "** LikelihoodEvaluator::destroy_treeinfo" << std::endl;
+  //std::cout << "** LikelihoodEvaluator::destroy_treeinfo" << std::endl;
   if (currentTreeinfo)
   {
     for (unsigned int i = 0; i < currentTreeinfo->partition_count; ++i)
@@ -436,12 +442,8 @@ void LikelihoodEvaluator::destroy_treeinfo()
 
 pllmod_treeinfo_t * LikelihoodEvaluator::build_treeinfo()
 {
-  if (!hackmode) {
-    return 0;
-  }
-  std::cout << "** LikelihoodEvaluator::build_treeinfo" << std::endl;
+  //std::cout << "** LikelihoodEvaluator::build_treeinfo" << std::endl;
 
-  pInfo *oldPartition = PLL_partitions->partitionData[0];
 
   WHEREAMI( __FILE__ , __LINE__ );
   // partitions descriptors
@@ -492,9 +494,13 @@ pllmod_treeinfo_t * LikelihoodEvaluator::build_treeinfo()
   }
 
   // model
-  pll_set_category_rates(partition, oldPartition->gammaRates);
-  pll_set_frequencies(partition, 0, oldPartition->frequencies);
-  pll_set_subst_params(partition, 0, oldPartition->substRates);
+  // todobenoit do not hardcode
+  double gammaRates[4] = {0.136954, 0.476752, 1, 2.38629};
+  double frequencies[4] = {0.255997, 0.237386, 0.272126, 0.234491};
+  double substParams[6] = {1, 1, 1, 1, 1, 1};
+  pll_set_category_rates(partition, gammaRates);
+  pll_set_frequencies(partition, 0, frequencies);
+  pll_set_subst_params(partition, 0, substParams);
 
   // treeinfo and partition
   int params_to_optimize = PLLMOD_OPT_PARAM_ALL; // todobenoit see what we should optimize
@@ -502,7 +508,7 @@ pllmod_treeinfo_t * LikelihoodEvaluator::build_treeinfo()
   pllmod_treeinfo_init_partition(treeinfo, 0, partition,
         params_to_optimize,
         PLL_GAMMA_RATES_MEAN, // todobenoit: to check
-        oldPartition->alpha, // todobenoit what is this alpha
+        1.0, // todobenoit what is this alpha
         params_indices,
         0); // todobenoit check that we don't need it
 
@@ -629,48 +635,24 @@ void LikelihoodEvaluator::initialize_PLL()
 {
   WHEREAMI( __FILE__ , __LINE__ );
 
-  std::cout << "** LikelihoodEvaluator::initialize_PLL" << std::endl;
-
-  std::cout << "init " << this << std::endl;
-  std::cout << "load " << fileNamePrefix << std::endl;
-  // #1 PREPARING
-  // must have the strict names loaded
+  //std::cout << "** LikelihoodEvaluator::initialize_PLL" << std::endl;
   loadStrictNamesFromAlignment_forPLL();
   writeAlignmentFilesForPLL();
-
-  // preparing the tree
-
-  // PLL process
   alpha_ = 1.0;
-/*  baseFreq_[0]=0.25;
-  baseFreq_[1]=0.25;
-  baseFreq_[2]=0.25;
-  baseFreq_[3]=0.25;
-  subsMatrix_[0] = 1/6;
-  subsMatrix_[1] = 1/6;
-  subsMatrix_[2] = 1/6;
-  subsMatrix_[3] = 1/6;
-  subsMatrix_[4] = 1/6;
-  subsMatrix_[5] = 1/6;*/
-
   PLL_initializePLLInstance();
   PLL_loadAlignment(fileNamePrefix + "alignment.fasta");
   PLL_loadPartitions(fileNamePrefix + "partition.txt");
-
-
   if(logLikelihood == 0) {
     logLikelihood = PLL_evaluate(&tree) * scaler_;
-  }
-
-  
-  
+  }  
 }
+
 
 void LikelihoodEvaluator::setTree(TreeTemplate<Node> * newTree)
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  std::cout << "LikelihoodEvaluator::setTree" << std::endl;
-  std::cout << newTree << " " << printer.getBPPNodeString(newTree->getRootNode(), true, true) << std::endl;
+  //std::cout << "LikelihoodEvaluator::setTree" << std::endl;
+  //std::cout << newTree << " " << printer.getBPPNodeString(newTree->getRootNode(), true, true) << std::endl;
   if(!isInitialized()){
     if(tree)
       delete tree;
@@ -750,12 +732,12 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
     bpp::Node *bppSon, bpp::Node *bppUncle,
     bpp::Node *bppRoot)
 {
-  if (!hackmode) {
+  if (hackmode <= 1) {
     return;
   }
   std::cout << "** LikelihoodEvaluator::applyNNI" << std::endl;
   movesNumber++;
-  std::cout << "moves: " << movesNumber << " " << fileNamePrefix << std::endl;
+  std::cout << "moves: " << movesNumber << std::endl;
   if (bppParent->getId() == bppRoot->getId() ||
       bppGrandParent->getId() == bppRoot->getId()) {
     if (bppGrandParent->getId() == bppRoot->getId()) {
@@ -796,10 +778,10 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
 
 void LikelihoodEvaluator::rollbackLastMove()
 {
-  if (!hackmode) {
+  if (hackmode <= 1) {
     return;
   }
-  std::cout << "** LikelihoodEvaluator::rollbackLastMove" << std::endl;
+  std::cout << "** LikelihoodEvaluator::rollbackLastMove " << movesNumber << std::endl;
   movesNumber--;
   if (rollbackRootInfo.edge) {
     pllmod_utree_set_length(rollbackRootInfo.edge, rollbackRootInfo.t1);
@@ -832,10 +814,144 @@ void LikelihoodEvaluator::utreeRealToStrict(pllmod_treeinfo_t *treeinfo)
   // todobenoit free utree
 }
 
+
+
+void reroot(bpp::TreeTemplate<bpp::Node>* tree, 
+    const set<string> &leaves1,
+    const set<string> &leaves2)
+{
+    // the plyogenetic root is between the current topological
+    // root and one of the three sons
+    // so, one of the three sons of a root is the outgroup
+    vector<Node*> rootSons = (tree)->getRootNode()->getSons();
+    for(vector<Node*>::iterator currSon = rootSons.begin(); currSon != rootSons.end(); currSon++)
+    {
+      vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currSon);
+      set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
+
+      if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
+        tree->newOutGroup(*currSon);
+
+    }
+
+    // if not, we will try all the internal branches as potential roots
+    if(!tree->isRooted())
+    {
+      vector<Node*> outgroupCandidates = tree->getNodes();
+      for(vector<Node*>::iterator currCandidate = outgroupCandidates.begin(); currCandidate != outgroupCandidates.end(); currCandidate++)
+      {
+        vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currCandidate);
+        set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
+      
+        if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
+        tree->newOutGroup(*currCandidate);
+      }
+    }
+
+
+    if(!tree->isRooted())
+    {
+      cout << "Unable to re-root the tree, I will give up, sorry." << endl;
+      cout << "l1.s = " << leaves1.size() << ". l2.s = " << leaves2.size() << endl;
+      throw Exception("Unable to re-root the tree.");
+    }
+
+
+}
+
+void saveRoot(bpp::TreeTemplate<bpp::Node>* tree, set<string> &leaves1, set<string> &leaves2)
+{
+  Node* root = tree->getRootNode();
+  Node* son1 = root->getSon(0);
+  Node* son2 = root->getSon(1);
+  vector<string> leaves1Vector = TreeTemplateTools::getLeavesNames(*son1);
+  vector<string> leaves2Vector = TreeTemplateTools::getLeavesNames(*son2);
+  leaves1.insert(leaves1Vector.begin(),leaves1Vector.end());
+  leaves2.insert(leaves2Vector.begin(),leaves2Vector.end());
+  tree->unroot();
+}
+
+double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Node>** treeToEvaluate)
+{
+  std::cout << "LikelihoodEvaluator::libpll_evaluate_iterative" << std::endl;
+  if (!currentTreeinfo) {
+    double res = libpll_evaluate_fromscratch(treeToEvaluate);
+    return res;
+  }
+  bool wasRooted = ((*treeToEvaluate)->isRooted() ? true : false);
+  set<string> leaves1, leaves2;
+  if(wasRooted){
+    saveRoot(*treeToEvaluate, leaves1, leaves2);
+  }
+  double result_ll = get_likelihood_treeinfo(currentTreeinfo);
+
+  std::cout << "libpll ll = " << result_ll << std::endl;
+  
+  
+  std::string newStr = printer.getTreeinfoString(currentTreeinfo, true, false);
+  stringstream outputNewickString;
+  outputNewickString.str(newStr);
+  Newick outputNewick;
+  delete *treeToEvaluate;
+  *treeToEvaluate = outputNewick.read(outputNewickString);
+  if (wasRooted) {
+    reroot(*treeToEvaluate, leaves1, leaves2);
+  }
+  mapUtreeToBPPTree(currentUtree, *treeToEvaluate, true);
+  std::cout << "output bpp tree " << printer.getBPPNodeString((*treeToEvaluate)->getRootNode(), false, false) << std::endl;
+  
+  return result_ll;
+}
+
+double LikelihoodEvaluator::libpll_evaluate_fromscratch(bpp::TreeTemplate<bpp::Node>** treeToEvaluate)
+{
+  WHEREAMI( __FILE__ , __LINE__ );
+  std::cout << "LikelihoodEvaluator::libpll_evaluate_fromscratch" << std::endl;
+  if (currentTreeinfo) {
+    destroy_treeinfo();
+  }
+  TreeTemplate<Node>* inputBPPTree = (*treeToEvaluate)->clone();
+  Newick inputNewick;
+  stringstream inputNewickString;
+  inputNewick.write(**treeToEvaluate,inputNewickString); 
+  // save root to find it back
+  bool wasRooted = (inputBPPTree->isRooted() ? true : false);
+  set<string> leaves1, leaves2;
+  if(wasRooted){
+    saveRoot(inputBPPTree, leaves1, leaves2);
+  }
+ 
+  currentTreeinfo = build_treeinfo();
+  optimize_treeinfo(currentTreeinfo); 
+  double result_ll = get_likelihood_treeinfo(currentTreeinfo);
+  std::cout << "libpll ll = " << result_ll << std::endl;
+
+  std::string newStr =printer.getTreeinfoString(currentTreeinfo, true, false);
+  stringstream outputNewickString;
+  outputNewickString.str(newStr);
+  Newick outputNewick;
+  delete *treeToEvaluate;
+  *treeToEvaluate = outputNewick.read(outputNewickString);
+  if (wasRooted) {
+    reroot(*treeToEvaluate, leaves1, leaves2);
+  }
+  std::cout << "output bpp tree " << printer.getBPPNodeString((*treeToEvaluate)->getRootNode(), false, false) << std::endl;
+  mapUtreeToBPPTree(currentUtree, *treeToEvaluate, true);
+  delete inputBPPTree;
+
+  return result_ll;
+}
+
 double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  std::cout << "** LikelihoodEvaluator::PLL_evaluate" << std::endl;
+  static unsigned int count = 0;
+  //std::cout << "** LikelihoodEvaluator::PLL_evaluate" << count++ << std::endl;
+  if (hackmode == 1) {
+    return libpll_evaluate_fromscratch(treeToEvaluate);
+  } else if (hackmode == 2) {
+    return libpll_evaluate_iterative(treeToEvaluate);
+  }
   //TODO debug remove
   Newick debugTree;
   stringstream debugSS;
@@ -902,13 +1018,13 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
   double result_ll = 0.0;
   char *newickStr = 0;
   if (hackmode == 0) { // PLL mode
-    std::cout << "PLL ll before opt = " << PLL_instance->likelihood << std::endl;
+    //std::cout << "PLL ll before opt = " << PLL_instance->likelihood << std::endl;
     pllOptimizeModelParameters(PLL_instance, PLL_partitions, tolerance_);
-    std::cout << "PLL ll after  opt = " << PLL_instance->likelihood << std::endl;
+    //std::cout << "PLL ll after  opt = " << PLL_instance->likelihood << std::endl;
     result_ll = PLL_instance->likelihood;
     pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);
     newickStingForPll.str(PLL_instance->tree_string);
-    std::cout << "PLL optimized tree: " << newickStingForPll.str() << std::endl;
+    //std::cout << "PLL optimized tree: " << newickStingForPll.str() << std::endl;
   } 
   if (hackmode == 1) { // libpll mode but full reoptimization
     if (!currentTreeinfo) {
@@ -956,6 +1072,7 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
 
   delete *treeToEvaluate;
   *treeToEvaluate = newickForPll.read(newickStingForPll);
+  
 
   // getting the likelihood and then deleting PLL_instance
   double PLL_instance_likelihood = result_ll * scaler_;
@@ -988,6 +1105,8 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
       {
         vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currCandidate);
         set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
+
+
 
         if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
         (*treeToEvaluate)->newOutGroup(*currCandidate);
@@ -1117,7 +1236,7 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
 
 void LikelihoodEvaluator::unload()
 {
-  std::cout << "**LikelihoodEvaluator::unload" << std::endl;
+  //std::cout << "**LikelihoodEvaluator::unload" << std::endl;
   if(!initialized)
     return;
   initialized = false;
@@ -1157,7 +1276,7 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
 void LikelihoodEvaluator::initialize()
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  std::cout << "LikelihoodEvaluator::initialize" << std::endl;
+  //std::cout << "LikelihoodEvaluator::initialize" << std::endl;
   if(initialized)
     return;
   //checking the alignment and the tree contain the same number of sequences
@@ -1181,7 +1300,7 @@ void LikelihoodEvaluator::initialize()
 void LikelihoodEvaluator::setAlternativeTree(TreeTemplate< Node >* newAlternative)
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  std::cout << "** LikelihoodEvaluator::setAlternativeTree" << std::endl;
+  //std::cout << "** LikelihoodEvaluator::setAlternativeTree" << std::endl;
   if(!initialized)
     initialize();
   if(alternativeTree != 00)

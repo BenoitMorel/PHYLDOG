@@ -238,7 +238,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
         numDeletedFamilies_ = numDeletedFamilies_ +1;
         avoidedFamilyIds.push_back(i);
       }
-      if (!tl->valid) {
+      if (!tl || !tl->valid) {
         std::cout << "hacked exception (todobenoit)" << std::endl;
         avoidFamily = true;
         numDeletedFamilies_ = numDeletedFamilies_ +1;
@@ -476,7 +476,7 @@ void ClientComputingGeneLikelihoods::MLSearch() {
   double startingTime, totalTime;
   while (!stop_)
   {
-    std::cout << "STEP " << currentStep_ << std::endl;
+    //std::cout << "STEP " << currentStep_ << std::endl;
     logL_=0.0;
     resetVector(num0Lineages_);
     resetVector(num1Lineages_);
@@ -593,7 +593,7 @@ void ClientComputingGeneLikelihoods::MLSearch() {
         allLogLs_[i] = dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods_[i])->getValue();
       }
       logL_ = logL_ + allLogLs_[i];
-      std::cout<<"Gene Family: " << assignedFilenames_[i] << " total logLk: "<< - allLogLs_[i]<< " ; scenario loglk: "<< treeLikelihoods_[i]->getScenarioLikelihood() <<std::endl;
+      //std::cout<<"Gene Family: " << assignedFilenames_[i] << " total logLk: "<< - allLogLs_[i]<< " ; scenario loglk: "<< treeLikelihoods_[i]->getScenarioLikelihood() <<std::endl;
       
       if (std::isnan(allLogLs_[i]))
       {
@@ -639,7 +639,7 @@ void ClientComputingGeneLikelihoods::MLSearch() {
     if (timing)
     {
       totalTime = ApplicationTools::getTime() - startingTime;
-      std::cout << "Time for gathering information: "<<  totalTime << " s." <<std::endl;
+      //std::cout << "Time for gathering information: "<<  totalTime << " s." <<std::endl;
     }
 
     //Should the computations stop? The server tells us.
@@ -671,7 +671,7 @@ void ClientComputingGeneLikelihoods::MLSearch() {
       if (timing)
       {
         totalTime = ApplicationTools::getTime() - startingTime;
-        std::cout << "Time for broadcasting information: "<<  totalTime << " s." <<std::endl;
+        //std::cout << "Time for broadcasting information: "<<  totalTime << " s." <<std::endl;
         startingTime = ApplicationTools::getTime();
       }
 

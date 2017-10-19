@@ -442,7 +442,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     //We use the same procedure as in doNNI !
     const Node * son    = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->getNode(nodeId);
        
-    std::cout << "** DLGeneTreeLikelihood::testNNI" << std::endl;
+    //std::cout << "** DLGeneTreeLikelihood::testNNI" << std::endl;
 
     if(!son->hasFather()) throw NodeException("DLGeneTreeLikelihood::testNNI(). Node 'son' must not be the root node.", nodeId);
     const Node * parent = son->getFather();

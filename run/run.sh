@@ -27,6 +27,11 @@ sed -i "s#OPT=/home/morelbt/github/PHYLDOG/ExampleData/OptionFiles/#OPT=${fullpa
 
 echo "rearrangement.gene.tree=nni" >> ${fullpathdata}/GeneralOptions.txt
 echo "reset.gene.trees=no" >> ${fullpathdata}/GeneralOptions.txt
+echo "hackmode=${hackmode}" >> ${fullpathdata}/GeneralOptions.txt
+
+export SCOREP_PROFILING_MAX_CALLPATH_DEPTH=40
+
+
 
 mpirun -np 4 ../../build/bin/phyldog param=${fullpathdata}/GeneralOptions.txt &> ${fullpath}/logs.txt
 

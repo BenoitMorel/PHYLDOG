@@ -129,7 +129,6 @@ LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
   WHEREAMI( __FILE__ , __LINE__ );
   loadDataFromParams();
   tolerance_ = 0.5;
-  movesNumber = 0;
 }
 
 void LikelihoodEvaluator::loadDataFromParams(){
@@ -137,6 +136,8 @@ void LikelihoodEvaluator::loadDataFromParams(){
 
   rollbackRootInfo.edge = 0;
   rollbackRootInfo.son = 0;
+  movesNumber = 0;
+  
   // set the name of this evaluator
   istringstream tempName(ApplicationTools::getStringParameter("input.sequence.file",params,"rnd"));
   while(std::getline(tempName,name,'/'))
@@ -1439,6 +1440,9 @@ LikelihoodEvaluator::LikelihoodEvaluator(const Tree* tree, const SiteContainer* 
 initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL_partitions(00), PLL_partitionInfo(00), tree(00), alternativeTree(00), nniLk(00), nniLkAlternative(00), substitutionModel(00), rateDistribution(00), sites(00), alphabet(00), params(par), aligmentFilesForPllWritten_(false), logLikelihood(0), pll_model_already_initialized_(false)
 {
   WHEREAMI( __FILE__ , __LINE__ );
+  rollbackRootInfo.edge = 0;
+  rollbackRootInfo.son = 0;
+  movesNumber = 0;
   this->tree = dynamic_cast<TreeTemplate<Node> *>(tree->clone());
   this->substitutionModel = model->clone();
   this->rateDistribution = rateDistribution->clone();

@@ -404,17 +404,20 @@ void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplat
   }
 
   unsigned int count = 0;
-  for (unsigned int i = 0; i < utree->tip_count + utree->inner_count + 1; ++i) {
-    pll_unode_t *node = (i == utree->tip_count + utree->inner_count) ? currentTreeinfo->root : utree->nodes[i];
+  for (unsigned int i = 0; i < utree->tip_count + utree->inner_count; ++i) {
+    //pll_unode_t *node = (i == utree->tip_count + utree->inner_count) ? currentTreeinfo->root : utree->nodes[i];
+    pll_unode_t *node = utree->nodes[i];
     vector<string> leaves;
     fill_leaves_rec(node, leaves);
     std::sort(leaves.begin(), leaves.end());
-    if (!bppLeavesToId[leaves]) {
-      //std::cout << "null mapping, trying the other side!" << std::endl;
-      //std::cout << "libpll " << i << " leaves : ";
-      //print_v<string>(leaves);
+    if (!bppLeavesToId[leaves] && node->next) {
       leaves.clear();
-      fill_leaves_rec(node->back, leaves);
+      fill_leaves_rec(node->next, leaves);
+      std::sort(leaves.begin(), leaves.end());
+    }
+    if (!bppLeavesToId[leaves] && node->next) {
+      leaves.clear();
+      fill_leaves_rec(node->next->next, leaves);
       std::sort(leaves.begin(), leaves.end());
     }
     //std::cout << "libpll " << i << " leaves : ";
@@ -423,9 +426,9 @@ void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplat
     if (bppLeavesToId[leaves])
       count++;
     bpptree->getNode(bppLeavesToId[leaves])->setNodeProperty("libpll", prop);
-    //std::cout << i << " bpp " << bppLeavesToId[leaves] << " to libpll " << node->node_index << std::endl;
+    //std::cout << i << "libll " << node->node_index << " to bpp " << bppLeavesToId[leaves] << std::endl;
   }
-  std::cout << "sucess count " << count << std::endl;
+  //std::cout << "sucess count " << count << std::endl;
 }
 
 void LikelihoodEvaluator::reset_libpll_tree()
@@ -785,7 +788,7 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
     }
   }
   pll_unode_t *parent, *grandParent, *son, *uncle;
-  std::cout <<  bppParent->getId() << " " << bppGrandParent->getId() << " " << bppSon->getId() << " " << bppUncle->getId() << " " << bppRoot->getId() << std::endl;
+  //std::cout <<  bppParent->getId() << " " << bppGrandParent->getId() << " " << bppSon->getId() << " " << bppUncle->getId() << " " << bppRoot->getId() << std::endl;
   try {
     parent = getLibpllNode(bppParent);
     grandParent = getLibpllNode(bppGrandParent);
@@ -797,10 +800,12 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
     std::cout << "Exception ! " << e.what()<< std::endl;
     return;
   }
+  /*
   std::cout << "grandParent: " << bppGrandParent->getId() << " "; printer.printUnode(grandParent);
   std::cout << "parent     : " << bppParent->getId() << " "; printer.printUnode(parent);
   std::cout << "son     : " << bppSon->getId() << " "; printer.printUnode(son);
   std::cout << "uncle     : " << bppUncle->getId() << " "; printer.printUnode(uncle);
+  */
   pll_unode_t *edge = get_branch(grandParent, parent);
   if (!edge) { 
     std::cout << "LikelihoodEvaluator::applyNNI: Impossible to find the good NNI move" << std::endl;

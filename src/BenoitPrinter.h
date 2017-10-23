@@ -39,6 +39,7 @@ enum LabelConversion {
   REAL_TO_STRICT
 };
 
+
 class BenoitPrinter {
 public:
   BenoitPrinter() {}
@@ -59,12 +60,28 @@ public:
   std::string getTreeinfoString(pllmod_treeinfo_t *treeinfo, 
       bool printBL=false,
       bool printId=false,
+      bool rooted=true,
       LabelConversion conversion=NO_CONVERSION)
   {
-    std::vector<TreeinfoSortCell> cells(3);
-    cells[0].node = treeinfo->root->back;
-    cells[1].node = treeinfo->root->next->back;
-    cells[2].node = treeinfo->root->next->next->back;
+    return getUnodeString(treeinfo->root, printBL, printId, rooted, conversion);
+
+  }
+
+  std::string getUnodeString(pll_unode_t *node, 
+      bool printBL=false,
+      bool printId=false,
+      bool rooted=true,
+      LabelConversion conversion=NO_CONVERSION)
+  {
+    std::vector<TreeinfoSortCell> cells(rooted ? 2 : 3);
+    if (rooted) {
+      cells[0].node = node;
+      cells[1].node = node->back;
+    } else {
+      cells[0].node = node->back;
+      cells[1].node = node->next->back;
+      cells[2].node = node->next->next->back;
+    }
     for (unsigned int i = 0; i < cells.size(); ++i) {
       treeInfoSortRec(cells[i].node, conversion, cells[i].str, cells[i].printLeftFirst);
     }
@@ -72,7 +89,7 @@ public:
     std::ostringstream os;
     os << "(";
     for (unsigned int i = 0; i < cells.size(); ++i) {
-      printTreeinfoRec(cells[i].node, printBL, printId, conversion, cells[i].printLeftFirst, os);
+      printTreeinfoRec(cells[i].node, printBL, printId, rooted, conversion, cells[i].printLeftFirst, os);
       if (i < cells.size() - 1) {
         os << ",";
       }
@@ -80,6 +97,7 @@ public:
     os << ");";
     return os.str();
   }
+
 
   std::string getBPPNodeString(const bpp::Node *node, 
       bool printBL=false,
@@ -98,6 +116,25 @@ public:
     return os.str();
   }
 
+void printUnode(pll_unode_t *node) {
+  if (!node) {
+    std::cout << "(null)" << std::endl;
+  } else if (!node->next) {
+    std::cout << "(";
+    std::cout << node->node_index;
+    std::cout << ")";
+    std::cout << std::endl;
+  } else {
+    std::cout << "(";
+    std::cout << node->node_index;
+    std::cout << ",";
+    std::cout << node->next->node_index;
+    std::cout << ",";
+    std::cout << node->next->next->node_index;
+    std::cout << ")";
+    std::cout << std::endl;
+  }
+}
 
 
 private:
@@ -182,7 +219,10 @@ private:
     }
     if (printBL) {
       if (node->hasDistanceToFather()) {
-        os << ":" << node->getDistanceToFather();
+        if (node->getFather()->hasFather()) 
+          os << ":" << node->getDistanceToFather();
+        else
+          os << ":" << node->getDistanceToFather() * 2; // todobenoit this should be + distance uncle
       }
     }
     if (printId) {
@@ -193,6 +233,7 @@ private:
   void printTreeinfoRec(pll_unode_t *node,
       bool printBL,
       bool printId,
+      bool root,
       LabelConversion conversion,
       std::map<unsigned int, bool> printLeftFirst,
       std::ostream &os)
@@ -205,14 +246,18 @@ private:
 
       bool leftFirst = printLeftFirst[node->node_index];
       printTreeinfoRec(leftFirst ? node->next->back : node->next->next->back, 
-          printBL, printId, conversion, printLeftFirst, os);
+          printBL, printId, false, conversion, printLeftFirst, os);
       os << ",";
       printTreeinfoRec(!leftFirst ? node->next->back : node->next->next->back, 
-          printBL, printId, conversion, printLeftFirst, os);
+          printBL, printId, false, conversion, printLeftFirst, os);
       os << ")";
     }
     if (printBL) {
-      os << ":" << node->length;
+      if (root) {
+        os << ":" << node->length / 2;
+      } else {
+        os << ":" << node->length;
+      }
     }
     if (printId) {
       os << ":" << node->node_index;

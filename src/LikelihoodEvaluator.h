@@ -282,19 +282,20 @@ public: //todobenoit private
   /**
   * Initialize libpll2 with the right data
   */
+  double realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
   double libpll_evaluate_fromscratch(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
   double libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
   
   void reset_libpll_tree();
   
 
-  pllmod_treeinfo_t * build_treeinfo();
+  pllmod_treeinfo_t * build_treeinfo(bool forceTree = false);
   void optimize_treeinfo(pllmod_treeinfo_t *treeinfo);
   double optimize_treeinfo_iter(pllmod_treeinfo_t *treeinfo);
   double get_likelihood_treeinfo(pllmod_treeinfo_t *treeinfo);
   void utreeRealToStrict(pllmod_treeinfo_t *treeinfo);
   pll_unode_t * get_pll_utree_root(pll_utree_t * utree);
-  pll_utree_t * create_utree();
+  pll_utree_t * create_utree(bpp::TreeTemplate< bpp::Node > *bpptree);
   void applyNNI(bpp::Node *bppParent, 
     bpp::Node *bppGrandParent,
     bpp::Node *bppSon, bpp::Node *bppUncle,
@@ -304,10 +305,12 @@ public: //todobenoit private
     bpp::Node *bppSon, bpp::Node *bppUncle);
   void rollbackLastMove();
   pll_unode_t *getLibpllNode(bpp::Node *node);
+  pll_unode_t *getLibpllRootFromBPPRoot(bpp::Node *bppRoot);
   void destroy_treeinfo();
   double libpll_evaluate();
 
-
+ 
+  void rebuildTreeinfoFromTree();
   void mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree, bool bppStrict);
   BenoitPrinter printer;
   pllmod_treeinfo_t *currentTreeinfo;

@@ -472,10 +472,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
         
     if (considerSequenceLikelihood_ ) {
       std::cout << "Starting my hack" << std::endl;
-      levaluator_->setAlternativeTree(treeForNNI);
       levaluator_->applyNNI(parentForNNI, grandFatherForNNI, sonForNNI, uncleForNNI, treeForNNI->getRootNode());
-      levaluator_->setAlternativeTree(treeForNNI);
-      
     }
     parentForNNI->removeSon(sonForNNI);
     grandFatherForNNI->removeSon(uncleForNNI);
@@ -510,6 +507,10 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
 					       tentativeNum0Lineages_, tentativeNum1Lineages_,
 					       tentativeNum2Lineages_, tentativeNodesToTryInNNISearch_, false); //false so that _tentativeNum*Lineages are not updated
 
+    if (considerSequenceLikelihood_) {
+      levaluator_->setAlternativeTree(treeForNNI); // todobenoit: just to test, this line is useless
+    }
+      
     if (considerSequenceLikelihood_ )
     {
       if  (candidateScenarioLk >  scenarioLikelihood_)

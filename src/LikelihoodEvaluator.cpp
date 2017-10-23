@@ -926,7 +926,6 @@ void print_PLL_param(pInfo *partition)
 double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Node>** treeToEvaluate)
 
 {
-  return libpll_evaluate_fromscratch(treeToEvaluate);
   std::cout << "LikelihoodEvaluator::libpll_evaluate_iterative" << std::endl;
   std::cout << "first with real PLL ";
   bpp::TreeTemplate<bpp::Node>* temp = (*treeToEvaluate)->clone();

@@ -1402,7 +1402,13 @@ void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsign
   }
   std::cout << "** DLGeneTreeLikelihood::refineGeneTreeNNIs" << std::endl;
   bool test = true;
- 
+
+  // todobenoit the three following lines are just there to ensure that 
+  // the PLL partition is built before we build the pll modules treeinfo
+  TreeTemplate<Node> * hacktree = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
+  levaluator_->setAlternativeTree(hacktree);
+  delete hacktree;
+
   levaluator_->rebuildTreeinfoFromTree();
   levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, levaluator_->getTree(), true);
   do

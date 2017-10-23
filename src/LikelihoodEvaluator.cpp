@@ -380,9 +380,9 @@ void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplat
   if (hackmode <= 1) {
     return;
   }
+  //std::cout << "** LikelihoodEvaluator::mapUtreeToBPPTree" << std::endl;
   unsigned int temp = 0;
   pll_utree_traverse(currentTreeinfo->root, PLL_TREE_TRAVERSE_POSTORDER, cbtrav, utree->nodes, &temp);
-  std::cout << "** LikelihoodEvaluator::mapUtreeToBPPTree" << std::endl;
   //std::cout << "  bpp tree to map " << printer.getBPPNodeString((bpptree)->getRootNode(), false, true) << std::endl;
   //std::cout << "  utree    to map " << printer.getTreeinfoString(currentTreeinfo, false, true) << std::endl;
   std::vector< bpp::Node * > nodes = bpptree->getNodes();
@@ -471,7 +471,6 @@ pllmod_treeinfo_t * LikelihoodEvaluator::build_treeinfo(bool forceTree)
 
   // tree
 
-  std::cout << "build tree info " << ((!forceTree && alternativeTree) ? "alternativeTree" : "tree") << std::endl;
   pll_utree_t * utree = create_utree((!forceTree && alternativeTree) ? alternativeTree : tree);
   currentUtree = utree;
   std::map<std::string, int> labelling;
@@ -510,13 +509,13 @@ pllmod_treeinfo_t * LikelihoodEvaluator::build_treeinfo(bool forceTree)
   }
 
   // model
-  // todobenoit do not hardcode
-  double gammaRates[4] = {0.136954, 0.476752, 1, 2.38629};
-  double frequencies[4] = {0.255997, 0.237386, 0.272126, 0.234491};
-  double substParams[6] = {1, 1, 1, 1, 1, 1};
-  pll_set_category_rates(partition, gammaRates);
-  pll_set_frequencies(partition, 0, frequencies);
-  pll_set_subst_params(partition, 0, substParams);
+  if (!PLL_partitions || ! PLL_partitions->partitionData[0]) {
+    std::cout << "LikelihoodEvaluator::build_treeinfo error: uninitialized PLL_partition" << std::endl;
+  }
+  pInfo *pll_part = PLL_partitions->partitionData[0];
+  pll_set_category_rates(partition, pll_part->gammaRates);
+  pll_set_frequencies(partition, 0, pll_part->frequencies);
+  pll_set_subst_params(partition, 0, pll_part->substRates);
 
   // treeinfo and partition
   int params_to_optimize = PLLMOD_OPT_PARAM_ALL; // todobenoit see what we should optimize
@@ -956,14 +955,6 @@ double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Nod
   std::cout << "libpll ll = " << result_ll << std::endl;
  
   
-  //mapUtreeToBPPTree(currentUtree, *treeToEvaluate, true);
-
-  /// HAAACK
-//  libpll_evaluate_fromscratch(treeToEvaluate);
-
-  // END HAAACK
-
-
   std::string newStr = printer.getTreeinfoString(currentTreeinfo, true, false);
   stringstream outputNewickString;
   outputNewickString.str(newStr);
@@ -988,8 +979,10 @@ double LikelihoodEvaluator::libpll_evaluate_fromscratch(bpp::TreeTemplate<bpp::N
   std::cout << "first with real PLL " << std::endl;
   bpp::TreeTemplate<bpp::Node>* temp = (*treeToEvaluate)->clone();
   std::cout << realPLL_evaluate(&temp) << std::endl;
-  print_PLL_param(PLL_partitions->partitionData[0]);
   //delete temp;
+  if (!PLL_partitions || !PLL_partitions->partitionData) {
+    realPLL_evaluate(treeToEvaluate); // the PLL partitions are used to build the libpll tree 
+  }
   if (currentTreeinfo) {
     destroy_treeinfo();
   }

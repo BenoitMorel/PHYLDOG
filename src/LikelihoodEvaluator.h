@@ -289,7 +289,7 @@ public: //todobenoit private
   void reset_libpll_tree();
   
 
-  pllmod_treeinfo_t * build_treeinfo(bool forceTree = false);
+  pllmod_treeinfo_t * build_treeinfo(bool alternativeTree);
   void optimize_treeinfo(pllmod_treeinfo_t *treeinfo);
   double optimize_treeinfo_iter(pllmod_treeinfo_t *treeinfo);
   double get_likelihood_treeinfo(pllmod_treeinfo_t *treeinfo);
@@ -305,7 +305,6 @@ public: //todobenoit private
     bpp::Node *bppSon, bpp::Node *bppUncle);
   void rollbackLastMove();
   pll_unode_t *getLibpllNode(bpp::Node *node);
-  pll_unode_t *getLibpllRootFromBPPRoot(bpp::Node *bppRoot);
   void destroy_treeinfo();
   double libpll_evaluate();
 

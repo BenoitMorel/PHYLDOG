@@ -457,7 +457,7 @@ void LikelihoodEvaluator::destroy_treeinfo()
 
 }
 
-pllmod_treeinfo_t * LikelihoodEvaluator::build_treeinfo(bool forceTree)
+pllmod_treeinfo_t * LikelihoodEvaluator::build_treeinfo(bool alternative)
 {
   //std::cout << "** LikelihoodEvaluator::build_treeinfo" << std::endl;
 
@@ -473,8 +473,8 @@ pllmod_treeinfo_t * LikelihoodEvaluator::build_treeinfo(bool forceTree)
   unsigned int *pattern_weights = read_from_fasta(fasta_file, sequences);
 
   // tree
-
-  pll_utree_t * utree = create_utree((!forceTree && alternativeTree) ? alternativeTree : tree);
+  bpp::TreeTemplate<Node> *treeToBuild = alternative ? alternativeTree : tree;
+  pll_utree_t * utree = create_utree(treeToBuild);  
   currentUtree = utree;
   std::map<std::string, int> labelling;
   for (unsigned int i = 0 ; i < utree->tip_count; ++i)
@@ -512,13 +512,16 @@ pllmod_treeinfo_t * LikelihoodEvaluator::build_treeinfo(bool forceTree)
   }
 
   // model
+  std::cout << "pif " << std::endl;
   if (!PLL_partitions || ! PLL_partitions->partitionData[0]) {
     std::cout << "LikelihoodEvaluator::build_treeinfo error: uninitialized PLL_partition" << std::endl;
   }
+  std::cout << "paf " << std::endl;
   pInfo *pll_part = PLL_partitions->partitionData[0];
   pll_set_category_rates(partition, pll_part->gammaRates);
   pll_set_frequencies(partition, 0, pll_part->frequencies);
   pll_set_subst_params(partition, 0, pll_part->substRates);
+  std::cout << "pouf " << std::endl;
 
   // treeinfo and partition
   int params_to_optimize = PLLMOD_OPT_PARAM_ALL; // todobenoit see what we should optimize
@@ -750,23 +753,12 @@ void LikelihoodEvaluator::applyNNIRoot(bpp::Node *bppParent,
   pllmod_utree_set_length(edge, t1/2.0);
 }
 
-pll_unode_t *LikelihoodEvaluator::getLibpllRootFromBPPRoot(bpp::Node *bppRoot)
-{
-  std::cout << "bpp root " << bppRoot->getId() << " " << bppRoot->getNumberOfSons() << std::endl;
-  std::cout << "bpp left " << bppRoot->getSon(0)->getId() << std::endl;
-  std::cout << "bpp right " << bppRoot->getSon(1)->getId() << std::endl;
-  pll_unode_t *left = getLibpllNode(bppRoot->getSon(0));
-  pll_unode_t *right = getLibpllNode(bppRoot->getSon(1));
-  printer.printUnode(left);
-  printer.printUnode(right);
-  return get_branch(left, right);
-}
   
 void LikelihoodEvaluator::rebuildTreeinfoFromTree()
 {
   std::cout << "**LikelihoodEvaluator::rebuildTreeinfoFromTree" << std::endl;
   destroy_treeinfo();
-  currentTreeinfo = build_treeinfo(true);
+  currentTreeinfo = build_treeinfo(false);
 }
   
 void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent, 
@@ -788,7 +780,6 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
     }
   }
   pll_unode_t *parent, *grandParent, *son, *uncle;
-  //std::cout <<  bppParent->getId() << " " << bppGrandParent->getId() << " " << bppSon->getId() << " " << bppUncle->getId() << " " << bppRoot->getId() << std::endl;
   try {
     parent = getLibpllNode(bppParent);
     grandParent = getLibpllNode(bppGrandParent);
@@ -800,13 +791,8 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
     std::cout << "Exception ! " << e.what()<< std::endl;
     return;
   }
-  /*
-  std::cout << "grandParent: " << bppGrandParent->getId() << " "; printer.printUnode(grandParent);
-  std::cout << "parent     : " << bppParent->getId() << " "; printer.printUnode(parent);
-  std::cout << "son     : " << bppSon->getId() << " "; printer.printUnode(son);
-  std::cout << "uncle     : " << bppUncle->getId() << " "; printer.printUnode(uncle);
-  */
   pll_unode_t *edge = get_branch(grandParent, parent);
+  
   if (!edge) { 
     std::cout << "LikelihoodEvaluator::applyNNI: Impossible to find the good NNI move" << std::endl;
     return;
@@ -944,15 +930,10 @@ double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Nod
     return res;
   }
   
-  TreeTemplate<Node>* inputBPPTree = (*treeToEvaluate)->clone();
-  
-  
-  
-  
-  bool wasRooted = (inputBPPTree->isRooted() ? true : false);
+  bool wasRooted = ((*treeToEvaluate)->isRooted() ? true : false);
   set<string> leaves1, leaves2;
   if(wasRooted){
-    saveRoot(inputBPPTree, leaves1, leaves2);
+    saveRoot((*treeToEvaluate), leaves1, leaves2);
   }
   double result_ll = get_likelihood_treeinfo(currentTreeinfo);
 
@@ -969,7 +950,6 @@ double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Nod
     reroot(*treeToEvaluate, leaves1, leaves2);
   }
   mapUtreeToBPPTree(currentUtree, *treeToEvaluate, true);
-  delete inputBPPTree;
   //std::cout << "  output tree : "
   //  << printer.getBPPNodeString((*treeToEvaluate)->getRootNode(), false, true)
   //  << std::endl;
@@ -980,12 +960,14 @@ double LikelihoodEvaluator::libpll_evaluate_fromscratch(bpp::TreeTemplate<bpp::N
 {
   WHEREAMI( __FILE__ , __LINE__ );
   std::cout << "LikelihoodEvaluator::libpll_evaluate_fromscratch" << std::endl;
+  /*
   std::cout << "first with real PLL " << std::endl;
   bpp::TreeTemplate<bpp::Node>* temp = (*treeToEvaluate)->clone();
   std::cout << realPLL_evaluate(&temp) << std::endl;
-  //delete temp;
-  if (!PLL_partitions || !PLL_partitions->partitionData) {
-    realPLL_evaluate(treeToEvaluate); // the PLL partitions are used to build the libpll tree 
+  delete temp;
+  */
+  if (!currentTreeinfo || !PLL_partitions) {
+    realPLL_evaluate(treeToEvaluate); // the PLL partitions are used to build the libpll tree so we need to call this once (todobenoit) 
   }
   if (currentTreeinfo) {
     destroy_treeinfo();
@@ -1001,7 +983,7 @@ double LikelihoodEvaluator::libpll_evaluate_fromscratch(bpp::TreeTemplate<bpp::N
     saveRoot(inputBPPTree, leaves1, leaves2);
   }
  
-  currentTreeinfo = build_treeinfo();
+  currentTreeinfo = build_treeinfo(alternativeTree != 0);
   //optimize_treeinfo(currentTreeinfo); 
   double result_ll = get_likelihood_treeinfo(currentTreeinfo);
   std::cout << "libpll ll = " << result_ll << std::endl;
@@ -1300,6 +1282,7 @@ void LikelihoodEvaluator::unload()
       pllPartitionsDestroy(PLL_instance, &PLL_partitions);
       pllDestroyInstance(PLL_instance);
       pll_model_already_initialized_ = false;
+      std::cout << "end destroying PLL stuff" << std::endl;
     }
   }
   else

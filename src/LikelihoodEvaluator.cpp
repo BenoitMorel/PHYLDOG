@@ -99,6 +99,13 @@ using namespace bpp;
 
 int LikelihoodEvaluator::hackmode = 0;
 
+void print_PLL_param(pInfo *partition)
+{
+  print<double>("frequencies: ", partition->frequencies, 4);
+  print<double>("gamma rates: ", partition->gammaRates, 4);
+  print<double>("subst : ", partition->substRates, 6);
+}
+
 class LibpllNodeProperty: public Clonable {
   public:
     LibpllNodeProperty(unsigned int id) : id(id) {}
@@ -262,7 +269,7 @@ void LikelihoodEvaluator::PLL_loadPartitions(string path)
 
   /* Commit the partitions and build a partitions structure */
   PLL_partitions = pllPartitionsCommit (PLL_partitionInfo, PLL_alignmentData);
-
+  PLL_partitions->partitionData[0]->frequencies = 0;
   /* We don't need the the intermedia partition queue structure anymore */
   pllQueuePartitionsDestroy (&PLL_partitionInfo);
 
@@ -512,16 +519,26 @@ pllmod_treeinfo_t * LikelihoodEvaluator::build_treeinfo(bool alternative)
   }
 
   // model
-  std::cout << "pif " << std::endl;
-  if (!PLL_partitions || ! PLL_partitions->partitionData[0]) {
-    std::cout << "LikelihoodEvaluator::build_treeinfo error: uninitialized PLL_partition" << std::endl;
+  if (!PLL_partitions || !PLL_partitions->partitionData||  ! PLL_partitions->partitionData[0]
+      || !PLL_partitions->partitionData[0]->substRates
+      || !PLL_partitions->partitionData[0]->frequencies
+      || !PLL_partitions->partitionData[0]->substRates
+      ) {
+    double subst[6] = {1, 1, 1, 1, 1, 1};
+    double gammaRates[4] = {0.136954, 0.476752, 1, 2.38629};
+    pll_set_category_rates(partition, gammaRates);
+    pll_set_frequencies(partition, 0, &(substitutionModel->getFrequencies()[0]));
+    pll_set_subst_params(partition, 0, subst);
+  
+  } else { 
+    pInfo *pll_part = PLL_partitions->partitionData[0];
+    std::cout << pll_part->frequencies << " " << pll_part->gammaRates <<" " << pll_part->substRates << std::endl;
+    pll_set_category_rates(partition, pll_part->gammaRates);
+    pll_set_frequencies(partition, 0, pll_part->frequencies);
+    pll_set_subst_params(partition, 0, pll_part->substRates);
   }
-  std::cout << "paf " << std::endl;
-  pInfo *pll_part = PLL_partitions->partitionData[0];
-  pll_set_category_rates(partition, pll_part->gammaRates);
-  pll_set_frequencies(partition, 0, pll_part->frequencies);
-  pll_set_subst_params(partition, 0, pll_part->substRates);
-  std::cout << "pouf " << std::endl;
+
+  
 
   // treeinfo and partition
   int params_to_optimize = PLLMOD_OPT_PARAM_ALL; // todobenoit see what we should optimize
@@ -532,7 +549,7 @@ pllmod_treeinfo_t * LikelihoodEvaluator::build_treeinfo(bool alternative)
         1.0, // todobenoit what is this alpha
         params_indices,
         0); // todobenoit check that we don't need it
-
+  needFullOptim = true;
   return treeinfo;
 }
 
@@ -540,11 +557,14 @@ void LikelihoodEvaluator::optimize_treeinfo(pllmod_treeinfo_t *treeinfo)
 {
   double previousLogl = get_likelihood_treeinfo(treeinfo); 
   double newLogl = previousLogl;
+  unsigned int iterations = 0;
   do {
     previousLogl = newLogl;
     optimize_treeinfo_iter(treeinfo);
     newLogl = get_likelihood_treeinfo(treeinfo);
-  } while (newLogl - previousLogl > tolerance_);
+    iterations++;
+  } while (false ); //newLogl - previousLogl > tolerance_);
+  std::cout << "Optimization iterations " << iterations << std::endl;
 }
 
 
@@ -907,21 +927,19 @@ void saveRoot(bpp::TreeTemplate<bpp::Node>* tree, set<string> &leaves1, set<stri
   tree->unroot();
 }
 
-void print_PLL_param(pInfo *partition)
-{
-  print<double>("frequencies: ", partition->frequencies, 4);
-  print<double>("gamma rates: ", partition->gammaRates, 4);
-  print<double>("subst : ", partition->substRates, 6);
-}
 
 double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Node>** treeToEvaluate)
 
 {
   std::cout << "LikelihoodEvaluator::libpll_evaluate_iterative" << std::endl;
+ 
+  /*
   std::cout << "first with real PLL ";
   bpp::TreeTemplate<bpp::Node>* temp = (*treeToEvaluate)->clone();
   std::cout << realPLL_evaluate(&temp) << std::endl;
   delete temp;
+  */
+
   //std::cout << "  input tree : "
   //  << printer.getBPPNodeString((*treeToEvaluate)->getRootNode(), false, true)
   //  << std::endl;
@@ -935,8 +953,14 @@ double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Nod
   if(wasRooted){
     saveRoot((*treeToEvaluate), leaves1, leaves2);
   }
-  double result_ll = get_likelihood_treeinfo(currentTreeinfo);
 
+  double result_ll = get_likelihood_treeinfo(currentTreeinfo);
+  std::cout << "libpll ll = " << result_ll << std::endl;
+  if (needFullOptim) {
+    optimize_treeinfo(currentTreeinfo); 
+    needFullOptim = false;
+  }
+  result_ll = get_likelihood_treeinfo(currentTreeinfo);
   std::cout << "libpll ll = " << result_ll << std::endl;
  
   
@@ -966,9 +990,6 @@ double LikelihoodEvaluator::libpll_evaluate_fromscratch(bpp::TreeTemplate<bpp::N
   std::cout << realPLL_evaluate(&temp) << std::endl;
   delete temp;
   */
-  if (!currentTreeinfo || !PLL_partitions) {
-    realPLL_evaluate(treeToEvaluate); // the PLL partitions are used to build the libpll tree so we need to call this once (todobenoit) 
-  }
   if (currentTreeinfo) {
     destroy_treeinfo();
   }
@@ -984,8 +1005,11 @@ double LikelihoodEvaluator::libpll_evaluate_fromscratch(bpp::TreeTemplate<bpp::N
   }
  
   currentTreeinfo = build_treeinfo(alternativeTree != 0);
-  //optimize_treeinfo(currentTreeinfo); 
   double result_ll = get_likelihood_treeinfo(currentTreeinfo);
+  std::cout << "libpll ll = " << result_ll << std::endl;
+  optimize_treeinfo(currentTreeinfo);
+  needFullOptim = false;
+  result_ll = get_likelihood_treeinfo(currentTreeinfo);
   std::cout << "libpll ll = " << result_ll << std::endl;
 
   std::string newStr = printer.getTreeinfoString(currentTreeinfo, true, false, false);
@@ -1069,6 +1093,7 @@ double LikelihoodEvaluator::realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** tree
   // pllSetFixedSubstitutionMatrix(subsMatrix_, 6, 0, PLL_partitions, PLL_instance);
   WHEREAMI( __FILE__ , __LINE__ );
   if(!pll_model_already_initialized_){
+    std::cout << "init model" << std::endl;
     pllInitModel(PLL_instance, PLL_partitions);
     pll_model_already_initialized_ = true;
   }
@@ -1090,7 +1115,7 @@ double LikelihoodEvaluator::realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** tree
   double result_ll = 0.0;
   char *newickStr = 0;
     //std::cout << "PLL ll before opt = " << PLL_instance->likelihood << std::endl;
-    //pllOptimizeModelParameters(PLL_instance, PLL_partitions, tolerance_);
+    pllOptimizeModelParameters(PLL_instance, PLL_partitions, tolerance_);
     //std::cout << "PLL ll after  opt = " << PLL_instance->likelihood << std::endl;
     result_ll = PLL_instance->likelihood;
     pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);
@@ -1269,7 +1294,6 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
 
 void LikelihoodEvaluator::unload()
 {
-  //std::cout << "**LikelihoodEvaluator::unload" << std::endl;
   if(!initialized)
     return;
   initialized = false;
@@ -1277,12 +1301,11 @@ void LikelihoodEvaluator::unload()
     //initialized = true;
     //return;
     if(pll_model_already_initialized_){
-      std::cout << "destroying PLL stuff" << std::endl;
       pllAlignmentDataDestroy(PLL_alignmentData);
       pllPartitionsDestroy(PLL_instance, &PLL_partitions);
       pllDestroyInstance(PLL_instance);
       pll_model_already_initialized_ = false;
-      std::cout << "end destroying PLL stuff" << std::endl;
+      PLL_partitions = 0;
     }
   }
   else

@@ -307,7 +307,7 @@ public: //todobenoit private
   pll_unode_t *getLibpllNode(bpp::Node *node);
   void destroy_treeinfo();
   double libpll_evaluate();
-
+  bool needFullOptim;
  
   void rebuildTreeinfoFromTree();
   void mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree, bool bppStrict);

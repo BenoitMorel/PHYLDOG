@@ -432,7 +432,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
   if ((nodesToTryInNNISearch_.count(nodeId)==1) /*|| DLStartingGeneTree_*/) {
     TreeTemplate<Node> * treeForNNI = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
     levaluator_->setAlternativeTree(levaluator_->getTree());
-
+    //std::cout << "todobenoit: pourquoi setALternativeTree ici ?" << std::endl;
     tentativeMLindex_ = MLindex_;
     tentativeNum0Lineages_ = num0Lineages_;
     tentativeNum1Lineages_ = num1Lineages_;
@@ -471,7 +471,6 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     //levaluator_->applyNNI(parentForNNI, grandFatherForNNI, sonForNNI, uncleForNNI, treeForNNI->getRootNode());
         
     if (considerSequenceLikelihood_ ) {
-      std::cout << "Starting my hack" << std::endl;
       levaluator_->applyNNI(parentForNNI, grandFatherForNNI, sonForNNI, uncleForNNI, treeForNNI->getRootNode());
     }
     parentForNNI->removeSon(sonForNNI);
@@ -507,10 +506,6 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
 					       tentativeNum0Lineages_, tentativeNum1Lineages_,
 					       tentativeNum2Lineages_, tentativeNodesToTryInNNISearch_, false); //false so that _tentativeNum*Lineages are not updated
 
-    if (considerSequenceLikelihood_) {
-      levaluator_->setAlternativeTree(treeForNNI); // todobenoit: just to test, this line is useless
-    }
-      
     if (considerSequenceLikelihood_ )
     {
       if  (candidateScenarioLk >  scenarioLikelihood_)
@@ -1386,7 +1381,10 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 
 
 
-
+void DLGeneTreeLikelihood::full_optim()
+{
+  levaluator_->optimize_treeinfo(levaluator_->currentTreeinfo);
+}
 
 /************************************************************************
  * Tries all NNIs, and accepts NNIs that improve the likelihood as soon as
@@ -1401,7 +1399,7 @@ void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsign
     computeReconciliationLikelihood();
     return;
   }
-  std::cout << "** DLGeneTreeLikelihood::refineGeneTreeNNIs" << std::endl;
+  //std::cout << "** DLGeneTreeLikelihood::refineGeneTreeNNIs" << std::endl;
   bool test = true;
   // todobenoit the three following lines are just there to ensure that 
   // the PLL partition is built before we build the pll modules treeinfo
@@ -1409,8 +1407,8 @@ void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsign
   levaluator_->setAlternativeTree(hacktree);
   delete hacktree;
 */
-  levaluator_->rebuildTreeinfoFromTree();
-  levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, levaluator_->getTree(), true);
+  //levaluator_->rebuildTreeinfoFromTree();
+  //levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, levaluator_->getTree(), true);
   do
   {
     TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();

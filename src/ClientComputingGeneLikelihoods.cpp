@@ -667,6 +667,11 @@ void ClientComputingGeneLikelihoods::MLSearch() {
         std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
         std::cout << std::endl;
         std::cout << std::endl;
+        if (currentStep_ == 4) {
+          for (unsigned int i = 0 ; i< numberOfGeneFamilies_ ; i++) {
+            dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->full_optim();
+          }
+        }
       }
       if (timing)
       {
@@ -827,6 +832,11 @@ void ClientComputingGeneLikelihoods::MLSearch() {
     }
     else
     {
+      std::cout << "THE EEEND" << std::endl;
+      for (unsigned int i = 0 ; i< numberOfGeneFamilies_ ; i++) {
+        dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->full_optim();
+
+      }
       /****************************************************************************
        * The end, outputting the results.
        *****************************************************************************/

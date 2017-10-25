@@ -222,6 +222,7 @@ public:
   
   virtual ~DLGeneTreeLikelihood();
   
+  void full_optim();
   
   
   #ifndef NO_VIRTUAL_COV

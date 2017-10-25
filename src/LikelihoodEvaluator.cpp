@@ -558,6 +558,7 @@ void LikelihoodEvaluator::optimize_treeinfo(pllmod_treeinfo_t *treeinfo)
   double previousLogl = get_likelihood_treeinfo(treeinfo); 
   double newLogl = previousLogl;
   unsigned int iterations = 0;
+  std::cout << "before ll = " << get_likelihood_treeinfo(currentTreeinfo) << std::endl;
   do {
     previousLogl = newLogl;
     optimize_treeinfo_iter(treeinfo);
@@ -565,6 +566,8 @@ void LikelihoodEvaluator::optimize_treeinfo(pllmod_treeinfo_t *treeinfo)
     iterations++;
   } while (false ); //newLogl - previousLogl > tolerance_);
   std::cout << "Optimization iterations " << iterations << std::endl;
+  logLikelihood = get_likelihood_treeinfo(currentTreeinfo);
+  std::cout << "after: ll = " << logLikelihood<< std::endl;
 }
 
 
@@ -789,9 +792,9 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
   if (hackmode <= 1) {
     return;
   }
-  std::cout << "** LikelihoodEvaluator::applyNNI" << std::endl;
+  //std::cout << "** LikelihoodEvaluator::applyNNI" << std::endl;
   movesNumber++;
-  std::cout << "moves: " << movesNumber << std::endl;
+  //std::cout << "moves: " << movesNumber << std::endl;
   if (bppParent->getId() == bppRoot->getId() ||
       bppGrandParent->getId() == bppRoot->getId()) {
     if (bppGrandParent->getId() == bppRoot->getId()) {
@@ -837,7 +840,7 @@ void LikelihoodEvaluator::rollbackLastMove()
   if (hackmode <= 1) {
     return;
   }
-  std::cout << "** LikelihoodEvaluator::rollbackLastMove " << movesNumber << std::endl;
+  //std::cout << "** LikelihoodEvaluator::rollbackLastMove " << movesNumber << std::endl;
   movesNumber--;
   if (rollbackRootInfo.edge) {
     pllmod_utree_set_length(rollbackRootInfo.edge, rollbackRootInfo.t1);
@@ -927,12 +930,21 @@ void saveRoot(bpp::TreeTemplate<bpp::Node>* tree, set<string> &leaves1, set<stri
   tree->unroot();
 }
 
+void updateTreeToEvaluate(bpp::TreeTemplate<Node> **treeToEvaluate, pllmod_treeinfo_t *treeinfo, BenoitPrinter &printer) {
+  std::string newStr = printer.getTreeinfoString(treeinfo, true, false);
+  stringstream outputNewickString;
+  outputNewickString.str(newStr);
+  Newick outputNewick;
+  delete *treeToEvaluate;
+  *treeToEvaluate = outputNewick.read(outputNewickString);
+
+}
+
 
 double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Node>** treeToEvaluate)
 
 {
-  std::cout << "LikelihoodEvaluator::libpll_evaluate_iterative" << std::endl;
- 
+  //std::cout << "LikelihoodEvaluator::libpll_evaluate_iterative" << std::endl;
   /*
   std::cout << "first with real PLL ";
   bpp::TreeTemplate<bpp::Node>* temp = (*treeToEvaluate)->clone();
@@ -940,9 +952,6 @@ double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Nod
   delete temp;
   */
 
-  //std::cout << "  input tree : "
-  //  << printer.getBPPNodeString((*treeToEvaluate)->getRootNode(), false, true)
-  //  << std::endl;
   if (!currentTreeinfo) {
     double res = libpll_evaluate_fromscratch(treeToEvaluate);
     return res;
@@ -955,21 +964,16 @@ double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Nod
   }
 
   double result_ll = get_likelihood_treeinfo(currentTreeinfo);
-  std::cout << "libpll ll = " << result_ll << std::endl;
+  //std::cout << "ll it =" << result_ll << std::endl;
   if (needFullOptim) {
     optimize_treeinfo(currentTreeinfo); 
     needFullOptim = false;
   }
   result_ll = get_likelihood_treeinfo(currentTreeinfo);
-  std::cout << "libpll ll = " << result_ll << std::endl;
+  //std::cout << "libpll ll = " << result_ll << std::endl;
  
-  
-  std::string newStr = printer.getTreeinfoString(currentTreeinfo, true, false);
-  stringstream outputNewickString;
-  outputNewickString.str(newStr);
-  Newick outputNewick;
-  delete *treeToEvaluate;
-  *treeToEvaluate = outputNewick.read(outputNewickString);
+   updateTreeToEvaluate(treeToEvaluate, currentTreeinfo, printer);
+
   if (wasRooted) {
     reroot(*treeToEvaluate, leaves1, leaves2);
   }

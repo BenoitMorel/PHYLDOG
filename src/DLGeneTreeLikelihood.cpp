@@ -430,9 +430,11 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
   //or if we just try all branches because the starting gene trees are parsimonious in
   //numbers of DL.
   if ((nodesToTryInNNISearch_.count(nodeId)==1) /*|| DLStartingGeneTree_*/) {
-    TreeTemplate<Node> * treeForNNI = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
-    levaluator_->setAlternativeTree(levaluator_->getTree());
+    //levaluator_->setAlternativeTree(levaluator_->getTree());
+    levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, levaluator_->getTree(), true);
+    levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, levaluator_->getAlternativeTree(), true);
     //std::cout << "todobenoit: pourquoi setALternativeTree ici ?" << std::endl;
+    TreeTemplate<Node> * treeForNNI = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
     tentativeMLindex_ = MLindex_;
     tentativeNum0Lineages_ = num0Lineages_;
     tentativeNum1Lineages_ = num1Lineages_;
@@ -1424,6 +1426,7 @@ void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsign
 
     // Test all NNIs:
     test = false;
+    levaluator_->setAlternativeTree(levaluator_->getTree());
     for(unsigned int i = 0; !test && i < nodesSub.size(); i++)
     {
       Node* node = nodesSub[i];

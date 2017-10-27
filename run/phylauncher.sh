@@ -52,11 +52,11 @@ generate_submit()
 #generate_submit medium 20 10 0 4
 #generate_submit medium 20 10 2 4
 
-generate_submit all 55 40 0 16
-#generate_submit all 55 40 2 16
+#generate_submit all 55 40 0 16
+generate_submit all 55 40 2 16
 
-#generate_submit all 55 40 0 40
-#generate_submit all 55 40 2 40
+generate_submit all 55 40 0 40
+generate_submit all 55 40 2 40
 
 
 

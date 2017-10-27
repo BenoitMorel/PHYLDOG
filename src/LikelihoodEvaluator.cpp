@@ -569,6 +569,37 @@ void LikelihoodEvaluator::optimize_treeinfo(pllmod_treeinfo_t *treeinfo)
   logLikelihood = get_likelihood_treeinfo(currentTreeinfo);
   std::cout << "after: ll = " << logLikelihood<< std::endl;
 }
+  
+#define RAXML_BRLEN_SMOOTHINGS    32
+#define RAXML_BRLEN_DEFAULT       0.1
+#define RAXML_BRLEN_MIN           1.0e-6
+#define RAXML_BRLEN_MAX           100.
+#define RAXML_BRLEN_TOLERANCE 1.0e-7
+  
+double LikelihoodEvaluator::libpll_optimize_local(pllmod_treeinfo_t *treeinfo)
+{
+  pll_unode_t *edge = (pll_unode_t*)(rollbackInfo.NNI.edge ? rollbackInfo.NNI.edge : rollbackRootInfo.edge);
+  if (!edge) {
+    std::cout << "cannot apply BLO" << std::endl;
+    return 0;
+  }
+  std::cout << "applying blo" << std::endl;
+  pllmod_treeinfo_set_root(treeinfo, edge);
+  std::cout <<  get_likelihood_treeinfo(treeinfo) << std::endl;
+  //todobenoit
+  unsigned int params_indices[4] = {0,0,0,0}; 
+  return pllmod_opt_optimize_branch_lengths_local(
+      treeinfo->partitions[0],
+      treeinfo->root,
+      params_indices,
+      RAXML_BRLEN_MIN,
+      RAXML_BRLEN_MAX,
+      RAXML_BRLEN_TOLERANCE,
+      RAXML_BRLEN_SMOOTHINGS,
+      0,
+      true);
+
+}
 
 
 double LikelihoodEvaluator::optimize_treeinfo_iter(pllmod_treeinfo_t *treeinfo)
@@ -964,13 +995,15 @@ double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Nod
   }
 
   double result_ll = get_likelihood_treeinfo(currentTreeinfo);
-  //std::cout << "ll it =" << result_ll << std::endl;
+  std::cout << "ll before =" << result_ll << std::endl;
   if (needFullOptim) {
     optimize_treeinfo(currentTreeinfo); 
     needFullOptim = false;
+  } else {
+    //libpll_optimize_local(currentTreeinfo);
   }
   result_ll = get_likelihood_treeinfo(currentTreeinfo);
-  //std::cout << "libpll ll = " << result_ll << std::endl;
+  std::cout << "ll after  = " << result_ll << std::endl << std::endl;;
  
    updateTreeToEvaluate(treeToEvaluate, currentTreeinfo, printer);
 

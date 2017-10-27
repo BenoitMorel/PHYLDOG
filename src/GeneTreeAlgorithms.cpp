@@ -719,6 +719,10 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
     return unrootedGeneTree;
     }
     else {
+    std::cout  << sites->getSequencesNames().size() << std::endl;
+    if (sites->getSequencesNames().size()) {
+      std::cout << sites->getSequencesNames()[0].size() << std::endl;
+    }
     DistanceMatrix* dist = new DistanceMatrix (sites->getSequencesNames());
     std::cout <<"Expected JC distances."<<std::endl;
     double numSites = sites->getNumberOfSites();

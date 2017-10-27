@@ -3216,6 +3216,10 @@ TreeTemplate<Node> * getTreeFromOptions ( map <string,string> params, Alphabet *
 {
   string file = ApplicationTools::getStringParameter ( "input.sequence.file",params,"none" );
 
+  if (sites->getSequencesNames().size() < 3 || sites->getSequencesNames()[0].size() < 3) {
+    std::cout << "getTreeFromOptions todobenoit hacking matrix < 3 case exception" << std::endl;
+    return 0;
+  }
   TreeTemplate<Node> *  rootedTree = 00;
   // Get the initial gene tree
   string initTree = ApplicationTools::getStringParameter ( "init.gene.tree", params, "user", "", false, false );

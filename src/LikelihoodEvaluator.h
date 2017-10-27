@@ -291,6 +291,7 @@ public: //todobenoit private
 
   pllmod_treeinfo_t * build_treeinfo(bool alternativeTree);
   void optimize_treeinfo(pllmod_treeinfo_t *treeinfo);
+  double libpll_optimize_local(pllmod_treeinfo_t *treeinfo);
   double optimize_treeinfo_iter(pllmod_treeinfo_t *treeinfo);
   double get_likelihood_treeinfo(pllmod_treeinfo_t *treeinfo);
   void utreeRealToStrict(pllmod_treeinfo_t *treeinfo);

@@ -1051,7 +1051,7 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
 double LikelihoodEvaluator::realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate)
 {
 
-
+  std::cout << "Real PLL evaluate " << std::endl;
   //TODO debug remove
   Newick debugTree;
   stringstream debugSS;
@@ -1112,15 +1112,15 @@ double LikelihoodEvaluator::realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** tree
  // pllOptimizeModelParameters(PLL_instance, PLL_partitions, 0.1);
  
 /**
- *  hackmode == 0: old PLL
+ *  hackmode == 0:old PLL
  *  hackmode == 1: new libpll2
  * */
 
   double result_ll = 0.0;
   char *newickStr = 0;
-    //std::cout << "PLL ll before opt = " << PLL_instance->likelihood << std::endl;
+    std::cout << "PLL ll before opt = " << PLL_instance->likelihood << std::endl;
     pllOptimizeModelParameters(PLL_instance, PLL_partitions, tolerance_);
-    //std::cout << "PLL ll after  opt = " << PLL_instance->likelihood << std::endl;
+    std::cout << "PLL ll after  opt = " << PLL_instance->likelihood << std::endl;
     result_ll = PLL_instance->likelihood;
     pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);
     newickStingForPll.str(PLL_instance->tree_string);
@@ -1309,7 +1309,6 @@ void LikelihoodEvaluator::unload()
       pllPartitionsDestroy(PLL_instance, &PLL_partitions);
       pllDestroyInstance(PLL_instance);
       pll_model_already_initialized_ = false;
-      PLL_partitions = 0;
     }
   }
   else

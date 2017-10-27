@@ -324,7 +324,6 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 
   numberOfGeneFamilies_ = assignedFilenames_.size()-numDeletedFamilies_;
   for (std::vector < unsigned int >::reverse_iterator fId = avoidedFamilyIds.rbegin(); fId != avoidedFamilyIds.rend(); ++fId) {
-    std::cout << "Discarding family: "<< assignedFilenames_[*fId] << std::endl;
     assignedFilenames_.erase(assignedFilenames_.begin() + *fId);
   }
   numberOfFilteredFamiliesCommunicationsServerClient (world_, server_,
@@ -669,7 +668,16 @@ void ClientComputingGeneLikelihoods::MLSearch() {
         std::cout << std::endl;
         if (currentStep_ == 4) {
           for (unsigned int i = 0 ; i< numberOfGeneFamilies_ ; i++) {
-            dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->full_optim();
+            DLGeneTreeLikelihood *curr = dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i]);
+            LikelihoodEvaluator *evaluator = curr->getSequenceLikelihoodObject();
+            if (LikelihoodEvaluator::hackmode == 2) {
+              curr->full_optim();
+              LikelihoodEvaluator::hackmode = 0;
+              evaluator->setAlternativeTree(evaluator->getTree());
+              LikelihoodEvaluator::hackmode = 2;
+              std::cout << "PLL    ll " << evaluator->getAlternativeLogLikelihood() << std::endl;
+            } 
+            std::cout << "final ll " << evaluator->getLogLikelihood() << std::endl;
           }
         }
       }
@@ -832,11 +840,6 @@ void ClientComputingGeneLikelihoods::MLSearch() {
     }
     else
     {
-      std::cout << "THE EEEND" << std::endl;
-      for (unsigned int i = 0 ; i< numberOfGeneFamilies_ ; i++) {
-        dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i])->full_optim();
-
-      }
       /****************************************************************************
        * The end, outputting the results.
        *****************************************************************************/

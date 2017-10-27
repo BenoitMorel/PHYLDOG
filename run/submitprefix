@@ -1,15 +1,7 @@
+source /etc/profile.d/modules.sh
+module load gompi
 
-if [ "$#" -ne 4 ]; then
-  echo "Illegal number of parameters"
-  exit
-fi
-
-prefix=$1
-species=$2
-genes=$3
-hackmode=$4
-
-outputdir=${prefix}_${species}_${genes}_${hackmode}
+outputdir=${prefix}_${species}_${genes}_${hackmode}_${threads}
 rm -rf $outputdir
 mkdir $outputdir
 cd $outputdir
@@ -29,8 +21,5 @@ export SCOREP_PROFILING_MAX_CALLPATH_DEPTH=40
 
 
 
-mpirun -np 4 ../../build/bin/phyldog param=${fullpathdata}/GeneralOptions.txt &> ${fullpath}/logs.txt
-
-
-
+mpirun -np $threads ../../build/bin/phyldog param=${fullpathdata}/GeneralOptions.txt &> ${fullpath}/logs.txt
 

@@ -249,8 +249,6 @@ int main(int args, char ** argv)
 
 	      ApplicationTools::startTimer();
 	      bool debug = ApplicationTools::getBooleanParameter("debug",params,false);
-	      int hackmode = ApplicationTools::ApplicationTools::getIntParameter("hackmode",params,0);
-        LikelihoodEvaluator::hackmode = hackmode;
 	      string path = ApplicationTools::getStringParameter("PATH", params, "", "", true, false);
 	      string outputFile = path + "Client_"+TextTools::toString(rank)+".out";
 	      streambuf *psbuf, *backup, *backupcerr;

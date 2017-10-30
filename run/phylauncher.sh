@@ -15,7 +15,7 @@ generate_submit()
   prefix=$1
   species=$2
   genes=$3
-  hackmode=$4
+  method=$4
   threads=$5
   nodes=$(echo "($threads - 1)/16 + 1" | bc)
   submit_file="physub_${prefix}_${species}_${genes}_${hackmode}_${threads}"
@@ -32,7 +32,7 @@ generate_submit()
   write "prefix=$prefix"
   write "species=$species"
   write "genes=$genes"
-  write "hackmode=$hackmode"
+  write "method=$method"
   write "threads=$threads"
 
 
@@ -46,17 +46,18 @@ generate_submit()
 
 
 
-#generate_submit small 10 3 0 4
-#generate_submit small 10 3 2 4
+generate_submit small 10 3 BPP 4
+generate_submit small 10 3 PLL 4
+generate_submit small 10 3 LIBPLL2 4
 
-#generate_submit medium 20 10 0 4
-#generate_submit medium 20 10 2 4
+#generate_submit medium 20 10 PLL 4
+#generate_submit medium 20 10 LIBPLL2 4
 
-#generate_submit all 55 40 0 16
-generate_submit all 55 40 2 16
+#generate_submit all 55 40 PLL 16
+#generate_submit all 55 40 LIBPLL2 16
 
-generate_submit all 55 40 0 40
-generate_submit all 55 40 2 40
+#generate_submit all 55 40 PLL 40
+#generate_submit all 55 40 LIBPLL2 40
 
 
 

@@ -670,13 +670,7 @@ void ClientComputingGeneLikelihoods::MLSearch() {
           for (unsigned int i = 0 ; i< numberOfGeneFamilies_ ; i++) {
             DLGeneTreeLikelihood *curr = dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i]);
             LikelihoodEvaluator *evaluator = curr->getSequenceLikelihoodObject();
-            if (LikelihoodEvaluator::hackmode == 2) {
-              curr->full_optim();
-              LikelihoodEvaluator::hackmode = 0;
-              evaluator->setAlternativeTree(evaluator->getTree());
-              LikelihoodEvaluator::hackmode = 2;
-              std::cout << "PLL    ll " << evaluator->getAlternativeLogLikelihood() << std::endl;
-            } 
+            curr->full_optim();
             std::cout << "final ll " << evaluator->getLogLikelihood() << std::endl;
           }
         }

@@ -97,7 +97,6 @@ using namespace bpp;
 
 
 
-int LikelihoodEvaluator::hackmode = 0;
 
 void print_PLL_param(pInfo *partition)
 {
@@ -158,7 +157,16 @@ void LikelihoodEvaluator::loadDataFromParams(){
   cout << "@@Instanciating a Likelihood Evaluator named " << name << endl;
 
   string methodString = ApplicationTools::getStringParameter("likelihood.evaluator",params,"PLL");
-  method = (methodString == "PLL"? PLL:BPP);
+  std::cout << " METHOD " << methodString << std::endl;
+  if (methodString == "PLL") {
+    this->method = PLL;
+  } else if (methodString == "LIBPLL2") {
+    this->method = LIBPLL2;
+  } else if (methodString == "HYBRID") {
+    this->method = HYBRID;
+  } else {
+    this->method = BPP;
+  }
 
   // loading data, imported from GeneTreeLikelihood (Bastien)
 
@@ -384,7 +392,8 @@ int cbtrav(pll_unode_t *node) {
 
 void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree, bool bppStrict)
 {
-  if (hackmode <= 1) {
+  //std::cout << "LikelihoodEvaluator::mapUtreeToBPPTree method " << method << std::endl;
+  if (method != LIBPLL2 && method != HYBRID) {
     return;
   }
   //std::cout << "** LikelihoodEvaluator::mapUtreeToBPPTree" << std::endl;
@@ -440,7 +449,7 @@ void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplat
 
 void LikelihoodEvaluator::reset_libpll_tree()
 {
-  if (hackmode <= 1) {
+  if (method != LIBPLL2 && method != HYBRID) {
     return;
   }
   destroy_treeinfo();
@@ -555,6 +564,10 @@ pllmod_treeinfo_t * LikelihoodEvaluator::build_treeinfo(bool alternative)
 
 void LikelihoodEvaluator::optimize_treeinfo(pllmod_treeinfo_t *treeinfo)
 {
+  if (method != LIBPLL2) {
+    return;
+  }
+
   double previousLogl = get_likelihood_treeinfo(treeinfo); 
   double newLogl = previousLogl;
   unsigned int iterations = 0;
@@ -820,7 +833,7 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
     bpp::Node *bppSon, bpp::Node *bppUncle,
     bpp::Node *bppRoot)
 {
-  if (hackmode <= 1) {
+  if (method != LIBPLL2 && method != HYBRID) {
     return;
   }
   //std::cout << "** LikelihoodEvaluator::applyNNI" << std::endl;
@@ -868,7 +881,7 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
 
 void LikelihoodEvaluator::rollbackLastMove()
 {
-  if (hackmode <= 1) {
+  if (method != LIBPLL2 && method != HYBRID) {
     return;
   }
   //std::cout << "** LikelihoodEvaluator::rollbackLastMove " << movesNumber << std::endl;
@@ -975,7 +988,7 @@ void updateTreeToEvaluate(bpp::TreeTemplate<Node> **treeToEvaluate, pllmod_treei
 double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Node>** treeToEvaluate)
 
 {
-  //std::cout << "LikelihoodEvaluator::libpll_evaluate_iterative" << std::endl;
+  std::cout << "LikelihoodEvaluator::libpll_evaluate_iterative" << std::endl;
   /*
   std::cout << "first with real PLL ";
   bpp::TreeTemplate<bpp::Node>* temp = (*treeToEvaluate)->clone();
@@ -995,8 +1008,8 @@ double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Nod
   }
 
   double result_ll = get_likelihood_treeinfo(currentTreeinfo);
+  if (needFullOptim && method != HYBRID) {
   std::cout << "ll before =" << result_ll << std::endl;
-  if (needFullOptim) {
     optimize_treeinfo(currentTreeinfo); 
     needFullOptim = false;
   } else {
@@ -1072,19 +1085,24 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
   WHEREAMI( __FILE__ , __LINE__ );
   static unsigned int count = 0;
   //std::cout << "** LikelihoodEvaluator::PLL_evaluate" << count++ << std::endl;
-  if (hackmode == 1) {
-    return libpll_evaluate_fromscratch(treeToEvaluate);
-  } else if (hackmode == 2) {
+  if (method == LIBPLL2) {
     return libpll_evaluate_iterative(treeToEvaluate);
-  } else {
+  } else if (method == PLL) {
     return realPLL_evaluate(treeToEvaluate);
+  } else { // HYBRID
+    TreeTemplate<Node> *pllTree = (*treeToEvaluate)->clone();
+    double pllRes = realPLL_evaluate(&pllTree);
+    delete pllTree;
+    double libpllRes = libpll_evaluate_iterative(treeToEvaluate);
+    std::cout << "Hybrid " << pllRes << " " << libpllRes << std::endl;
+    return libpllRes;
   }
 }
  
 double LikelihoodEvaluator::realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate)
 {
 
-  std::cout << "Real PLL evaluate " << std::endl;
+  std::cout << "LikelihoodEvaluator::realPLL_evaluate " << std::endl;
   //TODO debug remove
   Newick debugTree;
   stringstream debugSS;
@@ -1144,20 +1162,17 @@ double LikelihoodEvaluator::realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** tree
  // pllOptimizeBranchLengths (PLL_instance, PLL_partitions, 64);
  // pllOptimizeModelParameters(PLL_instance, PLL_partitions, 0.1);
  
-/**
- *  hackmode == 0:old PLL
- *  hackmode == 1: new libpll2
- * */
-
   double result_ll = 0.0;
   char *newickStr = 0;
-    std::cout << "PLL ll before opt = " << PLL_instance->likelihood << std::endl;
+  
+  result_ll = PLL_instance->likelihood;
+  if (method != HYBRID) {
     pllOptimizeModelParameters(PLL_instance, PLL_partitions, tolerance_);
-    std::cout << "PLL ll after  opt = " << PLL_instance->likelihood << std::endl;
     result_ll = PLL_instance->likelihood;
-    pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);
-    newickStingForPll.str(PLL_instance->tree_string);
-    //std::cout << "PLL tree: " << newickStingForPll.str() << std::endl;
+  }
+  pllTreeToNewick(PLL_instance->tree_string, PLL_instance, PLL_partitions, PLL_instance->start->back, true, true, 0, 0, 0, true, 0,0);
+  newickStingForPll.str(PLL_instance->tree_string);
+  //std::cout << "PLL tree: " << newickStingForPll.str() << std::endl;
   
   // getting the new tree with new branch lengths
 
@@ -1236,6 +1251,7 @@ double LikelihoodEvaluator::realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** tree
 double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
 {
   WHEREAMI( __FILE__ , __LINE__ );
+  std::cout << "LikelihoodEvaluator::BPP_evaluate " << std::endl;
 
   // preparing the tree
   TreeTemplate<Node>* treeForBPP = (*treeToEvaluate)->clone();
@@ -1380,7 +1396,7 @@ void LikelihoodEvaluator::initialize()
   }
 
   // ### common requirements for initialization
-  if(method == PLL)
+  if(method != BPP)
     initialize_PLL();
   else
     initialize_BPP_nniLk();
@@ -1400,7 +1416,7 @@ void LikelihoodEvaluator::setAlternativeTree(TreeTemplate< Node >* newAlternativ
     delete alternativeTree;
   alternativeTree = newAlternative->clone();
 
-  if(method == PLL){
+  if(method != BPP){
     alternativeLogLikelihood = PLL_evaluate( &alternativeTree ) * scaler_;
   }
   else
@@ -1661,8 +1677,16 @@ initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL
   this->sites = dynamic_cast<VectorSiteContainer*>(alignment->clone());
 
   string methodString = ApplicationTools::getStringParameter("likelihood.evaluator",params,"PLL");
-  this->method = (methodString == "PLL"? PLL:BPP);
-
+  std::cout << " METHOD " << methodString << std::endl;
+  if (methodString == "PLL") {
+    this->method = PLL;
+  } else if (methodString == "LIBPLL2") {
+    this->method = LIBPLL2;
+  } else if (methodString == "HYBRID") {
+    this->method = HYBRID;
+  } else {
+    this->method = BPP;
+  }
   initialize();
 
 }

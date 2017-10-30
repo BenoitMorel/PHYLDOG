@@ -95,8 +95,13 @@ class LikelihoodEvaluator
   
 public:
   
-  enum LikelihoodMethod{PLL,BPP};
-  static int hackmode;
+  /*
+   * PLL: old libpll library
+   * BPP
+   * LIBPLL2: libpll-2 library
+   * HYBRID: mode to debug LIBPLL2 comparing with PLL
+   */
+  enum LikelihoodMethod{PLL,BPP, LIBPLL2, HYBRID};
   
   
 private:

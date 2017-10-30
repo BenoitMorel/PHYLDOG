@@ -1,7 +1,7 @@
 source /etc/profile.d/modules.sh
 module load gompi
 
-outputdir=${prefix}_${species}_${genes}_${hackmode}_${threads}
+outputdir=${prefix}_${species}_${genes}_${method}_${threads}
 rm -rf $outputdir
 mkdir $outputdir
 cd $outputdir
@@ -16,10 +16,11 @@ sed -i "s#RESULT=/home/morelbt/github/PHYLDOG/ExampleData/ResultFiles/#RESULT=${
 sed -i "s#OPT=/home/morelbt/github/PHYLDOG/ExampleData/OptionFiles/#OPT=${fullpathdata}/#g" ${fullpathdata}/GeneralOptions.txt
 echo "rearrangement.gene.tree=nni" >> ${fullpathdata}/GeneralOptions.txt
 echo "reset.gene.trees=no" >> ${fullpathdata}/GeneralOptions.txt
-echo "hackmode=${hackmode}" >> ${fullpathdata}/GeneralOptions.txt
+echo "likelihood.evaluator=${method}" >> ${fullpathdata}/GeneralOptions.txt
 export SCOREP_PROFILING_MAX_CALLPATH_DEPTH=40
 
 
 
+echo "mpirun -np $threads ../../build/bin/phyldog param=${fullpathdata}/GeneralOptions.txt &> ${fullpath}/logs.txt"
 mpirun -np $threads ../../build/bin/phyldog param=${fullpathdata}/GeneralOptions.txt &> ${fullpath}/logs.txt
 

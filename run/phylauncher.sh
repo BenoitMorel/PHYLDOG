@@ -46,18 +46,20 @@ generate_submit()
 
 
 
-generate_submit small 10 3 BPP 4
-generate_submit small 10 3 PLL 4
-generate_submit small 10 3 LIBPLL2 4
+#generate_submit small 10 3 BPP 4
+#generate_submit small 10 3 PLL 4
+#generate_submit small 10 3 LIBPLL2 4
 
-#generate_submit medium 20 10 PLL 4
-#generate_submit medium 20 10 LIBPLL2 4
+generate_submit medium 20 10 PLL 4
+generate_submit medium 20 10 BPP 4
+generate_submit medium 20 10 LIBPLL2 4
 
 #generate_submit all 55 40 PLL 16
 #generate_submit all 55 40 LIBPLL2 16
 
-#generate_submit all 55 40 PLL 40
-#generate_submit all 55 40 LIBPLL2 40
+generate_submit all 55 40 BPP 40
+generate_submit all 55 40 PLL 40
+generate_submit all 55 40 LIBPLL2 40
 
 
-
+#

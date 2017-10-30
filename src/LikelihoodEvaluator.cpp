@@ -1350,7 +1350,7 @@ void LikelihoodEvaluator::unload()
   if(!initialized)
     return;
   initialized = false;
-  if(method == PLL){
+  if(method != BPP){
     //initialized = true;
     //return;
     if(pll_model_already_initialized_){
@@ -1374,7 +1374,7 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
   delete tree;
   if(alternativeTree)
     delete alternativeTree;
-  if(method=PLL){
+  if(method != BPP){
     remove(string(fileNamePrefix + "alignment.fasta").c_str());
     remove(string(fileNamePrefix + "partition.txt").c_str());
   }

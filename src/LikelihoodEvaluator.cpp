@@ -598,22 +598,17 @@ double LikelihoodEvaluator::libpll_optimize_local(pllmod_treeinfo_t *treeinfo)
   }
   std::cout << "applying local blo" << std::endl;
   std::vector<pll_unode_t *> nodesToOptimize;
-  std::cout << "pif " << edge << std::endl;
   nodesToOptimize.push_back(edge);
   if (edge->next) {
-    std::cout << "paf " << edge->next << " " << edge->next->next << std::endl;
     nodesToOptimize.push_back(edge->next);
     nodesToOptimize.push_back(edge->next->next);
   }
   if (edge->back && edge->back->next) {
-    std::cout << "pouf " << edge->back->next << " " << edge->back->next->next << std::endl;
     nodesToOptimize.push_back(edge->back->next);
     nodesToOptimize.push_back(edge->back->next->next);
   }
-  std::cout << "get ll" << std::endl;
   double ll = get_likelihood_treeinfo(treeinfo);
   double ll2 = ll;
-  std::cout << "  ll = " << ll << std::endl;
   unsigned int it = 0;
   do {
     ll = ll2;
@@ -838,6 +833,7 @@ void LikelihoodEvaluator::applyNNIRoot(bpp::Node *bppParent,
   }
   double t1 = edge->length;
   double t2 = son->length;
+  rollbackInfo.NNI.edge = 0;
   rollbackRootInfo.t1 = t1;
   rollbackRootInfo.t2 = t2;
   rollbackRootInfo.edge = edge;
@@ -873,6 +869,8 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
     }
   }
   pll_unode_t *parent, *grandParent, *son, *uncle;
+  //std::cout << bppParent << " " << bppParent->hasFather() << " " << bppParent->getNumberOfSons() << std::endl;
+  //std::cout << bppGrandParent << " " << bppGrandParent->hasFather() << " " << bppGrandParent->getNumberOfSons() << std::endl;
   try {
     parent = getLibpllNode(bppParent);
     grandParent = getLibpllNode(bppGrandParent);
@@ -890,7 +888,7 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
     std::cout << "LikelihoodEvaluator::applyNNI: Impossible to find the good NNI move" << std::endl;
     return;
   }
- 
+
   bool sonNext = areEquals(edge->next->back, son);
   bool uncleNext = areEquals(edge->back->next->back, uncle);
 
@@ -898,7 +896,7 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
     PLL_UTREE_MOVE_NNI_LEFT : PLL_UTREE_MOVE_NNI_RIGHT;
     
   
-   
+  rollbackRootInfo.edge = 0; 
   if (!pllmod_utree_nni(edge, move, &rollbackInfo)) {
     std::cout << "failed applying nni : " << pll_errmsg << std::endl;
   }
@@ -916,18 +914,16 @@ void LikelihoodEvaluator::rollbackLastMove()
     pllmod_utree_set_length(rollbackRootInfo.edge, rollbackRootInfo.t1);
     pllmod_utree_set_length(rollbackRootInfo.son, rollbackRootInfo.t2);
     rollbackRootInfo.edge = 0;
+    rollbackInfo.NNI.edge = 0;
     return;
   }
   if (rollbackInfo.NNI.edge == 0) {
-    std::cout << "no move to rollback" << std::endl;
     return;
   }
   if (PLL_SUCCESS != pllmod_tree_rollback(&rollbackInfo)) {
-    std::cout << "rollback FAILED" << std::endl;
   }
   rollbackRootInfo.edge = 0;
   rollbackInfo.NNI.edge = 0;
-
 }
 
 void LikelihoodEvaluator::utreeRealToStrict(pllmod_treeinfo_t *treeinfo)
@@ -1035,15 +1031,15 @@ double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Nod
   }
 
   double result_ll = get_likelihood_treeinfo(currentTreeinfo);
-  if (needFullOptim && method != HYBRID) {
   std::cout << "ll before =" << result_ll << std::endl;
+  if (needFullOptim && method != HYBRID) {
     optimize_treeinfo(currentTreeinfo); 
     needFullOptim = false;
   } else {
     libpll_optimize_local(currentTreeinfo);
   }
   result_ll = get_likelihood_treeinfo(currentTreeinfo);
-  std::cout << "ll after  = " << result_ll << std::endl << std::endl;;
+  std::cout << "ll after  = " << result_ll << std::endl;;
  
    updateTreeToEvaluate(treeToEvaluate, currentTreeinfo, printer);
 

@@ -172,14 +172,15 @@ int main(int args, char ** argv)
     exit(-1);
   }
 
-  srand(42);
-  RandomTools::setSeed(42);
 
   try {
     ApplicationTools::startTimer();
         //All processors parse the main options
     std::map<std::string, std::string> params = AttributesTools::parseOptions(args, argv);
-
+    unsigned int seed = ApplicationTools::getIntParameter("seed", params, 42);
+    std::cout << "Seed " << seed << std::endl;
+    srand(seed);
+    RandomTools::setSeed(seed);
 
         //##################################################################################################################
         //##################################################################################################################

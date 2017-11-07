@@ -1067,7 +1067,7 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
     std::cout<<"\n\n\t\t\tAdd:\ninit.species.tree=user\nspecies.tree.file="<<tempSpTree<<"\ncurrent.step="<<currentStep_<<"\nto your options.\n"<<std::endl;
   }
   else
-  {
+  { 
 
     /****************************************************************************
      * Run finished, outputting end results.

@@ -596,22 +596,46 @@ double LikelihoodEvaluator::libpll_optimize_local(pllmod_treeinfo_t *treeinfo)
     std::cout << "cannot apply BLO" << std::endl;
     return 0;
   }
-  std::cout << "applying blo" << std::endl;
-  pllmod_treeinfo_set_root(treeinfo, edge);
-  std::cout <<  get_likelihood_treeinfo(treeinfo) << std::endl;
-  //todobenoit
-  unsigned int params_indices[4] = {0,0,0,0}; 
-  return pllmod_opt_optimize_branch_lengths_local(
-      treeinfo->partitions[0],
-      treeinfo->root,
-      params_indices,
-      RAXML_BRLEN_MIN,
-      RAXML_BRLEN_MAX,
-      RAXML_BRLEN_TOLERANCE,
-      RAXML_BRLEN_SMOOTHINGS,
-      0,
-      true);
-
+  std::cout << "applying local blo" << std::endl;
+  std::vector<pll_unode_t *> nodesToOptimize;
+  std::cout << "pif " << edge << std::endl;
+  nodesToOptimize.push_back(edge);
+  if (edge->next) {
+    std::cout << "paf " << edge->next << " " << edge->next->next << std::endl;
+    nodesToOptimize.push_back(edge->next);
+    nodesToOptimize.push_back(edge->next->next);
+  }
+  if (edge->back && edge->back->next) {
+    std::cout << "pouf " << edge->back->next << " " << edge->back->next->next << std::endl;
+    nodesToOptimize.push_back(edge->back->next);
+    nodesToOptimize.push_back(edge->back->next->next);
+  }
+  std::cout << "get ll" << std::endl;
+  double ll = get_likelihood_treeinfo(treeinfo);
+  double ll2 = ll;
+  std::cout << "  ll = " << ll << std::endl;
+  unsigned int it = 0;
+  do {
+    ll = ll2;
+    for (unsigned int i = 0; i < nodesToOptimize.size(); ++i) {
+      pllmod_treeinfo_set_root(treeinfo, nodesToOptimize[i]);
+      get_likelihood_treeinfo(treeinfo);
+      //todobenoit
+      unsigned int params_indices[4] = {0,0,0,0}; 
+      ll2 = pllmod_opt_optimize_branch_lengths_local(
+        treeinfo->partitions[0],
+        treeinfo->root,
+        params_indices,
+        RAXML_BRLEN_MIN,
+        RAXML_BRLEN_MAX,
+        RAXML_BRLEN_TOLERANCE,
+        RAXML_BRLEN_SMOOTHINGS,
+        0,
+        true);
+      //std::cout <<  "  " << i << " " << ll2 << std::endl;
+    }
+  } while (false); //fabs(ll - ll2) > RAXML_BRLEN_TOLERANCE && it++ < 1);
+  return ll2;
 }
 
 
@@ -739,7 +763,9 @@ void LikelihoodEvaluator::initialize_PLL()
 void LikelihoodEvaluator::setTree(TreeTemplate<Node> * newTree)
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  //std::cout << "LikelihoodEvaluator::setTree" << std::endl;
+
+  rollbackRootInfo.edge = 0;
+  rollbackInfo.NNI.edge = 0;
   //std::cout << newTree << " " << printer.getBPPNodeString(newTree->getRootNode(), true, true) << std::endl;
   if(!isInitialized()){
     if(tree)
@@ -823,7 +849,7 @@ void LikelihoodEvaluator::applyNNIRoot(bpp::Node *bppParent,
   
 void LikelihoodEvaluator::rebuildTreeinfoFromTree()
 {
-  std::cout << "**LikelihoodEvaluator::rebuildTreeinfoFromTree" << std::endl;
+  //std::cout << "**LikelihoodEvaluator::rebuildTreeinfoFromTree" << std::endl;
   destroy_treeinfo();
   currentTreeinfo = build_treeinfo(false);
 }
@@ -899,6 +925,7 @@ void LikelihoodEvaluator::rollbackLastMove()
   if (PLL_SUCCESS != pllmod_tree_rollback(&rollbackInfo)) {
     std::cout << "rollback FAILED" << std::endl;
   }
+  rollbackRootInfo.edge = 0;
   rollbackInfo.NNI.edge = 0;
 
 }
@@ -1013,7 +1040,7 @@ double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Nod
     optimize_treeinfo(currentTreeinfo); 
     needFullOptim = false;
   } else {
-    //libpll_optimize_local(currentTreeinfo);
+    libpll_optimize_local(currentTreeinfo);
   }
   result_ll = get_likelihood_treeinfo(currentTreeinfo);
   std::cout << "ll after  = " << result_ll << std::endl << std::endl;;
@@ -1024,9 +1051,6 @@ double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Nod
     reroot(*treeToEvaluate, leaves1, leaves2);
   }
   mapUtreeToBPPTree(currentUtree, *treeToEvaluate, true);
-  //std::cout << "  output tree : "
-  //  << printer.getBPPNodeString((*treeToEvaluate)->getRootNode(), false, true)
-  //  << std::endl;
   return result_ll;
 }
 

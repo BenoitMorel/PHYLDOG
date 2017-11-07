@@ -1,15 +1,16 @@
 
-if [ "$#" -ne 4 ]; then
+if [ "$#" -ne 5 ]; then
   echo "Illegal number of parameters"
   exit
 fi
 
 prefix=$1
-species=$2
-genes=$3
-method=$4
+seed=$2
+species=$3
+genes=$4
+method=$5
 
-outputdir=${prefix}_${species}_${genes}_${method}
+outputdir=${prefix}_${seed}_${species}_${genes}_${method}
 rm -rf $outputdir
 mkdir $outputdir
 cd $outputdir
@@ -24,7 +25,8 @@ sed -i "s#RESULT=/home/morelbt/github/PHYLDOG/ExampleData/ResultFiles/#RESULT=${
 sed -i "s#OPT=/home/morelbt/github/PHYLDOG/ExampleData/OptionFiles/#OPT=${fullpathdata}/#g" ${fullpathdata}/GeneralOptions.txt
 echo "rearrangement.gene.tree=nni" >> ${fullpathdata}/GeneralOptions.txt
 echo "reset.gene.trees=no" >> ${fullpathdata}/GeneralOptions.txt
-echo "ikelihood.evaluator=${method}" >> ${fullpathdata}/GeneralOptions.txt
+echo "likelihood.evaluator=${method}" >> ${fullpathdata}/GeneralOptions.txt
+echo "seed=${seed}" >> ${fullpathdata}/GeneralOptions.txt
 export SCOREP_PROFILING_MAX_CALLPATH_DEPTH=40
 
 

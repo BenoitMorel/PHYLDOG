@@ -695,14 +695,14 @@ void ClientComputingGeneLikelihoods::MLSearch() {
       //lk and the second one; in this case we set rearrange to false.
       //Then there is no need to reset the gene tree!
       if (resetGeneTrees_ && currentStep_ !=4 && rearrange_ == true) {
-        std::cout << "** ClientComputingGeneLikelihoods::MLSearch reset gene trees" << std::endl;
+        //std::cout << "** ClientComputingGeneLikelihoods::MLSearch reset gene trees" << std::endl;
         if (reconciliationModel_ == "DL")
         {
           for (unsigned int i=0 ; i<allDatasets_.size() ; i++)
           {
 
             string methodString =  treeLikelihoods_[i]->getLikelihoodMethod () ;
-            if (methodString == "PLL") {
+            if (methodString != "BPP") {
               treeLikelihoods_[i]->setGeneTree( allUnrootedGeneTrees_[i], allGeneTrees_[i] );
             }
             else {

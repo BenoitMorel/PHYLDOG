@@ -300,13 +300,12 @@ public: //todobenoit private
   double libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
   
   void reset_libpll_tree();
-  
   Rollback *rollback_;
   pllmod_treeinfo_t * build_treeinfo(bool alternativeTree);
   void optimize_treeinfo(pllmod_treeinfo_t *treeinfo);
   double libpll_optimize_local(pllmod_treeinfo_t *treeinfo);
   double optimize_treeinfo_iter(pllmod_treeinfo_t *treeinfo);
-  double get_likelihood_treeinfo(pllmod_treeinfo_t *treeinfo);
+  double get_likelihood_treeinfo(pllmod_treeinfo_t *treeinfo, bool incremental = true);
   void utreeRealToStrict(pllmod_treeinfo_t *treeinfo);
   pll_unode_t * get_pll_utree_root(pll_utree_t * utree);
   pll_utree_t * create_utree(bpp::TreeTemplate< bpp::Node > *bpptree);
@@ -317,7 +316,8 @@ public: //todobenoit private
   void applyNNIRoot(bpp::Node *bppParent, 
     bpp::Node *bppGrandParent,
     bpp::Node *bppSon, bpp::Node *bppUncle);
-  void rollbackLastMove();
+  bool rollbackLastMove();
+  void rollbackAllMoves();  
   pll_unode_t *getLibpllNode(bpp::Node *node);
   void destroy_treeinfo();
   double libpll_evaluate();

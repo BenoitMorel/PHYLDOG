@@ -438,7 +438,8 @@ void GeneTreeLikelihood::setGeneTree(TreeTemplate<Node>* tree, TreeTemplate<Node
 	  {
 	    leaves[j]->setName(seqSp_.at(leaves[j]->getName()));
 	  }
-  levaluator_->reset_libpll_tree();
+  //levaluator_->reset_libpll_tree();
+  levaluator_->rollbackAllMoves();
 	levaluator_->setAlternativeTree(rootedTree);
   levaluator_->acceptAlternativeTree();
   // todobenoit: are the both necessary?

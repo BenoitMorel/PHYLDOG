@@ -770,7 +770,7 @@ double LikelihoodEvaluator::optimize_treeinfo_iter(pllmod_treeinfo_t *treeinfo)
 }
 
 
-double LikelihoodEvaluator::get_likelihood_treeinfo(pllmod_treeinfo_t *treeinfo)
+double LikelihoodEvaluator::get_likelihood_treeinfo(pllmod_treeinfo_t *treeinfo, bool incremental)
 {
   return pllmod_treeinfo_compute_loglh(treeinfo, 0);
 }
@@ -945,22 +945,34 @@ void LikelihoodEvaluator::destroyRollbacks()
 }
 
 
-void LikelihoodEvaluator::rollbackLastMove()
+void LikelihoodEvaluator::rollbackAllMoves()
+{
+  while (rollbacks_.size()) {
+    if (!rollbackLastMove()) {
+      return;
+    }
+  }
+  double ll = get_likelihood_treeinfo(currentTreeinfo, false);
+  std::cout << "ll after reset" << ll << std::endl;
+}
+
+bool LikelihoodEvaluator::rollbackLastMove()
 {
   if (method != LIBPLL2 && method != HYBRID) {
-    return;
+    return false;
   }
   if (!rollbacks_.size()) {
     std::cout << "Error: no rollback info" << std::endl;
-    return;
+    return false;
   }
   if (!rollbacks_.top()->applyRollback()) {
     std::cout << "An error occured while trying to rollback libpll NNI move" << std::endl;
-    return;
+    return false;
   }
   delete rollbacks_.top();
   rollbacks_.pop();
   movesNumber--;
+  return true;
 }
 
 void LikelihoodEvaluator::utreeRealToStrict(pllmod_treeinfo_t *treeinfo)
@@ -1112,7 +1124,7 @@ double LikelihoodEvaluator::libpll_evaluate_fromscratch(bpp::TreeTemplate<bpp::N
   }
  
   currentTreeinfo = build_treeinfo(alternativeTree != 0);
-  double result_ll = get_likelihood_treeinfo(currentTreeinfo);
+  double result_ll = get_likelihood_treeinfo(currentTreeinfo, false);
   std::cout << "libpll ll = " << result_ll << std::endl;
   optimize_treeinfo(currentTreeinfo);
   needFullOptim = false;

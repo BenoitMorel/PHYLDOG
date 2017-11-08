@@ -278,6 +278,13 @@ private:
  
 public: //todobenoit private
 
+  class Rollback {
+    public:
+      virtual pll_unode_t *getNNIEdge() = 0;
+      virtual bool applyRollback() = 0;
+
+  };
+
   struct rollback_nni_root_t{
     pll_unode_t *edge;
     pll_unode_t *son;
@@ -293,7 +300,7 @@ public: //todobenoit private
   
   void reset_libpll_tree();
   
-
+  Rollback *rollback_;
   pllmod_treeinfo_t * build_treeinfo(bool alternativeTree);
   void optimize_treeinfo(pllmod_treeinfo_t *treeinfo);
   double libpll_optimize_local(pllmod_treeinfo_t *treeinfo);
@@ -320,8 +327,6 @@ public: //todobenoit private
   BenoitPrinter printer;
   pllmod_treeinfo_t *currentTreeinfo;
   pll_utree_t *currentUtree;
-  pll_tree_rollback_t rollbackInfo;
-  rollback_nni_root_t rollbackRootInfo;
   unsigned int movesNumber;
 private: 
 

@@ -105,7 +105,7 @@ std::vector<Node*> makeSPR(TreeTemplate<Node> &tree,
                            bool verbose, 
                            bool returnNodesToUpdate)
 {
-  
+  std::cout << "ploupi::makeSpr " << cutNodeId << " " << newBrotherId << std::endl; 
   Node *cutNode, *newBrother, *oldFather, *oldGrandFather, *brother, *newBrothersFather, *N;
   std::vector<Node*> nodesToUpdate;
   double dist = 0.1;    
@@ -251,6 +251,7 @@ void makeMuffatoSPR(TreeTemplate<Node> &tree,
                     bool verbose)
 {
   
+  std::cout << "ploupi::makeMuffatoSpr " << std::endl; 
   Node *oldFather, *N;
   double dist = 0.1;  
   
@@ -300,6 +301,7 @@ void makeMuffatoSPR(TreeTemplate<Node> &tree,
  ************************************************************************/
 void makeNNI(TreeTemplate<Node> &tree, int nodeId)
 {
+  std::cout << "ploupi::makeNNI " << nodeId << std::endl; 
   std::cout <<"Making a NNI involving node :"<<nodeId<< std::endl;
   double dist = 0.1;  
   Node * son    = tree.getNode(nodeId);
@@ -503,6 +505,7 @@ void buildVectorOfRegraftingNodesLimitedDistanceLowerNodes(TreeTemplate<Node> &t
  ************************************************************************/
 void makeDeterministicModifications(TreeTemplate<Node> &tree, size_t & nodeForNNI, size_t & nodeForSPR, size_t & nodeForRooting)
 {
+  std::cout << "ploupi::makeDeterministicModifications " << std::endl; 
   if (nodeForNNI < tree.getNumberOfNodes()) {//Make a NNI move
     if (nodeForNNI <3) {
       if (nodeForRooting<tree.getNumberOfNodes()) {
@@ -584,6 +587,7 @@ void makeDeterministicModifications(TreeTemplate<Node> &tree, size_t & nodeForNN
  ************************************************************************/
 void makeDeterministicNNIsAndRootChangesOnly(TreeTemplate<Node> &tree, size_t & nodeForNNI, size_t & nodeForRooting, const bool fixedOutgroupSpecies_)
 {
+  std::cout << "ploupi::makeDeterministicNNIsAndRootChangesOnly " << std::endl; 
   if (nodeForNNI < tree.getNumberOfNodes() ) {//Make a NNI or rerooting move
     if (nodeForNNI < 3) {
       if ( !fixedOutgroupSpecies_ && nodeForRooting < tree.getNumberOfNodes() ) {//Make a rerooting move

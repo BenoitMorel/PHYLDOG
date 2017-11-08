@@ -891,7 +891,7 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
   if (method != LIBPLL2 && method != HYBRID) {
     return;
   }
-  //std::cout << "** LikelihoodEvaluator::applyNNI" << std::endl;
+  std::cout << "** LikelihoodEvaluator::applyNNI" << std::endl;
   movesNumber++;
   //std::cout << "moves: " << movesNumber << std::endl;
   if (bppParent->getId() == bppRoot->getId() ||
@@ -947,7 +947,6 @@ void LikelihoodEvaluator::destroyRollbacks()
 
 void LikelihoodEvaluator::rollbackAllMoves()
 {
-  std::cout << "rollbackAllMoves" << rollbacks_.size() << std::endl;
   if (!rollbacks_.size()) {
     return;
   }

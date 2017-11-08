@@ -45,6 +45,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #define LikelihoodEvaluator_hpp
 
 #include<string>
+#include<stack>
 
 #include<Bpp/Phyl/Node.h>
 #include<Bpp/Phyl/TreeTemplate.h>
@@ -321,6 +322,7 @@ public: //todobenoit private
   void destroy_treeinfo();
   double libpll_evaluate();
   bool needFullOptim;
+  void destroyRollbacks();
  
   void rebuildTreeinfoFromTree();
   void mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree, bool bppStrict);
@@ -328,6 +330,8 @@ public: //todobenoit private
   pllmod_treeinfo_t *currentTreeinfo;
   pll_utree_t *currentUtree;
   unsigned int movesNumber;
+  std::stack<Rollback *> rollbacks_;
+  bool allowRollback_;
 private: 
 
   /**

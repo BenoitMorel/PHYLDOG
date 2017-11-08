@@ -173,11 +173,11 @@ LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
   loadDataFromParams();
   tolerance_ = 0.5;
 }
-
+  
 void LikelihoodEvaluator::loadDataFromParams(){
   WHEREAMI( __FILE__ , __LINE__ );
 
-  rollback_ = 0;
+  destroyRollbacks();
   movesNumber = 0;
   
   // set the name of this evaluator
@@ -627,11 +627,11 @@ void LikelihoodEvaluator::optimize_treeinfo(pllmod_treeinfo_t *treeinfo)
   
 double LikelihoodEvaluator::libpll_optimize_local(pllmod_treeinfo_t *treeinfo)
 {
-  if (!rollback_) {
+  if (!allowRollback_ || !rollbacks_.size()) {
     std::cout << "cannot apply BLO" << std::endl;
     return 0;
   }
-  pll_unode_t *edge = rollback_->getNNIEdge();
+  pll_unode_t *edge = rollbacks_.top()->getNNIEdge();
   
   std::cout << "applying local blo" << std::endl;
   std::vector<pll_unode_t *> nodesToOptimize;
@@ -796,8 +796,8 @@ void LikelihoodEvaluator::setTree(TreeTemplate<Node> * newTree)
 {
   WHEREAMI( __FILE__ , __LINE__ );
 
-  delete rollback_;
-  rollback_ = 0;
+  std::cout << "Set tree (todobenoit Should I really empty rollbacks here?" << std::endl;
+  destroyRollbacks();
   //std::cout << newTree << " " << printer.getBPPNodeString(newTree->getRootNode(), true, true) << std::endl;
   if(!isInitialized()){
     if(tree)
@@ -870,8 +870,8 @@ void LikelihoodEvaluator::applyNNIRoot(bpp::Node *bppParent,
   }
   double t1 = edge->length;
   double t2 = son->length;
-  delete rollback_;
-  rollback_ = new NNIRootRollback(edge, son, t1, t2);
+  rollbacks_.push(new NNIRootRollback(edge, son, t1, t2));
+  allowRollback_ = true;
   pllmod_utree_set_length(son, t1/2.0 + t2);
   pllmod_utree_set_length(edge, t1/2.0);
 }
@@ -933,27 +933,41 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
   if (!pllmod_utree_nni(edge, move, &rollbackInfo)) {
     std::cout << "failed applying nni : " << pll_errmsg << std::endl;
   }
-  delete rollback_;
   
-  rollback_ = new NNIRollback(rollbackInfo);
+  rollbacks_.push(new NNIRollback(rollbackInfo));
+  allowRollback_ = true;
 }
+
+void LikelihoodEvaluator::destroyRollbacks()
+{
+  while (rollbacks_.size()) {
+    delete rollbacks_.top();
+    rollbacks_.pop();
+  }
+  allowRollback_ = false;
+}
+
 
 void LikelihoodEvaluator::rollbackLastMove()
 {
   if (method != LIBPLL2 && method != HYBRID) {
     return;
   }
-  if (!rollback_) {
+  if (!allowRollback_) {
+    std::cout << "Rollback not allowed (todobenoit) " << std::endl;
+  }
+  if (!rollbacks_.size()) {
     std::cout << "Error: no rollback info" << std::endl;
     return;
   }
-  if (!rollback_->applyRollback()) {
+  if (!rollbacks_.top()->applyRollback()) {
     std::cout << "An error occured while trying to rollback libpll NNI move" << std::endl;
     return;
   }
+  delete rollbacks_.top();
+  rollbacks_.pop();
+  allowRollback_ = false;
   movesNumber--;
-  delete rollback_;
-  rollback_ = 0;
 }
 
 void LikelihoodEvaluator::utreeRealToStrict(pllmod_treeinfo_t *treeinfo)
@@ -1718,8 +1732,6 @@ LikelihoodEvaluator::LikelihoodEvaluator(const Tree* tree, const SiteContainer* 
 initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL_partitions(00), PLL_partitionInfo(00), tree(00), alternativeTree(00), nniLk(00), nniLkAlternative(00), substitutionModel(00), rateDistribution(00), sites(00), alphabet(00), params(par), aligmentFilesForPllWritten_(false), logLikelihood(0), pll_model_already_initialized_(false)
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  delete rollback_;
-  rollback_ = 0;
   movesNumber = 0;
   this->tree = dynamic_cast<TreeTemplate<Node> *>(tree->clone());
   this->substitutionModel = model->clone();

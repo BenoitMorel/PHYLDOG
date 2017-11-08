@@ -627,7 +627,7 @@ void LikelihoodEvaluator::optimize_treeinfo(pllmod_treeinfo_t *treeinfo)
   
 double LikelihoodEvaluator::libpll_optimize_local(pllmod_treeinfo_t *treeinfo)
 {
-  if (!allowRollback_ || !rollbacks_.size()) {
+  if (!rollbacks_.size()) {
     std::cout << "cannot apply BLO" << std::endl;
     return 0;
   }
@@ -871,7 +871,6 @@ void LikelihoodEvaluator::applyNNIRoot(bpp::Node *bppParent,
   double t1 = edge->length;
   double t2 = son->length;
   rollbacks_.push(new NNIRootRollback(edge, son, t1, t2));
-  allowRollback_ = true;
   pllmod_utree_set_length(son, t1/2.0 + t2);
   pllmod_utree_set_length(edge, t1/2.0);
 }
@@ -935,7 +934,6 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
   }
   
   rollbacks_.push(new NNIRollback(rollbackInfo));
-  allowRollback_ = true;
 }
 
 void LikelihoodEvaluator::destroyRollbacks()
@@ -944,7 +942,6 @@ void LikelihoodEvaluator::destroyRollbacks()
     delete rollbacks_.top();
     rollbacks_.pop();
   }
-  allowRollback_ = false;
 }
 
 
@@ -952,9 +949,6 @@ void LikelihoodEvaluator::rollbackLastMove()
 {
   if (method != LIBPLL2 && method != HYBRID) {
     return;
-  }
-  if (!allowRollback_) {
-    std::cout << "Rollback not allowed (todobenoit) " << std::endl;
   }
   if (!rollbacks_.size()) {
     std::cout << "Error: no rollback info" << std::endl;
@@ -966,7 +960,6 @@ void LikelihoodEvaluator::rollbackLastMove()
   }
   delete rollbacks_.top();
   rollbacks_.pop();
-  allowRollback_ = false;
   movesNumber--;
 }
 

@@ -947,12 +947,16 @@ void LikelihoodEvaluator::destroyRollbacks()
 
 void LikelihoodEvaluator::rollbackAllMoves()
 {
+  std::cout << "rollbackAllMoves" << rollbacks_.size() << std::endl;
+  if (!rollbacks_.size()) {
+    return;
+  }
   while (rollbacks_.size()) {
     if (!rollbackLastMove()) {
       return;
     }
   }
-  double ll = get_likelihood_treeinfo(currentTreeinfo, false);
+  double ll = get_likelihood_treeinfo(currentTreeinfo, true);
   std::cout << "ll after reset" << ll << std::endl;
 }
 

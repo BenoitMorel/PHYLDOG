@@ -1094,7 +1094,7 @@ double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Nod
   if (needFullOptim && method != HYBRID) {
     optimize_treeinfo(currentTreeinfo); 
     needFullOptim = false;
-  } else {
+  } else if (method != HYBRID) {
     libpll_optimize_local(currentTreeinfo);
   }
   result_ll = get_likelihood_treeinfo(currentTreeinfo);
@@ -1174,6 +1174,9 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
     delete pllTree;
     double libpllRes = libpll_evaluate_iterative(treeToEvaluate);
     std::cout << "Hybrid " << pllRes << " " << libpllRes << std::endl;
+    if (fabs(pllRes - libpllRes) > 0.0001) {
+      std::cout << "error: different results with PLL and libpll-2" << std::endl;
+    }
     return libpllRes;
   }
 }

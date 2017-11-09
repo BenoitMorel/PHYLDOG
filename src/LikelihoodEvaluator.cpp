@@ -617,6 +617,7 @@ void LikelihoodEvaluator::optimize_treeinfo(pllmod_treeinfo_t *treeinfo)
   std::cout << "Optimization iterations " << iterations << std::endl;
   logLikelihood = get_likelihood_treeinfo(currentTreeinfo);
   std::cout << "after: ll = " << logLikelihood<< std::endl;
+  optimizationAlreadyDone_ = true;
 }
   
 #define RAXML_BRLEN_SMOOTHINGS    32
@@ -667,6 +668,7 @@ double LikelihoodEvaluator::libpll_optimize_local(pllmod_treeinfo_t *treeinfo)
       //std::cout <<  "  " << i << " " << ll2 << std::endl;
     }
   } while (false); //fabs(ll - ll2) > RAXML_BRLEN_TOLERANCE && it++ < 1);
+  optimizationAlreadyDone_ = true;
   return ll2;
 }
 
@@ -873,6 +875,7 @@ void LikelihoodEvaluator::applyNNIRoot(bpp::Node *bppParent,
   rollbacks_.push(new NNIRootRollback(edge, son, t1, t2));
   pllmod_utree_set_length(son, t1/2.0 + t2);
   pllmod_utree_set_length(edge, t1/2.0);
+  optimizationAlreadyDone_ = false;
 }
 
   
@@ -934,6 +937,7 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
   }
   
   rollbacks_.push(new NNIRollback(rollbackInfo));
+  optimizationAlreadyDone_ = false;
 }
   
 void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
@@ -949,6 +953,7 @@ void LikelihoodEvaluator::destroyRollbacks()
     delete rollbacks_.top();
     rollbacks_.pop();
   }
+  optimizationAlreadyDone_ = true;
 }
 
 
@@ -962,6 +967,7 @@ void LikelihoodEvaluator::rollbackAllMoves()
       return;
     }
   }
+  optimizationAlreadyDone_ = true;
   double ll = get_likelihood_treeinfo(currentTreeinfo, true);
   std::cout << "ll after reset" << ll << std::endl;
 }
@@ -1094,7 +1100,7 @@ double LikelihoodEvaluator::libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Nod
   if (needFullOptim && method != HYBRID) {
     optimize_treeinfo(currentTreeinfo); 
     needFullOptim = false;
-  } else if (method != HYBRID) {
+  } else if (method != HYBRID && !optimizationAlreadyDone_) {
     libpll_optimize_local(currentTreeinfo);
   }
   result_ll = get_likelihood_treeinfo(currentTreeinfo);

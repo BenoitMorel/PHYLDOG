@@ -333,6 +333,7 @@ public: //todobenoit private
   pll_utree_t *currentUtree;
   unsigned int movesNumber;
   std::stack<Rollback *> rollbacks_;
+  bool optimizationAlreadyDone_;
 private: 
 
   /**

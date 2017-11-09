@@ -1033,8 +1033,9 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
 	    treeForSPR = 0;
 	  }
 	  treeForSPR = rootedTree_->clone();
-	  nodesToUpdate = makeSPR(*treeForSPR, nodeForSPR, nodeIdsToRegraft[i], false, true);
-
+    std::cout << "DLGene makeSPR" << std::endl;
+    nodesToUpdate = makeSPR(*treeForSPR, nodeForSPR, nodeIdsToRegraft[i], false, true);
+    
 	  //Compute the DL likelihood
 	  candidateScenarioLk =  findMLReconciliationDR (spTree_, treeForSPR,
 							 seqSp_, spId_,

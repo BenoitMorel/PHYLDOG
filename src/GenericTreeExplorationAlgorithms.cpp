@@ -571,6 +571,7 @@ void makeDeterministicModifications(TreeTemplate<Node> &tree, size_t & nodeForNN
     }
     int ran2 = RandomTools::giveIntRandomNumberBetweenZeroAndEntry(allNodeIds.size());
     int newBrotherId = allNodeIds[ran2];
+    std::cout << "Deterministic makeSPR" << std::endl;
     makeSPR(tree, nodeForSPR, newBrotherId);
     nodeForSPR++;
   }

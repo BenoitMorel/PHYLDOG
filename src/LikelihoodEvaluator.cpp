@@ -935,6 +935,13 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
   
   rollbacks_.push(new NNIRollback(rollbackInfo));
 }
+  
+void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
+      bpp::Node *bppNewBrother)
+{
+  std::cout << "Hey, I should apply SPR " << bppToCut->getId() <<
+    " " << bppNewBrother->getId() << std::endl;
+}
 
 void LikelihoodEvaluator::destroyRollbacks()
 {

@@ -1056,6 +1056,8 @@ double refineGeneTreeDLOnly (TreeTemplate<Node> * spTree,
                     delete tree;
                 }
                 tree = currentTree->clone();
+                std::cout << "Refine Gene only algo makeSPR" << std::endl;
+                
                 makeSPR(*tree, nodeForSPR, nodeIdsToRegraft[i], false);
                 logL = findMLReconciliationDR (spTree,
                                                tree,
@@ -2085,8 +2087,9 @@ size_t findBestGeneTreeAmongSeveralCandidates(vector<Tree*> &trees,
              }
              treeForSPR = rootedTree->clone();
 
+            std::cout << "refineSPR algo makeSPR" << std::endl;
              nodesToUpdate = makeSPR(*treeForSPR, nodeForSPR, nodeIdsToRegraft[i], false, true);
-
+              levaluator->applySPR(rootedTree->getNode(nodeForSPR), rootedTree->getNode(nodeIdsToRegraft[i]));
              //Compute the DL likelihood
              candidateScenarioLk =  findMLReconciliationDR (spTree, treeForSPR,
                seqSp, spId,

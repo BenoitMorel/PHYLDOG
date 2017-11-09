@@ -313,6 +313,8 @@ public: //todobenoit private
     bpp::Node *bppGrandParent,
     bpp::Node *bppSon, bpp::Node *bppUncle,
     bpp::Node *bppRoot);
+  void applySPR(bpp::Node *bppToCut,
+      bpp::Node *bppBNewrother);
   void applyNNIRoot(bpp::Node *bppParent, 
     bpp::Node *bppGrandParent,
     bpp::Node *bppSon, bpp::Node *bppUncle);

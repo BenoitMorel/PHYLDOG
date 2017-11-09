@@ -1019,6 +1019,8 @@ void ReconciliationTreeLikelihood::refineGeneTreeSPRs(map<string, string> params
                     treeForSPR = 0;
                 }
                 treeForSPR = rootedTree_->clone();
+    std::cout << "ReconciliationTreeLikelihood::refineGeneTreeSprs makeSPR" << std::endl;
+                
                 makeSPR(*treeForSPR, nodeForSPR, nodeIdsToRegraft[i]);
                 breadthFirstreNumber (*treeForSPR);
 
@@ -1122,6 +1124,7 @@ void ReconciliationTreeLikelihood::refineGeneTreeSPRs(map<string, string> params
                 rootedTree_ = bestTree->clone();
                 
              //   tree_ = bestTree->clone();
+    std::cout << "ReconciliationTreeLikelihood::refineGeneTreeSprs 2  makeSPR" << std::endl;
                 makeSPR(*tree_, bestNodeForSPR, bestNodeToRegraft);
                 breadthFirstreNumber (*tree_);
 

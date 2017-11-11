@@ -2059,6 +2059,10 @@ size_t findBestGeneTreeAmongSeveralCandidates(vector<Tree*> &trees,
 
      //std::cout << "DEBUG: DLGeneTreeLk BEFORE: "<< TreeTemplateTools::treeToParenthesis(*rootedTree_)<<std::endl;
 
+      std::cout << "BEFORE THE SPR LOOP:" << std::endl;
+             bpp::TreeTemplate<Node> *plip = rootedTree->clone();
+             levaluator->setAlternativeTree(plip);
+             delete plip;
 
      while (numIterationsWithoutImprovement < rootedTree->getNumberOfNodes() - 2)
      {
@@ -2086,10 +2090,15 @@ size_t findBestGeneTreeAmongSeveralCandidates(vector<Tree*> &trees,
                treeForSPR = 0;
              }
              treeForSPR = rootedTree->clone();
+             // todobenoit find a better place to do this call
+            levaluator->mapUtreeToBPPTree(levaluator->currentUtree, treeForSPR, true);
 
             std::cout << "refineSPR algo makeSPR" << std::endl;
+             levaluator->applySPR(treeForSPR->getNode(nodeForSPR), treeForSPR->getNode(nodeIdsToRegraft[i]));
              nodesToUpdate = makeSPR(*treeForSPR, nodeForSPR, nodeIdsToRegraft[i], false, true);
-              levaluator->applySPR(rootedTree->getNode(nodeForSPR), rootedTree->getNode(nodeIdsToRegraft[i]));
+             bpp::TreeTemplate<Node> *plop = treeForSPR->clone();
+             levaluator->setAlternativeTree(plop);
+             delete plop;
              //Compute the DL likelihood
              candidateScenarioLk =  findMLReconciliationDR (spTree, treeForSPR,
                seqSp, spId,
@@ -2161,6 +2170,9 @@ size_t findBestGeneTreeAmongSeveralCandidates(vector<Tree*> &trees,
                  writeReconciledGeneTreeToFile (params, dynamic_cast<const TreeTemplate<Node> *> ((bestTree))->clone(), spTree, seqSp, temp);
 
                  //writeReconciledGeneTree ( params, dynamic_cast<const TreeTemplate<Node> *> ((bestTree))->clone(), spTree, seqSp, true ) ;
+
+               } else {
+                 levaluator->rollbackLastMove();
 
                }
 

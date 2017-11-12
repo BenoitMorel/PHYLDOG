@@ -281,9 +281,13 @@ public: //todobenoit private
 
   class Rollback {
     public:
+      Rollback(double likelihood = 0.0) : previousLikelihood(likelihood) {}
       virtual pll_unode_t *getNNIEdge() = 0;
       virtual bool applyRollback() = 0;
+      double getPreviousLikelihood() const {return previousLikelihood;}
 
+    protected:
+      double previousLikelihood;
   };
 
   struct rollback_nni_root_t{
@@ -324,7 +328,7 @@ public: //todobenoit private
   double realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
   double libpllEvaluateFromScratch(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
   double libpllEvaluateIterative(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
-  double getTreeinfoLikelihood(pllmod_treeinfo_t *treeinfo, bool incremental = true);
+  double getTreeinfoLikelihood(pllmod_treeinfo_t *treeinfo, bool incremental = false);
  
   // optimization
   void fullOptimizeTreeinfo(pllmod_treeinfo_t *treeinfo);

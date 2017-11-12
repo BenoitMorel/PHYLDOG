@@ -938,7 +938,7 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
   if (method != LIBPLL2 && method != HYBRID) {
     return;
   }
-  //std::cout << "** LikelihoodEvaluator::applyNNI" << std::endl;
+  std::cout << "** LikelihoodEvaluator::applyNNI" << std::endl;
   movesNumber++;
   //std::cout << "moves: " << movesNumber << std::endl;
   if (bppParent->getId() == bppRoot->getId() ||
@@ -1059,6 +1059,7 @@ void LikelihoodEvaluator::rollbackAllMoves()
   if (!rollbacks_.size()) {
     return;
   }
+  std::cout << "rollbackAllMoves" << std::endl;
   while (rollbacks_.size()) {
     if (!rollbackLastMove()) {
       return;
@@ -1071,7 +1072,7 @@ void LikelihoodEvaluator::rollbackAllMoves()
 
 bool LikelihoodEvaluator::rollbackLastMove()
 {
-  //std::cout << "rollbackLastMove" << std::endl;
+  std::cout << "rollbackLastMove" << std::endl;
   if (method != LIBPLL2 && method != HYBRID) {
     return false;
   }
@@ -1083,9 +1084,16 @@ bool LikelihoodEvaluator::rollbackLastMove()
     std::cout << "An error occured while trying to rollback libpll NNI move" << std::endl;
     return false;
   }
+  double previousLikelihood = rollbacks_.top()->getPreviousLikelihood();
   delete rollbacks_.top();
   rollbacks_.pop();
   movesNumber--;
+  double newLL = getTreeinfoLikelihood(currentTreeinfo);
+  if (fabs(newLL - previousLikelihood) > 0.001) {
+    std::cout << "Error: different likelihood after rollback " << std::endl;
+    std::cout << "  before: " << previousLikelihood << std::endl;
+    std::cout << "  after : " << newLL << std::endl;
+  }
   //std::cout << "rollbackLastMove success" << std::endl;
   //std::cout << "ll after rollback" << getTreeinfoLikelihood(currentTreeinfo) << std::endl; 
   return true;

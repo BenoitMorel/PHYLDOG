@@ -1386,7 +1386,7 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 
 void DLGeneTreeLikelihood::full_optim()
 {
-  levaluator_->optimize_treeinfo(levaluator_->currentTreeinfo);
+  levaluator_->fullOptimizeTreeinfo(levaluator_->currentTreeinfo);
 }
 
 /************************************************************************

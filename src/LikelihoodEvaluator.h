@@ -292,23 +292,22 @@ public: //todobenoit private
     double t1;
     double t2;
   };
-  /**
-  * Initialize libpll2 with the right data
-  */
-  double realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
-  double libpll_evaluate_fromscratch(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
-  double libpll_evaluate_iterative(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
-  
+
+  // build / reset
+  pll_utree_t * createUtreeFromBPP(bpp::TreeTemplate< bpp::Node > *bpptree);
+  pllmod_treeinfo_t * buildTreeinfo(bool alternativeTree);
   void reset_libpll_tree();
-  Rollback *rollback_;
-  pllmod_treeinfo_t * build_treeinfo(bool alternativeTree);
-  void optimize_treeinfo(pllmod_treeinfo_t *treeinfo);
-  double libpll_optimize_local(pllmod_treeinfo_t *treeinfo);
-  double optimize_treeinfo_iter(pllmod_treeinfo_t *treeinfo);
-  double get_likelihood_treeinfo(pllmod_treeinfo_t *treeinfo, bool incremental = true);
-  void utreeRealToStrict(pllmod_treeinfo_t *treeinfo);
-  pll_unode_t * get_pll_utree_root(pll_utree_t * utree);
-  pll_utree_t * create_utree(bpp::TreeTemplate< bpp::Node > *bpptree);
+  void rebuildTreeinfoFromTree();
+  void destroyRollbacks();
+  void destroyTreeinfo();
+ 
+  // access
+  pll_unode_t *getUtreeRoot(pll_utree_t * utree);
+  pll_unode_t *getLibpllNode(bpp::Node *node);
+  pll_unode_t *getBranch(bpp::Node *n1, bpp::Node *n2);
+  void mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree, bool bppStrict);
+
+  // moves 
   void applyNNI(bpp::Node *bppParent, 
     bpp::Node *bppGrandParent,
     bpp::Node *bppSon, bpp::Node *bppUncle,
@@ -320,15 +319,21 @@ public: //todobenoit private
     bpp::Node *bppSon, bpp::Node *bppUncle);
   bool rollbackLastMove();
   void rollbackAllMoves();  
-  pll_unode_t *getLibpllNode(bpp::Node *node);
-  void destroy_treeinfo();
-  double libpll_evaluate();
-  bool needFullOptim;
-  void destroyRollbacks();
+  
+  // likelihood evaluation
+  double realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
+  double libpllEvaluateFromScratch(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
+  double libpllEvaluateIterative(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
+  double getTreeinfoLikelihood(pllmod_treeinfo_t *treeinfo, bool incremental = true);
  
-  void rebuildTreeinfoFromTree();
-  void mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree, bool bppStrict);
+  // optimization
+  void fullOptimizeTreeinfo(pllmod_treeinfo_t *treeinfo);
+  double optimizeTreeinfoLocal(pllmod_treeinfo_t *treeinfo);
+  double fullOptimizeTreeinfoIter(pllmod_treeinfo_t *treeinfo);
+
   BenoitPrinter printer;
+  Rollback *rollback_;
+  bool needFullOptim;
   pllmod_treeinfo_t *currentTreeinfo;
   pll_utree_t *currentUtree;
   unsigned int movesNumber;

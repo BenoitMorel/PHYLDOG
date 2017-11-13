@@ -105,7 +105,7 @@ std::vector<Node*> makeSPR(TreeTemplate<Node> &tree,
                            bool verbose, 
                            bool returnNodesToUpdate)
 {
-  std::cout << "Generic::makeSpr " << cutNodeId << " " << newBrotherId << std::endl; 
+  //std::cout << "Generic::makeSpr " << cutNodeId << " " << newBrotherId << std::endl; 
   Node *cutNode, *newBrother, *oldFather, *oldGrandFather, *brother, *newBrothersFather, *N;
   std::vector<Node*> nodesToUpdate;
   double dist = 0.1;    
@@ -150,7 +150,6 @@ std::vector<Node*> makeSPR(TreeTemplate<Node> &tree,
   }
   
   if (!(oldFather->hasFather())) {//we displace the outgroup, need to reroot the tree
-    std::cout << "NEED TO REROOT " << std::endl;
     //NB : brother is the other son of the root
     int id0 = oldFather->getId();
     int idBrother = brother->getId();
@@ -187,7 +186,6 @@ std::vector<Node*> makeSPR(TreeTemplate<Node> &tree,
     N->setId(idBrother);
   }
   else  {  
-    std::cout << "NO REROOT " << std::endl;
     int id0 = oldFather->getId();
     //we create a new node N which will be the father of cutNode and newBrother
     N=new Node();

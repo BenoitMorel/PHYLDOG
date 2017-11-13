@@ -1094,6 +1094,7 @@ void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
   }  else {
     // same tree but in hybrid mode, we set some default BL 
     // to be consistent with PLL
+    std::cout << "identity operation" << std::endl;
     rollbacks_.push(new SPRIdentityHybrid(previousLikelihood, 
                           newBrotherFather, oldBrother));
   }
@@ -1139,7 +1140,7 @@ void LikelihoodEvaluator::rollbackAllMoves()
 
 bool LikelihoodEvaluator::rollbackLastMove()
 {
-  std::cout << "rollbackLastMove" << std::endl;
+  //std::cout << "rollbackLastMove" << std::endl;
   if (method != LIBPLL2 && method != HYBRID) {
     return false;
   }

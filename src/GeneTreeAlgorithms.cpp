@@ -2093,7 +2093,7 @@ size_t findBestGeneTreeAmongSeveralCandidates(vector<Tree*> &trees,
              // todobenoit find a better place to do this call
             levaluator->mapUtreeToBPPTree(levaluator->currentUtree, treeForSPR, true);
 
-            std::cout << "refineSPR algo makeSPR" << std::endl;
+            //std::cout << "refineSPR algo makeSPR" << std::endl;
              levaluator->applySPR(treeForSPR->getNode(nodeForSPR), treeForSPR->getNode(nodeIdsToRegraft[i]));
              nodesToUpdate = makeSPR(*treeForSPR, nodeForSPR, nodeIdsToRegraft[i], false, true);
              bpp::TreeTemplate<Node> *plop = treeForSPR->clone();

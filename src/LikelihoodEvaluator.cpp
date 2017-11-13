@@ -1043,7 +1043,7 @@ bpp::Node *getFatherOrBrotherIfRoot(bpp::Node *node)
   if (node->getFather()->hasFather()) {
     return node->getFather();
   } else {
-    return getBrother(node);
+    return getBrother(node->getFather());
   }
 }
 
@@ -1094,7 +1094,6 @@ void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
   }  else {
     // same tree but in hybrid mode, we set some default BL 
     // to be consistent with PLL
-    std::cout << "identity operation" << std::endl;
     rollbacks_.push(new SPRIdentityHybrid(previousLikelihood, 
                           newBrotherFather, oldBrother));
   }

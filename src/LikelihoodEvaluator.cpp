@@ -1043,7 +1043,7 @@ bpp::Node *getFatherOrBrotherIfRoot(bpp::Node *node)
   if (node->getFather()->hasFather()) {
     return node->getFather();
   } else {
-    return getBrother(node->getFather());
+    return getBrother(node);
   }
 }
 

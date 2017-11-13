@@ -98,6 +98,21 @@ using namespace bpp;
 
 
 
+class IdentityRollback: public LikelihoodEvaluator::Rollback {
+  public:
+    IdentityRollback(double likelihood):
+      LikelihoodEvaluator::Rollback(likelihood) {}
+
+    virtual bool applyRollback() {
+      return true;      
+    }
+
+    virtual pll_unode_t *getNNIEdge() {
+      return 0; 
+    }
+
+};
+
 class SPRRollback: public LikelihoodEvaluator::Rollback {
   public:
     SPRRollback(const pll_tree_rollback_t &rb,
@@ -116,6 +131,35 @@ class SPRRollback: public LikelihoodEvaluator::Rollback {
   private:
     pll_tree_rollback_t rb;
 };
+
+class SPRIdentityHybrid: public LikelihoodEvaluator::Rollback {
+  public:
+    SPRIdentityHybrid(double previousLikelihood, pll_unode_t *nbf, pll_unode_t *ob) :
+      Rollback(previousLikelihood),
+      nbf(nbf), ob(ob), 
+      nbf1(nbf->back->length),
+      nbf2(nbf->back->next->length),
+      nbf3(nbf->back->next->next->length),
+      ob1(ob->back->length) {}
+
+    pll_unode_t *getNNIEdge() {return 0;}
+    
+    virtual bool applyRollback() {
+      pllmod_utree_set_length(nbf->back, nbf1);
+      pllmod_utree_set_length(nbf->back->next, nbf2);
+      pllmod_utree_set_length(nbf->back->next->next, nbf3);
+      pllmod_utree_set_length(ob, ob1);
+      return true;
+    }
+  private:
+    pll_unode_t *nbf; // newBrotherFather
+    pll_unode_t *ob; // oldBrother
+    double nbf1; // branch length (BL)
+    double nbf2; // BL
+    double nbf3; // BL
+    double ob1;  // BL
+};
+
 
 class NNIRollback: public LikelihoodEvaluator::Rollback {
   public:
@@ -1011,24 +1055,48 @@ void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
   // get bpp nodes 
   bpp::Node *bppOldFather = bppToCut->getFather();
   bpp::Node *bppOldBrother = getBrother(bppToCut);
+
+  bool sameTree = bppOldFather == bppNewBrother;
+
+  // checks
+  if (sameTree && method != HYBRID) { 
+    // this will lead to the same unrooted tree
+    // in Hybrid mode, we still want to update the BL with 0.1
+    // just to insure consistency with PLL
+    rollbacks_.push(new IdentityRollback(getTreeinfoLikelihood(currentTreeinfo)));
+    return;
+  }
+
   // this one is the father of the new brother BEFORE spr
   bpp::Node *bppNewBrotherFather = getFatherOrBrotherIfRoot(bppNewBrother);
   double previousLikelihood = getTreeinfoLikelihood(currentTreeinfo);
   // get libpll nodes
-  pll_unode_t *toCut = getBranch(bppToCut, bppToCut->getFather());
+  pll_unode_t *toCut = getBranch(bppToCut, bppOldFather );
   pll_unode_t *newBrotherFather = getBranch(bppNewBrother, bppNewBrotherFather);
   pll_unode_t *oldBrother = getBranch(bppOldFather, bppOldBrother); 
   
+
   if (!toCut || !oldBrother || !newBrotherFather) {
     std::cout << "Error, null pll_unode_t in applySPR" << std::endl;
     return;
   }
 
   pll_tree_rollback_t rb;
-  if (pllmod_utree_spr(toCut, newBrotherFather, &rb)!= PLL_SUCCESS) {
-    std::cout << "cannot apply SPR" << std::endl;
-    std::cout << pll_errmsg << std::endl;
-  } 
+  if (!sameTree) {
+    if (pllmod_utree_spr(toCut, newBrotherFather, &rb)!= PLL_SUCCESS) {
+      std::cout << "cannot apply SPR" << std::endl;
+      std::cout << pll_errmsg << std::endl;
+    }
+  }
+
+  if (!sameTree || method != HYBRID) {
+    rollbacks_.push(new SPRRollback(rb, previousLikelihood));
+  }  else {
+    // same tree but in hybrid mode, we set some default BL 
+    // to be consistent with PLL
+    rollbacks_.push(new SPRIdentityHybrid(previousLikelihood, 
+                          newBrotherFather, oldBrother));
+  }
 
   if (method == HYBRID) { // be consistent with the bpp and pll trees
     // newBrotherFather->back is the father of toCut after SPR
@@ -1039,8 +1107,7 @@ void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
   }
   // todobenoit this is obviously not a nni rollback...
   // will make the local optim fail
-  rollbacks_.push(new SPRRollback(rb, previousLikelihood));
-  std::cout << "ll after SRP" << getTreeinfoLikelihood(currentTreeinfo) << std::endl; 
+  //std::cout << "ll after SRP" << getTreeinfoLikelihood(currentTreeinfo) << std::endl; 
 
 }
 

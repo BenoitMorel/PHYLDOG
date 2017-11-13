@@ -281,12 +281,20 @@ public: //todobenoit private
 
   class Rollback {
     public:
-      Rollback(double likelihood = 0.0) : previousLikelihood(likelihood) {}
+      Rollback(double likelihood = 0.0) : previousLikelihood(likelihood), optimized(false) {}
       virtual pll_unode_t *getNNIEdge() = 0;
       virtual bool applyRollback() = 0;
+      virtual void localOptimize() {
+        if (!optimized) {
+          optimized = true;
+          localOptimizeNoCheck();
+        }
+      }
       double getPreviousLikelihood() const {return previousLikelihood;}
-
     protected:
+      virtual void localOptimizeNoCheck() = 0;
+    private:
+      bool optimized;
       double previousLikelihood;
   };
 
@@ -323,12 +331,12 @@ public: //todobenoit private
     bpp::Node *bppSon, bpp::Node *bppUncle);
   bool rollbackLastMove();
   void rollbackAllMoves();  
-  
+  void pushRollback(Rollback *rollback);
+
   // likelihood evaluation
   double realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
   double libpllEvaluateFromScratch(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
   double libpllEvaluateIterative(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
-  double getTreeinfoLikelihood(pllmod_treeinfo_t *treeinfo, bool incremental = false);
  
   // optimization
   void fullOptimizeTreeinfo(pllmod_treeinfo_t *treeinfo);
@@ -342,7 +350,6 @@ public: //todobenoit private
   pll_utree_t *currentUtree;
   unsigned int movesNumber;
   std::stack<Rollback *> rollbacks_;
-  bool optimizationAlreadyDone_;
 private: 
 
   /**

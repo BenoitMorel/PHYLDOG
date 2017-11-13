@@ -1074,7 +1074,8 @@ void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
   pll_unode_t *toCut = getBranch(bppToCut, bppOldFather );
   pll_unode_t *newBrotherFather = getBranch(bppNewBrother, bppNewBrotherFather);
   pll_unode_t *oldBrother = getBranch(bppOldFather, bppOldBrother); 
-  
+ 
+  bool atRoot = !bppNewBrother->getFather()->hasFather();
 
   if (!toCut || !oldBrother || !newBrotherFather) {
     std::cout << "Error, null pll_unode_t in applySPR" << std::endl;
@@ -1100,7 +1101,11 @@ void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
 
   if (method == HYBRID) { // be consistent with the bpp and pll trees
     // newBrotherFather->back is the father of toCut after SPR
-    pllmod_utree_set_length(newBrotherFather->back, 0.1);
+    double bl = 0.1;
+    if (atRoot) {
+      bl += bppNewBrotherFather->getDistanceToFather();
+    }
+    pllmod_utree_set_length(newBrotherFather->back, bl);
     pllmod_utree_set_length(newBrotherFather->back->next, 0.1);
     pllmod_utree_set_length(newBrotherFather->back->next->next, 0.1);
     pllmod_utree_set_length(oldBrother, 0.1);

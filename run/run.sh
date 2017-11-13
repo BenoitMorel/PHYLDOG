@@ -27,7 +27,7 @@ sed -i "s#OPT=/home/morelbt/github/PHYLDOG/ExampleData/OptionFiles/#OPT=${fullpa
 echo "reset.gene.trees=no" >> ${fullpathdata}/GeneralOptions.txt
 echo "likelihood.evaluator=${method}" >> ${fullpathdata}/GeneralOptions.txt
 echo "seed=${seed}" >> ${fullpathdata}/GeneralOptions.txt
-export SCOREP_PROFILING_MAX_CALLPATH_DEPTH=40
+export SCOREP_PROFILING_MAX_CALLPATH_DEPTH=50
 
 
 

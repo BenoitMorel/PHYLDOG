@@ -48,31 +48,28 @@ generate_submit()
 
 
 
-#generate_submit 42 small 10 3 BPP 4
-#generate_submit 42 small 10 3 PLL 4
-#generate_submit 42 small 10 3 LIBPLL2 4
-
-generate_submit 42 smallLocalOptNOSC 10 3 PLL 4
-generate_submit 42 smallLocalOptNOSC 10 3 LIBPLL2 4
-generate_submit 20 smallLocalOptNOSC 10 3 PLL 4
-generate_submit 20 smallLocalOptNOSC 10 3 LIBPLL2 4
-generate_submit 30 smallLocalOptNOSC 10 3 PLL 4
-generate_submit 30 smallLocalOptNOSC 10 3 LIBPLL2 4
+prefix=smallSPRLocalOptClusterNoLog
+#generate_submit 42 $prefix 10 3 PLL 4
+generate_submit 42 $prefix 10 3 LIBPLL2 4
+#generate_submit 20 $prefix 10 3 PLL 4
+generate_submit 20 $prefix 10 3 LIBPLL2 4
+#generate_submit 30 $prefix 10 3 PLL 4
+generate_submit 30 $prefix 10 3 LIBPLL2 4
 
 
-generate_submit 42 mediumLocalOptNoSC 20 10 PLL 4
-generate_submit 42 mediumLocalOptNoSC 20 10 LIBPLL2 4
-generate_submit 20 mediumLocalOptNoSC 20 10 PLL 4
-generate_submit 20 mediumLocalOptNoSC 20 10 LIBPLL2 4
-generate_submit 30 mediumLocalOptNoSC 20 10 PLL 4
-generate_submit 30 mediumLocalOptNoSC 20 10 LIBPLL2 4
+prefix=mediumSPRLocalOptCluster
+#generate_submit 42 $prefix 20 10 PLL 4
+#generate_submit 42 $prefix 20 10 LIBPLL2 4
+#generate_submit 20 $prefix 20 10 PLL 4
+#generate_submit 20 $prefix 20 10 LIBPLL2 4
+#generate_submit 30 $prefix 20 10 PLL 4
+#generate_submit 30 $prefix 20 10 LIBPLL2 4
 
-#generate_submit 42 all 55 40 PLL 16
-#generate_submit 42 all 55 40 LIBPLL2 16
-
-#generate_submit 42 all 55 40 BPP 40
-#generate_submit 42 all 55 40 PLL 40
-#generate_submit 42 all 55 40 LIBPLL2 40
-
-
-##
+prefix=bigSPRLocalOptCluster
+#generate_submit 42 $prefix 30 20 PLL 10
+#generate_submit 42 $prefix 30 20 LIBPLL2 10
+#generate_submit 20 $prefix 30 20 PLL 10
+#generate_submit 20 $prefix 30 20 LIBPLL2 10
+#generate_submit 30 $prefix 30 20 PLL 10
+##generate_submit 30 $prefix 30 20 LIBPLL2 10
+#

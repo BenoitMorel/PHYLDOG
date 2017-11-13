@@ -666,12 +666,14 @@ void ClientComputingGeneLikelihoods::MLSearch() {
         std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
         std::cout << std::endl;
         std::cout << std::endl;
-        if (currentStep_ == 4) {
+        if (currentStep_ == 4 || currentStep_ == 5 ) {
+          std::cout << "FULL OPTIM " << currentStep_ << std::endl; 
           for (unsigned int i = 0 ; i< numberOfGeneFamilies_ ; i++) {
             DLGeneTreeLikelihood *curr = dynamic_cast<DLGeneTreeLikelihood*> (treeLikelihoods_[i]);
             LikelihoodEvaluator *evaluator = curr->getSequenceLikelihoodObject();
+            std::cout << "old ll " << evaluator->getLogLikelihood() << std::endl;
             curr->full_optim();
-            std::cout << "final ll " << evaluator->getLogLikelihood() << std::endl;
+            std::cout << "new ll " << evaluator->getLogLikelihood() << std::endl;
           }
         }
       }

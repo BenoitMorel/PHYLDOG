@@ -141,8 +141,6 @@ class SPRRollback: public LikelihoodEvaluator::Rollback {
       
   protected:
     virtual void localOptimizeNoCheck() {
-      std::cout << "SPR local opt:" << std::endl;
-
       pll_unode_t *edge = (pll_unode_t *)rb.SPR.prune_edge;
       std::vector<pll_unode_t *> nodesToOptimize;
       nodesToOptimize.push_back(edge);
@@ -772,7 +770,7 @@ void LikelihoodEvaluator::fullOptimizeTreeinfo(pllmod_treeinfo_t *treeinfo)
     fullOptimizeTreeinfoIter(treeinfo);
     newLogl = getTreeinfoLikelihood(treeinfo);
     iterations++;
-  } while (false ); //newLogl - previousLogl > tolerance_);
+  } while (newLogl - previousLogl > tolerance_);
   std::cout << "Optimization iterations " << iterations << std::endl;
   logLikelihood = getTreeinfoLikelihood(currentTreeinfo);
   std::cout << "after: ll = " << logLikelihood<< std::endl;
@@ -781,7 +779,7 @@ void LikelihoodEvaluator::fullOptimizeTreeinfo(pllmod_treeinfo_t *treeinfo)
   
 double LikelihoodEvaluator::optimizeTreeinfoLocal(pllmod_treeinfo_t *treeinfo)
 {
-  std::cout << "applying local blo" << std::endl;
+  //std::cout << "applying local blo" << std::endl;
   if (!rollbacks_.size()) {
     std::cout << "cannot apply BLO" << std::endl;
     return 0;
@@ -977,7 +975,7 @@ void LikelihoodEvaluator::applyNNIRoot(bpp::Node *bppParent,
   bpp::Node *bppGrandParent,
   bpp::Node *bppSon, bpp::Node *bppUncle)
 {
-  std::cout << "** LikelihoodEvaluator::applyNNIRoot" << std::endl;
+  //std::cout << "** LikelihoodEvaluator::applyNNIRoot" << std::endl;
   pll_unode_t *parent, *son, *uncle;
   try {
     parent = getLibpllNode(bppParent);
@@ -1024,7 +1022,7 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
   if (method != LIBPLL2 && method != HYBRID) {
     return;
   }
-  std::cout << "** LikelihoodEvaluator::applyNNI" << std::endl;
+  //std::cout << "** LikelihoodEvaluator::applyNNI" << std::endl;
   movesNumber++;
   //std::cout << "moves: " << movesNumber << std::endl;
   if (bppParent->getId() == bppRoot->getId() ||
@@ -1091,7 +1089,10 @@ bpp::Node *getFatherOrBrotherIfRoot(bpp::Node *node)
 void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
       bpp::Node *bppNewBrother)
 {
-  std::cout << "my applySPR " << bppToCut->getId() << " " << bppNewBrother->getId() << std::endl;
+  if (method != LIBPLL2 && method != HYBRID) {
+    return;
+  }
+  //std::cout << "my applySPR " << bppToCut->getId() << " " << bppNewBrother->getId() << std::endl;
  
   // get bpp nodes 
   bpp::Node *bppOldFather = bppToCut->getFather();

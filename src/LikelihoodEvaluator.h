@@ -341,7 +341,7 @@ public: //todobenoit private
   pll_unode_t *getUtreeRoot(pll_utree_t * utree);
   pll_unode_t *getLibpllNode(bpp::Node *node);
   pll_unode_t *getBranch(bpp::Node *n1, bpp::Node *n2);
-  void mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree, bool bppStrict);
+  void mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree);
 
   // moves 
   void applyNNI(bpp::Node *bppParent, 

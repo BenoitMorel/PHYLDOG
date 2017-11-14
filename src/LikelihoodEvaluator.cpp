@@ -558,7 +558,7 @@ int cbtrav(pll_unode_t *node) {
   return 1;
 }
 
-void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree, bool bppStrict)
+void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree)
 {
   //std::cout << "LikelihoodEvaluator::mapUtreeToBPPTree" << std::endl;
   if (method != LIBPLL2 && method != HYBRID) {
@@ -570,14 +570,6 @@ void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplat
   std::map<vector<string>, int> bppLeavesToId;
   for (unsigned int i = 0; i < nodes.size(); ++i) {
     vector<string> bppLeaves = TreeTemplateTools::getLeavesNames(*nodes[i]);
-    for (unsigned int j = 0; j < bppLeaves.size(); ++j) {
-      if (!bppStrict) {
-        bppLeaves[j] = realToStrict[bppLeaves[j]];
-      }
-      if (!bppLeaves.size()) {
-          std::cout << "invalid conv in mapfct" << std::endl;
-      }
-    }
     std::sort(bppLeaves.begin(), bppLeaves.end());
     bppLeavesToId[bppLeaves] = nodes[i]->getId();
     //std::cout << "bpp " << nodes[i]->getId() << " leaves : ";
@@ -1218,7 +1210,7 @@ double LikelihoodEvaluator::libpllEvaluateIterative(bpp::TreeTemplate<bpp::Node>
   }
   result_ll = getTreeinfoLikelihood(currentTreeinfo);
   updateTreeToEvaluate(treeToEvaluate, currentTreeinfo, printer);
-  mapUtreeToBPPTree(currentUtree, *treeToEvaluate, true);
+  mapUtreeToBPPTree(currentUtree, *treeToEvaluate);
   return result_ll;
 }
 
@@ -1254,7 +1246,7 @@ double LikelihoodEvaluator::libpllEvaluateFromScratch(bpp::TreeTemplate<bpp::Nod
   if (wasRooted) {
     reroot(*treeToEvaluate, leaves1, leaves2);
   }
-  mapUtreeToBPPTree(currentUtree, *treeToEvaluate, true);
+  mapUtreeToBPPTree(currentUtree, *treeToEvaluate);
   delete inputBPPTree;
  
 

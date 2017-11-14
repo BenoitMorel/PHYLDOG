@@ -430,10 +430,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
   //or if we just try all branches because the starting gene trees are parsimonious in
   //numbers of DL.
   if ((nodesToTryInNNISearch_.count(nodeId)==1) /*|| DLStartingGeneTree_*/) {
-    //levaluator_->setAlternativeTree(levaluator_->getTree());
-    levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, levaluator_->getTree(), true);
-    levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, levaluator_->getAlternativeTree(), true);
-    //std::cout << "todobenoit: pourquoi setALternativeTree ici ?" << std::endl;
+    levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, levaluator_->getTree());
     TreeTemplate<Node> * treeForNNI = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
     tentativeMLindex_ = MLindex_;
     tentativeNum0Lineages_ = num0Lineages_;
@@ -1402,16 +1399,7 @@ void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsign
     computeReconciliationLikelihood();
     return;
   }
-  //std::cout << "** DLGeneTreeLikelihood::refineGeneTreeNNIs" << std::endl;
   bool test = true;
-  // todobenoit the three following lines are just there to ensure that 
-  // the PLL partition is built before we build the pll modules treeinfo
-  /*TreeTemplate<Node> * hacktree = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
-  levaluator_->setAlternativeTree(hacktree);
-  delete hacktree;
-*/
-  //levaluator_->rebuildTreeinfoFromTree();
-  //levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, levaluator_->getTree(), true);
   do
   {
     TreeTemplate<Node> * tree = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();

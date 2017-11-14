@@ -48,16 +48,16 @@ generate_submit()
 
 
 
-prefix=smallSPRLocalOptClusterNoLog
+prefix=smallSPRSuperSPROptCluster
 #generate_submit 42 $prefix 10 3 PLL 4
-generate_submit 42 $prefix 10 3 LIBPLL2 4
+#generate_submit 42 $prefix 10 3 LIBPLL2 4
 #generate_submit 20 $prefix 10 3 PLL 4
-generate_submit 20 $prefix 10 3 LIBPLL2 4
+#generate_submit 20 $prefix 10 3 LIBPLL2 4
 #generate_submit 30 $prefix 10 3 PLL 4
-generate_submit 30 $prefix 10 3 LIBPLL2 4
+#generate_submit 30 $prefix 10 3 LIBPLL2 4
 
 
-prefix=mediumSPRLocalOptCluster
+prefix=mediumSPRSuperSPROptCluster
 #generate_submit 42 $prefix 20 10 PLL 4
 #generate_submit 42 $prefix 20 10 LIBPLL2 4
 #generate_submit 20 $prefix 20 10 PLL 4
@@ -71,5 +71,5 @@ prefix=bigSPRLocalOptCluster
 #generate_submit 20 $prefix 30 20 PLL 10
 #generate_submit 20 $prefix 30 20 LIBPLL2 10
 #generate_submit 30 $prefix 30 20 PLL 10
-##generate_submit 30 $prefix 30 20 LIBPLL2 10
+#generate_submit 30 $prefix 30 20 LIBPLL2 10
 #

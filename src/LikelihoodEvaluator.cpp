@@ -101,6 +101,9 @@ double getTreeinfoLikelihood(pllmod_treeinfo_t *treeinfo, bool incremental = fal
 }
 
 
+/*
+ * @brief Rollback for an identity move (no move)
+ */
 class IdentityRollback: public LikelihoodEvaluator::Rollback {
   public:
     IdentityRollback(double likelihood):
@@ -110,17 +113,13 @@ class IdentityRollback: public LikelihoodEvaluator::Rollback {
       return true;      
     }
 
-    virtual pll_unode_t *getNNIEdge() {
-      return (pll_unode_t*)0; 
-    }
-
   protected:
-    virtual void localOptimizeNoCheck() {
-
-    }
-
+    virtual void localOptimizeNoCheck() {}
 };
 
+/*
+ * @brief Rollback for a classical SPR move
+ */
 class SPRRollback: public LikelihoodEvaluator::Rollback {
   public:
     SPRRollback(pllmod_treeinfo_t *treeinfo,
@@ -134,39 +133,25 @@ class SPRRollback: public LikelihoodEvaluator::Rollback {
       return PLL_SUCCESS == pllmod_tree_rollback(&rb);      
     }
 
-    virtual pll_unode_t *getNNIEdge() {
-      // todobenoit this is wrong
-      return (pll_unode_t*)rb.SPR.prune_edge;
-    }
-      
   protected:
+    /*
+     * Optimize the three branches around the regrafted edge
+     */
     virtual void localOptimizeNoCheck() {
       pll_unode_t *edge = (pll_unode_t *)rb.SPR.prune_edge;
-      std::vector<pll_unode_t *> nodesToOptimize;
-      nodesToOptimize.push_back(edge);
-      double ll = getTreeinfoLikelihood(treeinfo);
-      double ll2 = ll;
-      unsigned int it = 0;
-      //std::cout << "Before " << ll << std::endl;
-      do {
-        ll = ll2;
-        for (unsigned int i = 0; i < nodesToOptimize.size(); ++i) {
-          pllmod_treeinfo_set_root(treeinfo, nodesToOptimize[i]);
-          getTreeinfoLikelihood(treeinfo);
-          unsigned int params_indices[4] = {0,0,0,0}; 
-          ll2 = pllmod_opt_optimize_branch_lengths_local(
-            treeinfo->partitions[0],
-            treeinfo->root,
-            params_indices,
-            RAXML_BRLEN_MIN,
-            RAXML_BRLEN_MAX,
-            RAXML_BRLEN_TOLERANCE,
-            RAXML_BRLEN_SMOOTHINGS,
-            0,
-            true);
-        }
-      } while (false); //fabs(ll - ll2) > RAXML_BRLEN_TOLERANCE && it++ < 1);
-      //std::cout << "After " << ll2 << std::endl;
+      pllmod_treeinfo_set_root(treeinfo, edge);
+      getTreeinfoLikelihood(treeinfo);
+      unsigned int params_indices[4] = {0,0,0,0}; 
+      pllmod_opt_optimize_branch_lengths_local(
+        treeinfo->partitions[0],
+        treeinfo->root,
+        params_indices,
+        RAXML_BRLEN_MIN,
+        RAXML_BRLEN_MAX,
+        RAXML_BRLEN_TOLERANCE,
+        RAXML_BRLEN_SMOOTHINGS,
+        1,
+        true);
     }
 
   private:
@@ -174,10 +159,15 @@ class SPRRollback: public LikelihoodEvaluator::Rollback {
     pllmod_treeinfo_t *treeinfo;
 };
 
-// this is only for consistency in hybrid mode
-class SPRIdentityHybrid: public LikelihoodEvaluator::Rollback {
+/*
+ * Special rollback used for SPR moves that don't change the
+ * unrooted tree likelihood. In HYBRID mode, we set some branch 
+ * lengths to 0.1 to be consistent with PLL/BPP. This requires
+ * a rollback even if the tree didn't change
+ */
+class SPRIdentityHybridRollback: public LikelihoodEvaluator::Rollback {
   public:
-    SPRIdentityHybrid(double previousLikelihood, pll_unode_t *nbf, pll_unode_t *ob) :
+    SPRIdentityHybridRollback(double previousLikelihood, pll_unode_t *nbf, pll_unode_t *ob) :
       Rollback(previousLikelihood),
       nbf(nbf), ob(ob), 
       nbf1(nbf->back->length),
@@ -185,8 +175,6 @@ class SPRIdentityHybrid: public LikelihoodEvaluator::Rollback {
       nbf3(nbf->back->next->next->length),
       ob1(ob->back->length) {}
 
-    pll_unode_t *getNNIEdge() {return 0;}
-    
     virtual bool applyRollback() {
       pllmod_utree_set_length(nbf->back, nbf1);
       pllmod_utree_set_length(nbf->back->next, nbf2);
@@ -207,25 +195,22 @@ class SPRIdentityHybrid: public LikelihoodEvaluator::Rollback {
     double ob1;  // BL
 };
 
-
+/*
+ * Rollback for a NNI move
+ */
 class NNIRollback: public LikelihoodEvaluator::Rollback {
   public:
     NNIRollback(pllmod_treeinfo_t *treeinfo, const pll_tree_rollback_t &rb, double likelihood): 
       LikelihoodEvaluator::Rollback(likelihood),
       rb(rb),
-      treeinfo(treeinfo)
-    {
-    }
+      treeinfo(treeinfo) {}
 
-    virtual bool applyRollback() {
-      return PLL_SUCCESS == pllmod_tree_rollback(&rb);      
-    }
-
-    virtual pll_unode_t *getNNIEdge() {
-      return (pll_unode_t *)rb.NNI.edge; 
-    }
+    virtual bool applyRollback() {return PLL_SUCCESS == pllmod_tree_rollback(&rb);}
 
   protected:
+    /*
+     * Optimizes the 5 branches around the NNI move
+     */
     virtual void localOptimizeNoCheck() {
       pll_unode_t *edge = (pll_unode_t *)rb.NNI.edge;
       std::vector<pll_unode_t *> nodesToOptimize;
@@ -238,33 +223,34 @@ class NNIRollback: public LikelihoodEvaluator::Rollback {
         nodesToOptimize.push_back(edge->back->next);
         nodesToOptimize.push_back(edge->back->next->next);
       }
-      double ll = getTreeinfoLikelihood(treeinfo);
-      double ll2 = ll;
-      unsigned int it = 0;
-      do {
-        ll = ll2;
-        for (unsigned int i = 0; i < nodesToOptimize.size(); ++i) {
-          pllmod_treeinfo_set_root(treeinfo, nodesToOptimize[i]);
-          getTreeinfoLikelihood(treeinfo);
-          unsigned int params_indices[4] = {0,0,0,0}; 
-          ll2 = pllmod_opt_optimize_branch_lengths_local(
-            treeinfo->partitions[0],
-            treeinfo->root,
-            params_indices,
-            RAXML_BRLEN_MIN,
-            RAXML_BRLEN_MAX,
-            RAXML_BRLEN_TOLERANCE,
-            RAXML_BRLEN_SMOOTHINGS,
-            0,
-            true);
-        }
-      } while (false); //fabs(ll - ll2) > RAXML_BRLEN_TOLERANCE && it++ < 1);
+      getTreeinfoLikelihood(treeinfo);
+      for (unsigned int i = 0; i < nodesToOptimize.size(); ++i) {
+        pllmod_treeinfo_set_root(treeinfo, nodesToOptimize[i]);
+        getTreeinfoLikelihood(treeinfo);
+        unsigned int params_indices[4] = {0,0,0,0}; 
+        pllmod_opt_optimize_branch_lengths_local(
+          treeinfo->partitions[0],
+          treeinfo->root,
+          params_indices,
+          RAXML_BRLEN_MIN,
+          RAXML_BRLEN_MAX,
+          RAXML_BRLEN_TOLERANCE,
+          RAXML_BRLEN_SMOOTHINGS,
+          0,
+          true);
+      }
     }
   private:
     pll_tree_rollback_t rb;
     pllmod_treeinfo_t *treeinfo;
 };
 
+/*
+ * Rollback for a special case of NNI moves: when the root of the rooted tree
+ * is implied in the NNI move, the unrooted tree topology is not changed but
+ * stuff still happen on branch lengths...
+ * This is similar to SPRIdentityHybridRollback
+ */
 class NNIRootRollback: public LikelihoodEvaluator::Rollback {
   public:
     NNIRootRollback(pll_unode_t *edge, pll_unode_t *son, double t1, double t2, double likelihood):
@@ -277,14 +263,8 @@ class NNIRootRollback: public LikelihoodEvaluator::Rollback {
       return true;
     }
 
-    virtual pll_unode_t *getNNIEdge() {
-      return edge;
-    }
-    
   protected:
-    virtual void localOptimizeNoCheck() {
-      
-    }
+    virtual void localOptimizeNoCheck() {}
   private:
     pll_unode_t *edge;
     pll_unode_t *son;
@@ -292,13 +272,9 @@ class NNIRootRollback: public LikelihoodEvaluator::Rollback {
     double t2;
 };
 
-void print_PLL_param(pInfo *partition)
-{
-  print<double>("frequencies: ", partition->frequencies, 4);
-  print<double>("gamma rates: ", partition->gammaRates, 4);
-  print<double>("subst : ", partition->substRates, 6);
-}
-
+/*
+ * Node property used to map a libpll node to a bpp node
+ */
 class LibpllNodeProperty: public Clonable {
   public:
     LibpllNodeProperty(unsigned int id) : id(id) {}
@@ -335,7 +311,6 @@ void LikelihoodEvaluator::loadDataFromParams(){
   WHEREAMI( __FILE__ , __LINE__ );
 
   destroyRollbacks();
-  movesNumber = 0;
   
   // set the name of this evaluator
   istringstream tempName(ApplicationTools::getStringParameter("input.sequence.file",params,"rnd"));
@@ -585,15 +560,12 @@ int cbtrav(pll_unode_t *node) {
 
 void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree, bool bppStrict)
 {
-  //std::cout << "LikelihoodEvaluator::mapUtreeToBPPTree method " << method << std::endl;
+  //std::cout << "LikelihoodEvaluator::mapUtreeToBPPTree" << std::endl;
   if (method != LIBPLL2 && method != HYBRID) {
     return;
   }
-  //std::cout << "** LikelihoodEvaluator::mapUtreeToBPPTree" << std::endl;
   unsigned int temp = 0;
   pll_utree_traverse(currentTreeinfo->root, PLL_TREE_TRAVERSE_POSTORDER, cbtrav, utree->nodes, &temp);
-  //std::cout << "  bpp tree to map " << printer.getBPPNodeString((bpptree)->getRootNode(), false, true) << std::endl;
-  //std::cout << "  utree    to map " << printer.getTreeinfoString(currentTreeinfo, false, true) << std::endl;
   std::vector< bpp::Node * > nodes = bpptree->getNodes();
   std::map<vector<string>, int> bppLeavesToId;
   for (unsigned int i = 0; i < nodes.size(); ++i) {
@@ -611,8 +583,6 @@ void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplat
     //std::cout << "bpp " << nodes[i]->getId() << " leaves : ";
     //print_v<string>(bppLeaves);
   }
-
-  unsigned int count = 0;
   for (unsigned int i = 0; i < utree->tip_count + utree->inner_count; ++i) {
     //pll_unode_t *node = (i == utree->tip_count + utree->inner_count) ? currentTreeinfo->root : utree->nodes[i];
     pll_unode_t *node = utree->nodes[i];
@@ -632,25 +602,13 @@ void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplat
     //std::cout << "libpll " << i << " leaves : ";
     //print_v<string>(leaves);
     LibpllNodeProperty prop(i);
-    if (bppLeavesToId[leaves])
-      count++;
     bpptree->getNode(bppLeavesToId[leaves])->setNodeProperty("libpll", prop);
     //std::cout << i << "libll " << node->node_index << " to bpp " << bppLeavesToId[leaves] << std::endl;
   }
-  //std::cout << "sucess count " << count << std::endl;
-}
-
-void LikelihoodEvaluator::reset_libpll_tree()
-{
-  if (method != LIBPLL2 && method != HYBRID) {
-    return;
-  }
-  destroyTreeinfo();
 }
 
 void LikelihoodEvaluator::destroyTreeinfo()
 {
-  //std::cout << "** LikelihoodEvaluator::destroyTreeinfo" << std::endl;
   if (currentTreeinfo)
   {
     for (unsigned int i = 0; i < currentTreeinfo->partition_count; ++i)
@@ -663,17 +621,12 @@ void LikelihoodEvaluator::destroyTreeinfo()
     pllmod_treeinfo_destroy(currentTreeinfo);
   }
   currentTreeinfo = 0;
-
 }
 
 pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(bool alternative)
 {
-  //std::cout << "** LikelihoodEvaluator::buildTreeinfo" << std::endl;
-
-
   WHEREAMI( __FILE__ , __LINE__ );
-  // partitions descriptors
-  unsigned int partitions_number = 1; // todobenoit handle partitions!!!
+  unsigned int partitions_number = 1; // todobenoit should we handle partitions?
 
   // sequences 
   std::string fileName = fileNamePrefix + "alignment.fasta"; 
@@ -693,7 +646,7 @@ pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(bool alternative)
     labelling[node->label] = i;
   }
  
-  unsigned int brlen_linkage = PLLMOD_TREE_BRLEN_SCALED; // todobenoit is it the same model as raxml?
+  unsigned int brlen_linkage = PLLMOD_TREE_BRLEN_SCALED; 
   pll_unode_t *uroot = getUtreeRoot(utree); 
   pllmod_treeinfo_t * treeinfo = pllmod_treeinfo_create(uroot, 
       utree->tip_count, partitions_number, brlen_linkage);
@@ -740,17 +693,15 @@ pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(bool alternative)
     pll_set_subst_params(partition, 0, pll_part->substRates);
   }
 
-  
-
   // treeinfo and partition
-  int params_to_optimize = PLLMOD_OPT_PARAM_ALL; // todobenoit see what we should optimize
-  unsigned int params_indices[4] = {0,0,0,0}; // todobenoit do not hardcode
+  int params_to_optimize = PLLMOD_OPT_PARAM_ALL; 
+  unsigned int params_indices[4] = {0,0,0,0}; 
   pllmod_treeinfo_init_partition(treeinfo, 0, partition,
         params_to_optimize,
-        PLL_GAMMA_RATES_MEAN, // todobenoit: to check
-        1.0, // todobenoit what is this alpha
+        PLL_GAMMA_RATES_MEAN,
+        1.0, 
         params_indices,
-        0); // todobenoit check that we don't need it
+        0); 
   needFullOptim = true;
   return treeinfo;
 }
@@ -763,34 +714,29 @@ void LikelihoodEvaluator::fullOptimizeTreeinfo(pllmod_treeinfo_t *treeinfo)
 
   double previousLogl = getTreeinfoLikelihood(treeinfo); 
   double newLogl = previousLogl;
-  unsigned int iterations = 0;
-  std::cout << "before ll = " << getTreeinfoLikelihood(treeinfo) << std::endl;
+  std::cout << "LikelihoodEvaluator::fullOptimizeTreeinfo before: ll = " 
+    << getTreeinfoLikelihood(treeinfo) << std::endl;
   do {
     previousLogl = newLogl;
     fullOptimizeTreeinfoIter(treeinfo);
     newLogl = getTreeinfoLikelihood(treeinfo);
-    iterations++;
   } while (newLogl - previousLogl > tolerance_);
-  std::cout << "Optimization iterations " << iterations << std::endl;
-  logLikelihood = getTreeinfoLikelihood(currentTreeinfo);
-  std::cout << "after: ll = " << logLikelihood<< std::endl;
+  std::cout << "LikelihoodEvaluator::fullOptimizeTreeinfo after: ll = " << newLogl<< std::endl;
 }
   
   
 double LikelihoodEvaluator::optimizeTreeinfoLocal(pllmod_treeinfo_t *treeinfo)
 {
-  //std::cout << "applying local blo" << std::endl;
-  if (!rollbacks_.size()) {
-    std::cout << "cannot apply BLO" << std::endl;
-    return 0;
+  if (rollbacks_.size()) {
+    rollbacks_.top()->localOptimize();
   }
-  rollbacks_.top()->localOptimize();
   return getTreeinfoLikelihood(currentTreeinfo);
 }
 
 
 double LikelihoodEvaluator::fullOptimizeTreeinfoIter(pllmod_treeinfo_t *treeinfo)
 {
+  // This code comes from RaxML
   double new_loglh;
   unsigned int params_to_optimize = treeinfo->params_to_optimize[0]; // todobenoit read it from treeinfo
   
@@ -910,9 +856,7 @@ void LikelihoodEvaluator::setTree(TreeTemplate<Node> * newTree)
 {
   WHEREAMI( __FILE__ , __LINE__ );
 
-  std::cout << "Set tree (todobenoit Should I really empty rollbacks here?" << std::endl;
   destroyRollbacks();
-  //std::cout << newTree << " " << printer.getBPPNodeString(newTree->getRootNode(), true, true) << std::endl;
   if(!isInitialized()){
     if(tree)
       delete tree;
@@ -923,21 +867,18 @@ void LikelihoodEvaluator::setTree(TreeTemplate<Node> * newTree)
   
 pll_unode_t *LikelihoodEvaluator::getLibpllNode(bpp::Node *node)
 {
-  //std::cout << "getLibpllNode" << node << std::endl;
   Clonable *prop = 0;
   try {
     prop = node->getNodeProperty("libpll");
   } catch (Exception e) {
-    std::cout << "Exception: cannot find libpll property for node " << node->getId() << std::endl;
+    std::cout << "Error: cannot find libpll property for node " << node->getId() << std::endl;
     return 0;
   }
   if (!prop) {
-    std::cout << "Cannot find libpll property" << std::endl;
+    std::cout << "Error: cannot find libpll property for node " << node->getId() << std::endl;
     return 0;
   }
   unsigned int libpllid =  dynamic_cast<LibpllNodeProperty *>(prop)->id;
-  //std::cout << "libpll id " << libpllid << std::endl;
-  //std::cout << "Property found: bpp " << node->getId() << " " << " libpll " << libpllid << std::endl; 
   return currentUtree->nodes[libpllid];
 }
 
@@ -948,7 +889,6 @@ bool areEquals(pll_unode_t *n1, pll_unode_t *n2)
   else
     return n1 == n2;
 }
-
 
 // returns the branch between n1 and n2 with the same index as n2
 pll_unode_t *getBranchFromLibpll(pll_unode_t *n1, pll_unode_t *n2) {
@@ -983,7 +923,7 @@ void LikelihoodEvaluator::applyNNIRoot(bpp::Node *bppParent,
     uncle = getLibpllNode(bppUncle);
   }
   catch (Exception e) {
-    std::cout << "Exception ! " << e.what()<< std::endl;
+    std::cout << "Error in getBranch: " << e.what()<< std::endl;
     return;
   }
   double previousLikelihood = getTreeinfoLikelihood(currentTreeinfo);
@@ -1009,7 +949,6 @@ void LikelihoodEvaluator::applyNNIRoot(bpp::Node *bppParent,
   
 void LikelihoodEvaluator::rebuildTreeinfoFromTree()
 {
-  //std::cout << "**LikelihoodEvaluator::rebuildTreeinfoFromTree" << std::endl;
   destroyTreeinfo();
   currentTreeinfo = buildTreeinfo(false);
 }
@@ -1022,9 +961,6 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
   if (method != LIBPLL2 && method != HYBRID) {
     return;
   }
-  //std::cout << "** LikelihoodEvaluator::applyNNI" << std::endl;
-  movesNumber++;
-  //std::cout << "moves: " << movesNumber << std::endl;
   if (bppParent->getId() == bppRoot->getId() ||
       bppGrandParent->getId() == bppRoot->getId()) {
     if (bppGrandParent->getId() == bppRoot->getId()) {
@@ -1033,38 +969,29 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
     }
   }
   pll_unode_t *parent, *grandParent, *son, *uncle;
-  //std::cout << bppParent << " " << bppParent->hasFather() << " " << bppParent->getNumberOfSons() << std::endl;
-  //std::cout << bppGrandParent << " " << bppGrandParent->hasFather() << " " << bppGrandParent->getNumberOfSons() << std::endl;
   try {
     parent = getLibpllNode(bppParent);
     grandParent = getLibpllNode(bppGrandParent);
     son = getLibpllNode(bppSon);
     uncle = getLibpllNode(bppUncle);
-  }
-  
-  catch (Exception e) {
-    std::cout << "Exception ! " << e.what()<< std::endl;
+  } catch (Exception e) {
+    std::cout << "Error in applyNNI: " << e.what()<< std::endl;
     return;
   }
   double previousLikelihood = getTreeinfoLikelihood(currentTreeinfo);
   pll_unode_t *edge = getBranchFromLibpll(grandParent, parent);
-  
   if (!edge) { 
     std::cout << "LikelihoodEvaluator::applyNNI: Impossible to find the good NNI move" << std::endl;
     return;
   }
-
   bool sonNext = areEquals(edge->next->back, son);
   bool uncleNext = areEquals(edge->back->next->back, uncle);
-
   unsigned int move = (sonNext == uncleNext) ?
     PLL_UTREE_MOVE_NNI_LEFT : PLL_UTREE_MOVE_NNI_RIGHT;
-   
   pll_tree_rollback_t rollbackInfo;
   if (!pllmod_utree_nni(edge, move, &rollbackInfo)) {
     std::cout << "failed applying nni : " << pll_errmsg << std::endl;
   }
-  
   pushRollback(new NNIRollback(currentTreeinfo, rollbackInfo, previousLikelihood));
 }
 
@@ -1092,8 +1019,6 @@ void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
   if (method != LIBPLL2 && method != HYBRID) {
     return;
   }
-  //std::cout << "my applySPR " << bppToCut->getId() << " " << bppNewBrother->getId() << std::endl;
- 
   // get bpp nodes 
   bpp::Node *bppOldFather = bppToCut->getFather();
   bpp::Node *bppOldBrother = getBrother(bppToCut);
@@ -1135,9 +1060,7 @@ void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
   if (!sameTree || method != HYBRID) {
     pushRollback(new SPRRollback(currentTreeinfo, rb, previousLikelihood));
   }  else {
-    // same tree but in hybrid mode, we set some default BL 
-    // to be consistent with PLL
-    pushRollback(new SPRIdentityHybrid(previousLikelihood, 
+    pushRollback(new SPRIdentityHybridRollback(previousLikelihood, 
                           newBrotherFather, oldBrother));
   }
 
@@ -1152,10 +1075,6 @@ void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
     pllmod_utree_set_length(newBrotherFather->back->next->next, 0.1);
     pllmod_utree_set_length(oldBrother, 0.1);
   }
-  // todobenoit this is obviously not a nni rollback...
-  // will make the local optim fail
-  //std::cout << "ll after SRP" << getTreeinfoLikelihood(currentTreeinfo) << std::endl; 
-
 }
 
 void LikelihoodEvaluator::destroyRollbacks()
@@ -1176,14 +1095,11 @@ void LikelihoodEvaluator::rollbackAllMoves()
   if (!rollbacks_.size()) {
     return;
   }
-  std::cout << "rollbackAllMoves" << std::endl;
   while (rollbacks_.size()) {
     if (!rollbackLastMove()) {
       return;
     }
   }
-  double ll = getTreeinfoLikelihood(currentTreeinfo, false);
-  std::cout << "ll after reset" << ll << std::endl;
 }
 
 bool LikelihoodEvaluator::rollbackLastMove()
@@ -1203,15 +1119,13 @@ bool LikelihoodEvaluator::rollbackLastMove()
   double previousLikelihood = rollbacks_.top()->getPreviousLikelihood();
   delete rollbacks_.top();
   rollbacks_.pop();
-  movesNumber--;
   double newLL = getTreeinfoLikelihood(currentTreeinfo);
   if (fabs(newLL - previousLikelihood) > 0.001) {
     std::cout << "Error: different likelihood after rollback " << std::endl;
     std::cout << "  before: " << previousLikelihood << std::endl;
     std::cout << "  after : " << newLL << std::endl;
+    return false;
   }
-  //std::cout << "rollbackLastMove success" << std::endl;
-  //std::cout << "ll after rollback" << getTreeinfoLikelihood(currentTreeinfo) << std::endl; 
   return true;
 }
 
@@ -1294,11 +1208,8 @@ double LikelihoodEvaluator::libpllEvaluateIterative(bpp::TreeTemplate<bpp::Node>
   
   //std::cout << "TreeInfo" <<  printer.getTreeinfoString(currentTreeinfo, true, false, false) << std::endl;
   //std::cout << "Tree BPP" <<  printer.getBPPNodeString((*treeToEvaluate)->getRootNode(), true, false) << std::endl;
-  //std::cout << "TreeInfo" <<  printer.getTreeinfoString(currentTreeinfo, false, true, false) << std::endl;
-  //std::cout << "Tree BPP" <<  printer.getBPPNodeString((*treeToEvaluate)->getRootNode(), false, true) << std::endl;
  
   double result_ll = getTreeinfoLikelihood(currentTreeinfo);
-  //std::cout << "ll before =" << result_ll << std::endl;
   if (needFullOptim && method != HYBRID) {
     fullOptimizeTreeinfo(currentTreeinfo); 
     needFullOptim = false;
@@ -1306,7 +1217,6 @@ double LikelihoodEvaluator::libpllEvaluateIterative(bpp::TreeTemplate<bpp::Node>
     optimizeTreeinfoLocal(currentTreeinfo);
   }
   result_ll = getTreeinfoLikelihood(currentTreeinfo);
-  //std::cout << "ll after  = " << result_ll << std::endl;;
   updateTreeToEvaluate(treeToEvaluate, currentTreeinfo, printer);
   mapUtreeToBPPTree(currentUtree, *treeToEvaluate, true);
   return result_ll;
@@ -1315,13 +1225,6 @@ double LikelihoodEvaluator::libpllEvaluateIterative(bpp::TreeTemplate<bpp::Node>
 double LikelihoodEvaluator::libpllEvaluateFromScratch(bpp::TreeTemplate<bpp::Node>** treeToEvaluate)
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  std::cout << "LikelihoodEvaluator::libpllEvaluateFromScratch" << std::endl;
-  /*
-  std::cout << "first with real PLL " << std::endl;
-  bpp::TreeTemplate<bpp::Node>* temp = (*treeToEvaluate)->clone();
-  std::cout << realPLL_evaluate(&temp) << std::endl;
-  delete temp;
-  */
   if (currentTreeinfo) {
     destroyTreeinfo();
   }
@@ -1338,11 +1241,9 @@ double LikelihoodEvaluator::libpllEvaluateFromScratch(bpp::TreeTemplate<bpp::Nod
  
   currentTreeinfo = buildTreeinfo(alternativeTree != 0);
   double result_ll = getTreeinfoLikelihood(currentTreeinfo, false);
-  std::cout << "libpll ll = " << result_ll << std::endl;
   fullOptimizeTreeinfo(currentTreeinfo);
   needFullOptim = false;
   result_ll = getTreeinfoLikelihood(currentTreeinfo);
-  std::cout << "libpll ll = " << result_ll << std::endl;
 
   std::string newStr = printer.getTreeinfoString(currentTreeinfo, true, false, false);
   stringstream outputNewickString;
@@ -1350,11 +1251,9 @@ double LikelihoodEvaluator::libpllEvaluateFromScratch(bpp::TreeTemplate<bpp::Nod
   Newick outputNewick;
   delete *treeToEvaluate;
   *treeToEvaluate = outputNewick.read(outputNewickString);
-  //std::cout << "PLL tree: " << printer.getTreeinfoString(currentTreeinfo, true, false, false, REAL_TO_STRICT) << std::endl;
   if (wasRooted) {
     reroot(*treeToEvaluate, leaves1, leaves2);
   }
-  //std::cout << "output bpp tree " << printer.getBPPNodeString((*treeToEvaluate)->getRootNode(), false, false) << std::endl;
   mapUtreeToBPPTree(currentUtree, *treeToEvaluate, true);
   delete inputBPPTree;
  
@@ -1623,21 +1522,12 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
 
 
 
-// CLONABLE?
-// LikelihoodEvaluator* LikelihoodEvaluator::clone()
-// {
-//   return(new LikelihoodEvaluator(this));
-// }
-
-
 void LikelihoodEvaluator::unload()
 {
   if(!initialized)
     return;
   initialized = false;
   if(method != BPP){
-    //initialized = true;
-    //return;
     if(pll_model_already_initialized_){
       pllAlignmentDataDestroy(PLL_alignmentData);
       pllPartitionsDestroy(PLL_instance, &PLL_partitions);
@@ -1953,7 +1843,6 @@ LikelihoodEvaluator::LikelihoodEvaluator(const Tree* tree, const SiteContainer* 
 initialized(false), PLL_instance(00), PLL_alignmentData(00), PLL_newick(00), PLL_partitions(00), PLL_partitionInfo(00), tree(00), alternativeTree(00), nniLk(00), nniLkAlternative(00), substitutionModel(00), rateDistribution(00), sites(00), alphabet(00), params(par), aligmentFilesForPllWritten_(false), logLikelihood(0), pll_model_already_initialized_(false)
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  movesNumber = 0;
   this->tree = dynamic_cast<TreeTemplate<Node> *>(tree->clone());
   this->substitutionModel = model->clone();
   this->rateDistribution = rateDistribution->clone();

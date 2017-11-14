@@ -279,19 +279,44 @@ private:
  
 public: //todobenoit private
 
+  /*
+   * Interface to represent a move (SPR, NNI...) we applied
+   * to the pllmod tree. Provides a way to rollback, and 
+   * a method to apply a local BLO. Also store the likelihood
+   * of the tree before the move, to be able to check it's the
+   * same after the rollback is applied
+   */
   class Rollback {
     public:
-      Rollback(double likelihood = 0.0) : previousLikelihood(likelihood), optimized(false) {}
-      virtual pll_unode_t *getNNIEdge() = 0;
+      Rollback(double likelihood) : previousLikelihood(likelihood), optimized(false) {}
+      
+      /*
+       * Rollback the move
+       * @return true if no error
+       */
       virtual bool applyRollback() = 0;
+
+      /*
+       * Optimize branch length locally around the move
+       * Optimization be performed only once per rollback, even
+       * if the method is called several times
+       */
       virtual void localOptimize() {
         if (!optimized) {
           optimized = true;
           localOptimizeNoCheck();
         }
       }
+
+      /*
+       * Get the phylogenetic likelihood of the pllmod tree BEFORE
+       * the moves was applied. Used for safety checks
+       */
       double getPreviousLikelihood() const {return previousLikelihood;}
     protected:
+      /*
+       * Called only once from localOptimize
+       */
       virtual void localOptimizeNoCheck() = 0;
     private:
       bool optimized;
@@ -308,7 +333,6 @@ public: //todobenoit private
   // build / reset
   pll_utree_t * createUtreeFromBPP(bpp::TreeTemplate< bpp::Node > *bpptree);
   pllmod_treeinfo_t * buildTreeinfo(bool alternativeTree);
-  void reset_libpll_tree();
   void rebuildTreeinfoFromTree();
   void destroyRollbacks();
   void destroyTreeinfo();
@@ -348,7 +372,6 @@ public: //todobenoit private
   bool needFullOptim;
   pllmod_treeinfo_t *currentTreeinfo;
   pll_utree_t *currentUtree;
-  unsigned int movesNumber;
   std::stack<Rollback *> rollbacks_;
 private: 
 

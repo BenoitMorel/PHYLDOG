@@ -2179,7 +2179,7 @@ size_t findBestGeneTreeAmongSeveralCandidates(vector<Tree*> &trees,
              }
              if (betterTree) //If, among all the SPRs tried, a better tree has been found
              {
-
+                std::cout << "among all spr tried, a better tree has been found " << bestlogL << std::endl;
                logL = bestlogL;
                numIterationsWithoutImprovement = 0;
                if (treeForSPR)

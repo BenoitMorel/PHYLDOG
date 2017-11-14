@@ -140,7 +140,7 @@ class SPRRollback: public LikelihoodEvaluator::Rollback {
     virtual void localOptimizeNoCheck() {
       pll_unode_t *edge = (pll_unode_t *)rb.SPR.prune_edge;
       pllmod_treeinfo_set_root(treeinfo, edge);
-      getTreeinfoLikelihood(treeinfo);
+      getTreeinfoLikelihood(treeinfo, true);
       unsigned int params_indices[4] = {0,0,0,0}; 
       pllmod_opt_optimize_branch_lengths_local(
         treeinfo->partitions[0],
@@ -223,9 +223,11 @@ class NNIRollback: public LikelihoodEvaluator::Rollback {
         nodesToOptimize.push_back(edge->back->next);
         nodesToOptimize.push_back(edge->back->next->next);
       }
-      getTreeinfoLikelihood(treeinfo);
       for (unsigned int i = 0; i < nodesToOptimize.size(); ++i) {
         pllmod_treeinfo_set_root(treeinfo, nodesToOptimize[i]);
+        // todo if it becomes a bottleneck:
+        // this likelihood computation could be incremental, 
+        // but we would need compute the CLVs to invalidate
         getTreeinfoLikelihood(treeinfo);
         unsigned int params_indices[4] = {0,0,0,0}; 
         pllmod_opt_optimize_branch_lengths_local(
@@ -722,7 +724,7 @@ double LikelihoodEvaluator::optimizeTreeinfoLocal(pllmod_treeinfo_t *treeinfo)
   if (rollbacks_.size()) {
     rollbacks_.top()->localOptimize();
   }
-  return getTreeinfoLikelihood(currentTreeinfo);
+  return getTreeinfoLikelihood(currentTreeinfo, true);
 }
 
 
@@ -918,7 +920,7 @@ void LikelihoodEvaluator::applyNNIRoot(bpp::Node *bppParent,
     std::cout << "Error in getBranch: " << e.what()<< std::endl;
     return;
   }
-  double previousLikelihood = getTreeinfoLikelihood(currentTreeinfo);
+  double previousLikelihood = getTreeinfoLikelihood(currentTreeinfo, true);
   pll_unode_t *edge = getBranchFromLibpll(uncle, parent);
   if (!edge) {
     std::cout << "LikelihoodEvaluator::applyNNIRoot: Impossible to find the good NNI move" << std::endl;
@@ -970,7 +972,7 @@ void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent,
     std::cout << "Error in applyNNI: " << e.what()<< std::endl;
     return;
   }
-  double previousLikelihood = getTreeinfoLikelihood(currentTreeinfo);
+  double previousLikelihood = getTreeinfoLikelihood(currentTreeinfo, true);
   pll_unode_t *edge = getBranchFromLibpll(grandParent, parent);
   if (!edge) { 
     std::cout << "LikelihoodEvaluator::applyNNI: Impossible to find the good NNI move" << std::endl;
@@ -1022,13 +1024,13 @@ void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
     // this will lead to the same unrooted tree
     // in Hybrid mode, we still want to update the BL with 0.1
     // just to insure consistency with PLL
-    pushRollback(new IdentityRollback(getTreeinfoLikelihood(currentTreeinfo)));
+    pushRollback(new IdentityRollback(getTreeinfoLikelihood(currentTreeinfo, true)));
     return;
   }
 
   // this one is the father of the new brother BEFORE spr
   bpp::Node *bppNewBrotherFather = getFatherOrBrotherIfRoot(bppNewBrother);
-  double previousLikelihood = getTreeinfoLikelihood(currentTreeinfo);
+  double previousLikelihood = getTreeinfoLikelihood(currentTreeinfo, true);
   // get libpll nodes
   pll_unode_t *toCut = getBranch(bppToCut, bppOldFather );
   pll_unode_t *newBrotherFather = getBranch(bppNewBrother, bppNewBrotherFather);

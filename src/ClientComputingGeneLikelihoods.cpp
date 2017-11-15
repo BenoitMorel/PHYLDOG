@@ -509,8 +509,8 @@ void ClientComputingGeneLikelihoods::MLSearch() {
         //SPR optimization:
         //std::cout <<"Before optimization: "<<TreeTemplateTools::treeToParenthesis(treeLikelihoods_[i]->getRootedTree(), true)<<std::endl;
         std::string SPRalgorithm = ApplicationTools::getStringParameter("spr.gene.tree.algorithm", allParams_[i], "normal", "", true, false);
-        std::cout << "rearrangementType: "<< rearrangementType << std::endl;
-        std::cout << "SPRalgorithm: "<< SPRalgorithm << std::endl;
+        //std::cout << "rearrangementType: "<< rearrangementType << std::endl;
+        //std::cout << "SPRalgorithm: "<< SPRalgorithm << std::endl;
 
         if (reconciliationModel_ == "DL") {
           WHEREAMI( __FILE__ , __LINE__ );
@@ -561,7 +561,7 @@ void ClientComputingGeneLikelihoods::MLSearch() {
         if (timing && rearrange_)
         {
           totalTime = ApplicationTools::getTime() - startingTime;
-          std::cout << "Family "<< assignedFilenames_[i] <<"; Time for SPR exploration: "<<  totalTime << " s." <<std::endl;
+          //std::cout << "Family "<< assignedFilenames_[i] <<"; Time for SPR exploration: "<<  totalTime << " s." <<std::endl;
         }
       }
       if (geneTree_) {
@@ -831,7 +831,7 @@ void ClientComputingGeneLikelihoods::MLSearch() {
       if (timing && resetGeneTrees_)
       {
         totalTime = ApplicationTools::getTime() - startingTime;
-        std::cout << "Time for resetting gene tree likelihoods: "<<  totalTime << " s." <<std::endl;
+        //std::cout << "Time for resetting gene tree likelihoods: "<<  totalTime << " s." <<std::endl;
       }
     }
     else

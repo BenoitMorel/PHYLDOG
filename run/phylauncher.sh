@@ -74,12 +74,12 @@ generate_submit 30 $prefix 30 20 PLL 10
 generate_submit 30 $prefix 30 20 LIBPLL2 10
 
 prefix=veryBigCluster
-generate_submit 42 $prefix 50 40 PLL 16
-generate_submit 42 $prefix 50 40 LIBPLL2 16
-generate_submit 20 $prefix 50 40 PLL 16
-generate_submit 20 $prefix 50 40 LIBPLL2 16
-generate_submit 30 $prefix 50 40 PLL 16
-generate_submit 30 $prefix 50 40 LIBPLL2 16
+#generate_submit 42 $prefix 50 40 PLL 16
+#generate_submit 42 $prefix 50 40 LIBPLL2 16
+#generate_submit 20 $prefix 50 40 PLL 16
+#generate_submit 20 $prefix 50 40 LIBPLL2 16
+#generate_submit 30 $prefix 50 40 PLL 16
+#generate_submit 30 $prefix 50 40 LIBPLL2 16
 #
 
 

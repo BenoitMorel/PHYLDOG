@@ -832,8 +832,9 @@ double LikelihoodEvaluator::fullOptimizeTreeinfoIter(pllmod_treeinfo_t *treeinfo
 void LikelihoodEvaluator::initialize_PLL()
 {
   WHEREAMI( __FILE__ , __LINE__ );
-
-  //std::cout << "** LikelihoodEvaluator::initialize_PLL" << std::endl;
+  if (method != PLL && logLikelihood != 0)
+    return;
+  //std::cout << "** LuikelihoodEvaluator::initialize_PLL" << std::endl;
   loadStrictNamesFromAlignment_forPLL();
   writeAlignmentFilesForPLL();
   alpha_ = 1.0;
@@ -1218,6 +1219,7 @@ double LikelihoodEvaluator::libpllEvaluateIterative(bpp::TreeTemplate<bpp::Node>
 
 double LikelihoodEvaluator::libpllEvaluateFromScratch(bpp::TreeTemplate<bpp::Node>** treeToEvaluate)
 {
+  std::cout << "LikelihoodEvaluator::libpllEvaluateFromScratch" << std::endl;
   WHEREAMI( __FILE__ , __LINE__ );
   if (currentTreeinfo) {
     destroyTreeinfo();
@@ -1280,7 +1282,7 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
 double LikelihoodEvaluator::realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate)
 {
 
-  //std::cout << "LikelihoodEvaluator::realPLL_evaluate " << std::endl;
+  std::cout << "LikelihoodEvaluator::realPLL_evaluate " << std::endl;
   //TODO debug remove
   Newick debugTree;
   stringstream debugSS;

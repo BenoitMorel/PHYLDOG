@@ -57,7 +57,7 @@ generate_submit 20 $prefix 10 3 LIBPLL2 4
 generate_submit 30 $prefix 10 3 LIBPLL2 4
 
 
-prefix=mediumClusterSmartHardcode
+prefix=mediumClusterSmartShallow
 #generate_submit 42 $prefix 20 10 PLL 4
 generate_submit 42 $prefix 20 10 LIBPLL2 4
 #generate_submit 20 $prefix 20 10 PLL 4
@@ -65,7 +65,7 @@ generate_submit 20 $prefix 20 10 LIBPLL2 4
 #generate_submit 30 $prefix 20 10 PLL 4
 generate_submit 30 $prefix 20 10 LIBPLL2 4
 
-prefix=bigClusterSmartHardcode
+prefix=bigClusterSmartShallow
 #generate_submit 42 $prefix 30 20 PLL 10
 generate_submit 42 $prefix 30 20 LIBPLL2 10
 #generate_submit 20 $prefix 30 20 PLL 10
@@ -73,7 +73,7 @@ generate_submit 20 $prefix 30 20 LIBPLL2 10
 #generate_submit 30 $prefix 30 20 PLL 10
 generate_submit 30 $prefix 30 20 LIBPLL2 10
 
-prefix=veryBigClusterHardcode
+prefix=veryBigClusterShallow
 #generate_submit 42 $prefix 50 40 PLL 16
 generate_submit 42 $prefix 50 40 LIBPLL2 16
 #generate_submit 20 $prefix 50 40 PLL 16

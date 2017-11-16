@@ -1596,26 +1596,16 @@ double computeSubtreeLikelihoodPostorderIter ( TreeTemplate<Node> & spTree,
                                            ReconciliationCache &cache)
 {
   int id=node->getId();
-/*  std::cout <<  "computeSubtreeLikelihoodPostorder: id: "<< id << " ; " << TreeTemplateTools::treeToParenthesis(geneTree, true) <<std::endl;*/
   if ( node->isLeaf() ) {
-
     if ( likelihoodData[id][0]==0.0 ) {
       speciesIDs[id][0]=speciesIDs[id][1]=speciesIDs[id][2]=assignSpeciesIdToLeaf ( node, seqSp, spID );
       likelihoodData[id][0]=likelihoodData[id][1]=likelihoodData[id][2]=computeLogBranchProbability ( duplicationRates[speciesIDs[id][0]], lossRates[speciesIDs[id][0]], 1 );
       dupData[id][0] = dupData[id][1] = dupData[id][2] = 1;
-
-      //  std::cout <<"leafLk id "<< id << " lk: "<<likelihoodData[id][0]<<std::endl;
-
     }
-    /*  std::cout <<"at leaf "<<node->getName()<<std::endl;
-     *          std::cout <<"lk "<<likelihoodData[id][0]<<std::endl;*/
-
     return ( likelihoodData[id][0] );
   }
   else {
-
     std::vector <Node *> sons = node->getSons();
-
     for ( unsigned int i = 0; i< sons.size(); i++ ) {
       computeSubtreeLikelihoodPostorderIter ( spTree, geneTree,
                                           sons[i], seqSp,
@@ -1624,48 +1614,11 @@ double computeSubtreeLikelihoodPostorderIter ( TreeTemplate<Node> & spTree,
                                           speciesIDs, dupData , cache);
 
     }
-
     int idSon0 = sons[0]->getId();
     int idSon1 = sons[1]->getId();
     unsigned int directionSon0 = 0;
     unsigned int directionSon1 = 0;
     
-    /*std::vector <Node *> neighbors = sons[0]->getNeighbors();
-    for ( unsigned int i=0; i<neighbors.size(); i++ ) {
-      if ( neighbors[i]==node ) {
-        directionSon0 = i;
-      }
-    }
-    neighbors = sons[1]->getNeighbors();
-    for ( unsigned int i=0; i<neighbors.size(); i++ ) {
-      if ( neighbors[i]==node ) {
-        directionSon1 = i;
-      }
-    }
-*/
-    /*  neighbors = node->getNeighbors();
-     *          for (unsigned int i=0; i<neighbors.size(); i++) {
-     *            if (neighbors[i]==node) {
-     *              directionSon1 = i;
-  }
-  }
-
-  else if (neighbors[i]==sons[1]) {
-    directionSon1 = i;
-  }
-  else if (neighbors[i]==node->getFather()) {
-    directionFather = i;
-  }
-  }
-
-
-
-  std::cout << "fatherDirection "<<directionFather<<std::endl;*/
-    /*
-     *         std::cout << "son 0 lk "<<likelihoodData[idSon0][directionSon0]<< " directionSon0 "<<  directionSon0<<std::endl;
-     *          std::cout << "son 1 lk "<<likelihoodData[idSon1][directionSon1]<<" directionSon1 "<<  directionSon1<<std::endl;
-     *           std::cout <<"node ID "<<id<<"isRoot? "<<TreeTemplateTools::isRoot(*node)<<std::endl;*/
-
     computeConditionalLikelihoodAndAssignSpId ( spTree, sons,
                                                 likelihoodData[id][0],
                                                 likelihoodData[idSon0][directionSon0],
@@ -1679,9 +1632,6 @@ double computeSubtreeLikelihoodPostorderIter ( TreeTemplate<Node> & spTree,
                                                 dupData[idSon1][directionSon1],
                                                 TreeTemplateTools::isRoot ( *node ),
                                                 cache);
-
-    // std::cout <<"father lk "<< likelihoodData[id][0]<<std::endl;
-
     return ( likelihoodData[id][0] );
   }
 
@@ -2126,8 +2076,8 @@ void computeNumbersOfLineagesInASubtree ( TreeTemplate<Node> & tree,
 void computeNumbersOfLineagesFromRoot ( TreeTemplate<Node> * spTree,
                                         TreeTemplate<Node> * geneTree,
                                         Node * node,
-                                        const std::map<std::string, std::string > seqSp,
-                                        const std::map<std::string, int > spID,
+                                        const std::map<std::string, std::string > &seqSp,
+                                        const std::map<std::string, int > &spID,
                                         std::vector <int> &num0lineages,
                                         std::vector <int> &num1lineages,
                                         std::vector <int> &num2lineages,
@@ -2142,8 +2092,8 @@ void computeNumbersOfLineagesFromRoot ( TreeTemplate<Node> * spTree,
 void computeNumbersOfLineagesFromRootIter ( TreeTemplate<Node> * spTree,
                                         TreeTemplate<Node> * geneTree,
                                         Node * node,
-                                        const std::map<std::string, std::string > seqSp,
-                                        const std::map<std::string, int > spID,
+                                        const std::map<std::string, std::string > &seqSp,
+                                        const std::map<std::string, int > &spID,
                                         std::vector <int> &num0lineages,
                                         std::vector <int> &num1lineages,
                                         std::vector <int> &num2lineages,

@@ -153,14 +153,14 @@ int assignSpeciesIdToLeaf ( Node * node,
                             const std::map<std::string,
                             std::string > & seqSp,
                             const std::map<std::string, int > & spID );
-struct RecoverLossesPrecomputation;
+struct ReconciliationCache;
 
 void recoverLosses(Node *& node, int & a, const int & b, int & olda, const int & a0,
                    const TreeTemplate<Node> & tree,
                    double & likelihoodCell,
                    const std::vector< double> & lossRates,
                    const std::vector< double> & duplicationRates,
-                   RecoverLossesPrecomputation &results);
+                   ReconciliationCache &cache);
 
 void recoverLossesWithDuplication ( const Node * nodeA,
                                     const int &a,
@@ -183,7 +183,7 @@ double computeConditionalLikelihoodAndAssignSpId ( TreeTemplate<Node> & tree,
         int & son0DupData,
         int & son1DupData,
         bool atRoot,
-        RecoverLossesPrecomputation &results);
+        ReconciliationCache &cache);
 double computeSubtreeLikelihoodPostorder ( TreeTemplate<Node> & spTree,
         TreeTemplate<Node> & geneTree,
         Node * node,
@@ -203,7 +203,8 @@ double computeSubtreeLikelihoodPostorderIter ( TreeTemplate<Node> & spTree,
         const std::vector< double> & lossRates,
         const std::vector < double> & duplicationRates,
         std::vector <std::vector<int> > & speciesIDs,
-        std::vector <std::vector<int> > & dupData );
+        std::vector <std::vector<int> > & dupData,
+        ReconciliationCache &cache);
 void computeRootingLikelihood ( TreeTemplate<Node> & spTree,
                                 Node * node,
                                 std::vector <std::vector<double> > & likelihoodData,
@@ -213,7 +214,7 @@ void computeRootingLikelihood ( TreeTemplate<Node> & spTree,
                                 std::vector <std::vector<int> > & dupData,
                                 int sonNumber,
                                 std::map <double, Node*> & LksToNodes,
-                                RecoverLossesPrecomputation &results);
+                                ReconciliationCache &cache);
 void computeSubtreeLikelihoodPreorder ( TreeTemplate<Node> & spTree,
                                         TreeTemplate<Node> & geneTree,
                                         Node * node,
@@ -238,7 +239,7 @@ void computeSubtreeLikelihoodPreorderIter ( TreeTemplate<Node> & spTree,
                                         std::vector <std::vector<int> > & dupData,
                                         int sonNumber,
                                         std::map <double, Node*> & LksToNodes, 
-                                        RecoverLossesPrecomputation &results);
+                                        ReconciliationCache &cache);
 void recoverLossesAndLineages ( Node *& node, int & a, const int & b, int & olda,
                                 int & a0,
                                 const TreeTemplate<Node> & tree,

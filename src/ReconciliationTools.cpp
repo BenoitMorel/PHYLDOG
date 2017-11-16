@@ -44,9 +44,15 @@
 
 //#include "mpi.h" //SHOULD BE CORRECTED 13062017
 
-struct RecoverLossesPrecomputation{
+struct ReconciliationCache{
 
-  RecoverLossesPrecomputation(unsigned int size): nodesIds(size) {}
+  ReconciliationCache( unsigned int spMaxId):
+    nodesIds(spMaxId + 1), logBranchProbabilities(3) 
+  {  
+    logBranchProbabilities[0] = std::vector<double>(spMaxId + 1, 0.0);
+    logBranchProbabilities[1] = std::vector<double>(spMaxId + 1, 0.0);
+    logBranchProbabilities[2] = std::vector<double>(spMaxId + 1, 0.0);
+  }
 
   
   bool contains(Node *node, int element) {
@@ -58,10 +64,18 @@ struct RecoverLossesPrecomputation{
 
   }
 
+  double computeLogBranchProbabilityCached(unsigned int branch, unsigned int numberOfLineages, const std::vector<double> &duplicationsProbabilities, const std::vector<double> &lossProbabilities)
+  {
+    double res = logBranchProbabilities[numberOfLineages][branch];
+    if (res == 0.0) {
+      res = computeLogBranchProbability(duplicationsProbabilities[branch], lossProbabilities[branch], numberOfLineages);
+      logBranchProbabilities[numberOfLineages][branch] = res;
+    }
+    return res;
+  }
+
   std::vector<std::vector< int > > nodesIds;
-
-  
-
+  std::vector<std::vector< double > > logBranchProbabilities;
 };
 
 
@@ -830,6 +844,7 @@ double computeBranchProbabilityAtRoot ( const double &duplicationProbability, do
 }
 
 
+
 /**************************************************************************
  * Computes the log of the above probability (if it had not been changed not to!):
  * Update as of January 28th, 2010.
@@ -1291,7 +1306,7 @@ void recoverLosses(Node *& node, int & a, const int & b, int & olda, const int &
                    double & likelihoodCell,
                    const std::vector< double> & lossRates,
                    const std::vector< double> & duplicationRates,
-                   RecoverLossesPrecomputation &results)
+                   ReconciliationCache &cache)
 {
 
     //std::cout << "\t\trecoverLoss " << node->getId() << " ";
@@ -1318,24 +1333,23 @@ void recoverLosses(Node *& node, int & a, const int & b, int & olda, const int &
     // std::cout <<"here 9"<<std::endl;
 
     if (   (nodeA->getSon(0)->getId()==olda)
-        && (!(results.contains(nodeA->getSon(1), b) || nodeA->getSon(1)->getId() == b))
+        && (!(cache.contains(nodeA->getSon(1), b) || nodeA->getSon(1)->getId() == b))
         && (b!=a))
 
     {
       lostNodeId=nodeA->getSon(1)->getId();
-      likelihoodCell += computeLogBranchProbability(duplicationRates[lostNodeId], lossRates[lostNodeId], 0);
+      likelihoodCell += cache.computeLogBranchProbabilityCached(lostNodeId, 0, duplicationRates, lossRates);
     }
     else  if ((nodeA->getSon(1)->getId()==olda)
-        && (!(results.contains(nodeA->getSon(0), b) || (nodeA->getSon(0)->getId() == b)))
+        && (!(cache.contains(nodeA->getSon(0), b) || (nodeA->getSon(0)->getId() == b)))
         && (b!=a))
     {
       lostNodeId=nodeA->getSon(0)->getId();
-      likelihoodCell += computeLogBranchProbability(duplicationRates[lostNodeId], lossRates[lostNodeId], 0);
+      likelihoodCell += cache.computeLogBranchProbabilityCached(lostNodeId, 0, duplicationRates, lossRates);
     }
 
     if ((olda!=a0)) {
-
-      likelihoodCell += computeLogBranchProbability(duplicationRates[olda], lossRates[olda], 1);
+      likelihoodCell += cache.computeLogBranchProbabilityCached(olda, 1, duplicationRates, lossRates);
 
     // std::cout <<"1 I genes on branch "<<olda<<std::endl;
 
@@ -1405,7 +1419,7 @@ double computeConditionalLikelihoodAndAssignSpId ( TreeTemplate<Node> & tree,
                                                    int & son0DupData,
                                                    int & son1DupData,
                                                    bool atRoot,
-                                                   RecoverLossesPrecomputation &results)
+                                                   ReconciliationCache &cache)
 {
   //std::cout << "\tcomputeConditionalLikelihoodAndAssignSpId" << std::endl;
   if ( rootLikelihood == 0.0 ) {
@@ -1433,7 +1447,7 @@ double computeConditionalLikelihoodAndAssignSpId ( TreeTemplate<Node> & tree,
       if ( a>b ) {
 
         //  std::cout <<"before recoverLosses temp0id: "<<temp0.getId()<<std::endl;
-        recoverLosses( temp0, a, b, olda, a0, tree, rootLikelihood, lossRates, duplicationRates, results);
+        recoverLosses( temp0, a, b, olda, a0, tree, rootLikelihood, lossRates, duplicationRates, cache);
         /*  std::cout <<"HERE"<<std::endl;
          *                  std::cout <<"after recoverLosses temp0id: "<<temp0.getId()<<std::endl;*/
       }
@@ -1441,7 +1455,7 @@ double computeConditionalLikelihoodAndAssignSpId ( TreeTemplate<Node> & tree,
 
         /*         std::cout <<"before recoverLosses temp1id: "<<temp1.getId()<<std::endl;
          *                        std::cout <<"HEHEHEEHEH\n\n"<<std::endl;*/
-        recoverLosses( temp1, b, a, oldb, b0, tree, rootLikelihood, lossRates, duplicationRates, results);
+        recoverLosses( temp1, b, a, oldb, b0, tree, rootLikelihood, lossRates, duplicationRates, cache);
         // std::cout <<"after recoverLosses temp1id: "<<temp1.getId()<<std::endl;
 
       }
@@ -1564,9 +1578,9 @@ double computeSubtreeLikelihoodPostorder ( TreeTemplate<Node> & spTree,
                                            std::vector <std::vector<int> > & speciesIDs,
                                            std::vector <std::vector<int> > & dupData )
 {
-  //std::cout << "computeSubtreeLikelihoodPostorder initial recursive call" << std::endl;
+  ReconciliationCache cache(TreeTools::getMaxId(spTree, spTree.getRootId()));
   return computeSubtreeLikelihoodPostorderIter(spTree, geneTree, node, seqSp, spID,
-      likelihoodData, lossRates, duplicationRates, speciesIDs, dupData);
+      likelihoodData, lossRates, duplicationRates, speciesIDs, dupData, cache);
 }
 
 double computeSubtreeLikelihoodPostorderIter ( TreeTemplate<Node> & spTree,
@@ -1578,7 +1592,8 @@ double computeSubtreeLikelihoodPostorderIter ( TreeTemplate<Node> & spTree,
                                            const std::vector< double> & lossRates,
                                            const std::vector < double> & duplicationRates,
                                            std::vector <std::vector<int> > & speciesIDs,
-                                           std::vector <std::vector<int> > & dupData )
+                                           std::vector <std::vector<int> > & dupData ,
+                                           ReconciliationCache &cache)
 {
   int id=node->getId();
 /*  std::cout <<  "computeSubtreeLikelihoodPostorder: id: "<< id << " ; " << TreeTemplateTools::treeToParenthesis(geneTree, true) <<std::endl;*/
@@ -1606,7 +1621,7 @@ double computeSubtreeLikelihoodPostorderIter ( TreeTemplate<Node> & spTree,
                                           sons[i], seqSp,
                                           spID, likelihoodData,
                                           lossRates, duplicationRates,
-                                          speciesIDs, dupData );
+                                          speciesIDs, dupData , cache);
 
     }
 
@@ -1648,7 +1663,6 @@ double computeSubtreeLikelihoodPostorderIter ( TreeTemplate<Node> & spTree,
      *         std::cout << "son 0 lk "<<likelihoodData[idSon0][directionSon0]<< " directionSon0 "<<  directionSon0<<std::endl;
      *          std::cout << "son 1 lk "<<likelihoodData[idSon1][directionSon1]<<" directionSon1 "<<  directionSon1<<std::endl;
      *           std::cout <<"node ID "<<id<<"isRoot? "<<TreeTemplateTools::isRoot(*node)<<std::endl;*/
-    RecoverLossesPrecomputation results(100);//TreeTools::getMaxId(spTree, spTree.getRootId()));
 
     computeConditionalLikelihoodAndAssignSpId ( spTree, sons,
                                                 likelihoodData[id][0],
@@ -1662,7 +1676,7 @@ double computeSubtreeLikelihoodPostorderIter ( TreeTemplate<Node> & spTree,
                                                 dupData[idSon0][directionSon0],
                                                 dupData[idSon1][directionSon1],
                                                 TreeTemplateTools::isRoot ( *node ),
-                                                results);
+                                                cache);
 
     // std::cout <<"father lk "<< likelihoodData[id][0]<<std::endl;
 
@@ -1692,7 +1706,7 @@ void computeRootingLikelihood ( TreeTemplate<Node> & spTree,
                                 std::vector <std::vector<int> > & dupData,
                                 int sonNumber,
                                 std::map <double, Node*> & LksToNodes,
-                                RecoverLossesPrecomputation &results)
+                                ReconciliationCache &cache)
 {
   int geneNodeId = node->getId();
 
@@ -1735,7 +1749,7 @@ void computeRootingLikelihood ( TreeTemplate<Node> & spTree,
                                               dupData[geneNodeId][sonNumber+1],
                                               dupData[idNode0][directionNode0],
                                               dupData[idNode1][directionNode1], false,
-                                              results);
+                                              cache);
   //Now we have the conditional likelihood of the upper subtree,
   //as well as the conditional likelihood of the lower subtree (which we already had)
   //We can thus compute the total likelihood of the rooting.
@@ -1763,7 +1777,7 @@ void computeRootingLikelihood ( TreeTemplate<Node> & spTree,
                                               speciesIDs[idSon1][directionSon1],
                                               rootDupData, dupData[idSon0][directionSon0],
                                               dupData[idSon1][directionSon1], true,
-                                              results);
+                                              cache);
   // std::cout <<"LK FOUND "<<rootLikelihood<<std::endl;
   while ( LksToNodes.find ( rootLikelihood ) !=LksToNodes.end() ) {
     // std::cout <<"changing rootLikelihood !!!!!!!!!!!!!!!!!!!"<<std::endl;
@@ -1798,9 +1812,9 @@ void computeSubtreeLikelihoodPreorder ( TreeTemplate<Node> & spTree,
                                         std::map <double, Node*> & LksToNodes )
 
 {
-  RecoverLossesPrecomputation results(100);//(TreeTools::getMaxId(spTree, spTree.getRootId()));
+  ReconciliationCache cache(TreeTools::getMaxId(spTree, spTree.getRootId()));
   computeSubtreeLikelihoodPreorderIter(spTree, geneTree,node,seqSp,spID,likelihoodData,lossRates,
-      duplicationRates,speciesIDs,dupData,sonNumber,LksToNodes, results);
+      duplicationRates,speciesIDs,dupData,sonNumber,LksToNodes, cache);
 }
 
 void computeSubtreeLikelihoodPreorderIter ( TreeTemplate<Node> & spTree,
@@ -1815,12 +1829,12 @@ void computeSubtreeLikelihoodPreorderIter ( TreeTemplate<Node> & spTree,
                                         std::vector <std::vector<int> > & dupData,
                                         int sonNumber,
                                         std::map <double, Node*> & LksToNodes ,
-                                        RecoverLossesPrecomputation &results)
+                                        ReconciliationCache &cache)
 {
   computeRootingLikelihood ( spTree, node,
                              likelihoodData, lossRates,
                              duplicationRates, speciesIDs,
-                             dupData, sonNumber, LksToNodes, results);
+                             dupData, sonNumber, LksToNodes, cache);
   if ( node->isLeaf() ) {
     return;
   }
@@ -1838,7 +1852,7 @@ void computeSubtreeLikelihoodPreorderIter ( TreeTemplate<Node> & spTree,
                                          son, seqSp, spID,
                                          likelihoodData,
                                          lossRates, duplicationRates,
-                                         speciesIDs, dupData, j, LksToNodes, results);
+                                         speciesIDs, dupData, j, LksToNodes, cache);
     }
   }
   //  }
@@ -2246,8 +2260,6 @@ std::cout << TreeTemplateTools::treeToParenthesis(*geneTree, true)<<std::endl;*/
   std::map <double, Node*> LksToNodes;
 
   Node * geneRoot = geneTree->getRootNode();
-
-
   {
     {
       //std::cout << "findMLReconciliationDR geneTree: " << TreeTemplateTools::treeToParenthesis ( *geneTree, true ) <<std::endl;

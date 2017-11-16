@@ -48,40 +48,40 @@ generate_submit()
 
 
 
-prefix=smallClusterPrecompute
+prefix=smallClusterSmart
 #generate_submit 42 $prefix 10 3 PLL 4
-#generate_submit 42 $prefix 10 3 LIBPLL2 4
+generate_submit 42 $prefix 10 3 LIBPLL2 4
 #generate_submit 20 $prefix 10 3 PLL 4
-#generate_submit 20 $prefix 10 3 LIBPLL2 4
+generate_submit 20 $prefix 10 3 LIBPLL2 4
 #generate_submit 30 $prefix 10 3 PLL 4
-#generate_submit 30 $prefix 10 3 LIBPLL2 4
+generate_submit 30 $prefix 10 3 LIBPLL2 4
 
 
-prefix=mediumClusterPrecompute
+prefix=mediumClusterSmartHardcode
 #generate_submit 42 $prefix 20 10 PLL 4
-#generate_submit 42 $prefix 20 10 LIBPLL2 4
+generate_submit 42 $prefix 20 10 LIBPLL2 4
 #generate_submit 20 $prefix 20 10 PLL 4
-#generate_submit 20 $prefix 20 10 LIBPLL2 4
+generate_submit 20 $prefix 20 10 LIBPLL2 4
 #generate_submit 30 $prefix 20 10 PLL 4
-#generate_submit 30 $prefix 20 10 LIBPLL2 4
+generate_submit 30 $prefix 20 10 LIBPLL2 4
 
-prefix=bigClusterPrecompute
+prefix=bigClusterSmartHardcode
 #generate_submit 42 $prefix 30 20 PLL 10
-#generate_submit 42 $prefix 30 20 LIBPLL2 10
+generate_submit 42 $prefix 30 20 LIBPLL2 10
 #generate_submit 20 $prefix 30 20 PLL 10
-#generate_submit 20 $prefix 30 20 LIBPLL2 10
+generate_submit 20 $prefix 30 20 LIBPLL2 10
 #generate_submit 30 $prefix 30 20 PLL 10
-#generate_submit 30 $prefix 30 20 LIBPLL2 10
+generate_submit 30 $prefix 30 20 LIBPLL2 10
 
-prefix=veryBigClusterPrecompute
-generate_submit 42 $prefix 50 40 PLL 16
-#generate_submit 42 $prefix 50 40 LIBPLL2 16
-generate_submit 20 $prefix 50 40 PLL 16
-#generate_submit 20 $prefix 50 40 LIBPLL2 16
-generate_submit 30 $prefix 50 40 PLL 16
-#generate_submit 30 $prefix 50 40 LIBPLL2 16
+prefix=veryBigClusterHardcode
+#generate_submit 42 $prefix 50 40 PLL 16
+generate_submit 42 $prefix 50 40 LIBPLL2 16
+#generate_submit 20 $prefix 50 40 PLL 16
+generate_submit 20 $prefix 50 40 LIBPLL2 16
+#generate_submit 30 $prefix 50 40 PLL 16
+generate_submit 30 $prefix 50 40 LIBPLL2 16
 
-prefix=fullClusterPrecompute
+prefix=fullClusterSmart
 #generate_submit 42 $prefix 55 40 PLL 16
 #generate_submit 42 $prefix 55 40 LIBPLL2 16
 #generate_submit 20 $prefix 55 40 PLL 16

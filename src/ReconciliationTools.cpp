@@ -1627,8 +1627,10 @@ double computeSubtreeLikelihoodPostorderIter ( TreeTemplate<Node> & spTree,
 
     int idSon0 = sons[0]->getId();
     int idSon1 = sons[1]->getId();
-    unsigned int directionSon0, directionSon1;
-    std::vector <Node *> neighbors = sons[0]->getNeighbors();
+    unsigned int directionSon0 = 0;
+    unsigned int directionSon1 = 0;
+    
+    /*std::vector <Node *> neighbors = sons[0]->getNeighbors();
     for ( unsigned int i=0; i<neighbors.size(); i++ ) {
       if ( neighbors[i]==node ) {
         directionSon0 = i;
@@ -1640,7 +1642,7 @@ double computeSubtreeLikelihoodPostorderIter ( TreeTemplate<Node> & spTree,
         directionSon1 = i;
       }
     }
-
+*/
     /*  neighbors = node->getNeighbors();
      *          for (unsigned int i=0; i<neighbors.size(); i++) {
      *            if (neighbors[i]==node) {
@@ -2169,20 +2171,25 @@ void computeNumbersOfLineagesFromRootIter ( TreeTemplate<Node> * spTree,
     }
     int idSon0 = sons[0]->getId();
     int idSon1 = sons[1]->getId();
-    unsigned int directionSon0, directionSon1;
+    unsigned int directionSon0 = 0;
+    unsigned int directionSon1 = 0;
+   
+    /*
     std::vector <Node *> neighbors = sons[0]->getNeighbors();
     for ( unsigned int i=0; i<neighbors.size(); i++ ) {
       if ( neighbors[i]==node ) {
         directionSon0 = i;
       }
     }
+    std::cout << "dir0 " << directionSon0 << std::endl;
     neighbors = sons[1]->getNeighbors();
     for ( unsigned int i=0; i<neighbors.size(); i++ ) {
       if ( neighbors[i]==node ) {
         directionSon1 = i;
       }
     }
-
+    std::cout << "dir1 " << directionSon0 << std::endl;
+*/
     computeNumbersOfLineagesInASubtree ( *spTree, sons,
                                          speciesIDs[id][0],
                                          speciesIDs[idSon0][directionSon0],

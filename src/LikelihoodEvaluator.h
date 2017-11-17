@@ -216,6 +216,31 @@ private:
    */
   double PLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
 
+  /**
+   * Get the log likelihood of a tree and modify this tree to match
+   * the new branch lengths, using LIBPLL2.
+   * @param prefix a BPP tree
+   * @return the logLikelihood
+   */
+  double LIBPLL2_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
+
+  /**
+   * Get the log likelihood of a tree and modify this tree to match
+   * the new branch lengths, using PLL.
+   * @param prefix a BPP tree
+   * @return the logLikelihood
+   */
+  double HYBRID_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
+
+  /**
+   * Get the log likelihood of a tree and modify this tree to match
+   * the new branch lengths, using the current mode.
+   * @param prefix a BPP tree
+   * @return the logLikelihood
+   */
+  double evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
+
+
  /**
    * Get the log likelihood of a tree and modify this tree to match
    * the new branch lengths, using Bio++.
@@ -363,7 +388,6 @@ public:
   void pushRollback(Rollback *rollback);
 
   // likelihood evaluation
-  double realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
   double libpllEvaluateFromScratch(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
   double libpllEvaluateIterative(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
  

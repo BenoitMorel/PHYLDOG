@@ -860,7 +860,7 @@ void LikelihoodEvaluator::initialize_LIBPLL2()
   loadStrictNamesFromAlignment_forPLL();
   writeAlignmentFilesForPLL();
   if(logLikelihood == 0) {
-    logLikelihood = PLL_evaluate(&tree) * scaler_;
+    logLikelihood = evaluate(&tree) * scaler_;
   }   
 }
 
@@ -875,7 +875,7 @@ void LikelihoodEvaluator::initialize_PLL()
   PLL_loadPartitions(fileNamePrefix + "partition.txt");
   
   if(logLikelihood == 0) {
-    logLikelihood = PLL_evaluate(&tree) * scaler_;
+    logLikelihood = evaluate(&tree) * scaler_;
   }  
 }
 
@@ -1223,9 +1223,7 @@ double LikelihoodEvaluator::libpllEvaluateIterative(bpp::TreeTemplate<bpp::Node>
   //std::cout << "LikelihoodEvaluator::libpllEvaluateIterative" << std::endl;
 
   if (!currentTreeinfo) {
-    std::cout << "Need to build tree info. Calling evaluate from scratch " << std::endl;
-    double res = libpllEvaluateFromScratch(treeToEvaluate);
-    return res;
+    return libpllEvaluateFromScratch(treeToEvaluate);
   }
   
   //std::cout << "TreeInfo" <<  printer.getTreeinfoString(currentTreeinfo, true, false, false) << std::endl;
@@ -1284,30 +1282,32 @@ double LikelihoodEvaluator::libpllEvaluateFromScratch(bpp::TreeTemplate<bpp::Nod
   return result_ll;
 }
 
-double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
+double LikelihoodEvaluator::HYBRID_evaluate(TreeTemplate<Node>** treeToEvaluate)
 {
-  WHEREAMI( __FILE__ , __LINE__ );
-  static unsigned int count = 0;
-  //std::cout << "** LikelihoodEvaluator::PLL_evaluate" << count++ << std::endl;
-  if (method == LIBPLL2) {
+  TreeTemplate<Node> *pllTree = (*treeToEvaluate)->clone();
+  double pllRes = PLL_evaluate(&pllTree);
+  delete pllTree;
+  double libpllRes = LIBPLL2_evaluate(treeToEvaluate);
+  if (fabs(pllRes - libpllRes) > 0.0001) {
+    std::cout << "error: different results with PLL and libpll-2" << std::endl;
+  }
+  return libpllRes;
+
+}
+
+double LikelihoodEvaluator::LIBPLL2_evaluate(TreeTemplate<Node>** treeToEvaluate)
+{
+  if (!currentTreeinfo) {
+    return libpllEvaluateFromScratch(treeToEvaluate);
+  } else {
     return libpllEvaluateIterative(treeToEvaluate);
-  } else if (method == PLL) {
-    return realPLL_evaluate(treeToEvaluate);
-  } else { // HYBRID
-    TreeTemplate<Node> *pllTree = (*treeToEvaluate)->clone();
-    double pllRes = realPLL_evaluate(&pllTree);
-    delete pllTree;
-    double libpllRes = libpllEvaluateIterative(treeToEvaluate);
-    std::cout << "Hybrid " << pllRes << " " << libpllRes << std::endl;
-    if (fabs(pllRes - libpllRes) > 0.0001) {
-      std::cout << "error: different results with PLL and libpll-2" << std::endl;
-    }
-    return libpllRes;
   }
 }
+
  
-double LikelihoodEvaluator::realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate)
+double LikelihoodEvaluator::PLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate)
 {
+  WHEREAMI( __FILE__ , __LINE__ );
 
   //TODO debug remove
   Newick debugTree;
@@ -1607,28 +1607,28 @@ void LikelihoodEvaluator::initialize()
   initialized = true;
 }
 
+double LikelihoodEvaluator::evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate)
+{
+  if (method == BPP) {
+    return BPP_evaluate(treeToEvaluate);
+  } else if (method == PLL) {
+    return PLL_evaluate(treeToEvaluate);
+  } else if (method == LIBPLL2) {
+    return LIBPLL2_evaluate(treeToEvaluate);
+  } else if (method == HYBRID) {
+    return HYBRID_evaluate(treeToEvaluate);
+  }
+}
 
 void LikelihoodEvaluator::setAlternativeTree(TreeTemplate< Node >* newAlternative)
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  //std::cout << "** LikelihoodEvaluator::setAlternativeTree" << std::endl;
   if(!initialized)
     initialize();
   if(alternativeTree != 00)
     delete alternativeTree;
   alternativeTree = newAlternative->clone();
-
-  if(method != BPP){
-    alternativeLogLikelihood = PLL_evaluate( &alternativeTree ) * scaler_;
-  }
-  else
-  {
-  /*  if ( nniLkAlternative)
-      delete nniLkAlternative;*/
-    alternativeLogLikelihood = BPP_evaluate( &alternativeTree ) * scaler_;
-   /* nniLkAlternative =  new NNIHomogeneousTreeLikelihood (*alternativeTree, *sites, substitutionModel, rateDistribution, mustUnrootTrees, verbose);
-    alternativeLogLikelihood = nniLkAlternative->getLogLikelihood();*/
-  }
+  alternativeLogLikelihood = evaluate( &alternativeTree ) * scaler_;
 }
 
 void LikelihoodEvaluator::acceptAlternativeTree()

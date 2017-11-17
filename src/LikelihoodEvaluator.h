@@ -283,7 +283,7 @@ private:
   */
   void initialize_LIBPLL2();
  
-public: //todobenoit private
+public: 
 
   /*
    * Interface to represent a move (SPR, NNI...) we applied

@@ -222,7 +222,7 @@ private:
         if (node->getFather()->hasFather()) 
           os << ":" << node->getDistanceToFather();
         else
-          os << ":" << node->getDistanceToFather() * 2; // todobenoit this should be + distance uncle
+          os << ":" << node->getDistanceToFather() * 2; // this should be + distance uncle
       }
     }
     if (printId) {

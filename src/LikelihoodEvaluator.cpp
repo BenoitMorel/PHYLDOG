@@ -1345,7 +1345,6 @@ double LikelihoodEvaluator::realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** tree
   stringstream newickStingForPll;
   newickForPll.write(*treeForPLL,newickStingForPll);
   PLL_loadNewick_fromString(newickStingForPll.str());
-  // delete treeForPLL; //todobenoit (temporary moved to the end)
 
   // processing by PLL
   PLL_connectTreeAndAlignment();
@@ -1439,7 +1438,7 @@ double LikelihoodEvaluator::realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** tree
 
   }
 
-  delete treeForPLL; //todobenoit (temporary moved to the end)
+  delete treeForPLL;
 
   //std::cout << "DEBUG Before restoring: "<< TreeTemplateTools::treeToParenthesis(**treeToEvaluate) <<std::endl;
   restoreTreeFromStrict(*treeToEvaluate);

@@ -47,40 +47,65 @@ generate_submit()
 
 
 
+generate_small()
+{
+  prefix=smallCluster
+  generate_submit 42 $prefix 10 3 PLL 4
+  generate_submit 42 $prefix 10 3 LIBPLL2 4
+  generate_submit 20 $prefix 10 3 PLL 4
+  generate_submit 20 $prefix 10 3 LIBPLL2 4
+  generate_submit 30 $prefix 10 3 PLL 4
+  generate_submit 30 $prefix 10 3 LIBPLL2 4
+}
 
-prefix=smallCluster
-generate_submit 42 $prefix 10 3 PLL 4
-generate_submit 42 $prefix 10 3 LIBPLL2 4
-generate_submit 20 $prefix 10 3 PLL 4
-generate_submit 20 $prefix 10 3 LIBPLL2 4
-generate_submit 30 $prefix 10 3 PLL 4
-generate_submit 30 $prefix 10 3 LIBPLL2 4
+generate_medium()
+{
+  prefix=mediumCluster
+  generate_submit 42 $prefix 20 10 PLL 4
+  generate_submit 42 $prefix 20 10 LIBPLL2 4
+  generate_submit 20 $prefix 20 10 PLL 4
+  generate_submit 20 $prefix 20 10 LIBPLL2 4
+  generate_submit 30 $prefix 20 10 PLL 4
+  generate_submit 30 $prefix 20 10 LIBPLL2 4
+}
 
+generate_big()
+{
+  prefix=bigCluster
+  generate_submit 42 $prefix 30 20 PLL 10
+  generate_submit 42 $prefix 30 20 LIBPLL2 10
+  generate_submit 20 $prefix 30 20 PLL 10
+  generate_submit 20 $prefix 30 20 LIBPLL2 10
+  generate_submit 30 $prefix 30 20 PLL 10
+  generate_submit 30 $prefix 30 20 LIBPLL2 10
+}
 
-prefix=mediumCluster
-generate_submit 42 $prefix 20 10 PLL 4
-generate_submit 42 $prefix 20 10 LIBPLL2 4
-generate_submit 20 $prefix 20 10 PLL 4
-generate_submit 20 $prefix 20 10 LIBPLL2 4
-generate_submit 30 $prefix 20 10 PLL 4
-generate_submit 30 $prefix 20 10 LIBPLL2 4
+generate_verybig()
+{
+  prefix=veryBigCluster
+  generate_submit 42 $prefix 50 40 PLL 16
+  generate_submit 42 $prefix 50 40 LIBPLL2 16
+  generate_submit 20 $prefix 50 40 PLL 16
+  generate_submit 20 $prefix 50 40 LIBPLL2 16
+  generate_submit 30 $prefix 50 40 PLL 16
+  generate_submit 30 $prefix 50 40 LIBPLL2 16
+}
 
-prefix=bigCluster
-generate_submit 42 $prefix 30 20 PLL 10
-generate_submit 42 $prefix 30 20 LIBPLL2 10
-generate_submit 20 $prefix 30 20 PLL 10
-generate_submit 20 $prefix 30 20 LIBPLL2 10
-generate_submit 30 $prefix 30 20 PLL 10
-generate_submit 30 $prefix 30 20 LIBPLL2 10
+generate_full()
+{
+  prefix=fullCluster
+  #generate_submit 42 $prefix 55 40 PLL 16
+  generate_submit 42 $prefix 55 40 LIBPLL2 16
+  #generate_submit 20 $prefix 55 40 PLL 16
+  generate_submit 20 $prefix 55 40 LIBPLL2 16
+  #generate_submit 30 $prefix 55 40 PLL 16
+  generate_submit 30 $prefix 55 40 LIBPLL2 16
+}
 
-prefix=veryBigCluster
-#generate_submit 42 $prefix 50 40 PLL 16
-#generate_submit 42 $prefix 50 40 LIBPLL2 16
-#generate_submit 20 $prefix 50 40 PLL 16
-#generate_submit 20 $prefix 50 40 LIBPLL2 16
-#generate_submit 30 $prefix 50 40 PLL 16
-#generate_submit 30 $prefix 50 40 LIBPLL2 16
-#
-
+#generate_small
+#generate_medium
+#generate_big
+#generate_verybig
+generate_full
 
 

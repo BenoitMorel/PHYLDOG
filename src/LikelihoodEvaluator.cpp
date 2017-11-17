@@ -534,7 +534,7 @@ pll_unode_t *LikelihoodEvaluator::getUtreeRoot(pll_utree_t * utree)
   return utree->nodes[utree->tip_count + utree->inner_count - 1];
 }
 
-pll_utree_t * LikelihoodEvaluator::createUtreeFromBPP(bpp::TreeTemplate< bpp::Node > *bpptree)
+pll_utree_t * LikelihoodEvaluator::createUtreeFromBPP(const bpp::TreeTemplate< bpp::Node > *bpptree)
 {
   std::string newick = bpp::TreeTemplateTools::treeToParenthesis(*bpptree);
   pll_rtree_t * rtree = pll_rtree_parse_newick_string(newick.c_str());
@@ -617,7 +617,7 @@ void LikelihoodEvaluator::destroyTreeinfo()
   currentTreeinfo = 0;
 }
 
-pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(bool alternative)
+pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(const bpp::TreeTemplate<Node> *bppTree)
 {
   WHEREAMI( __FILE__ , __LINE__ );
   unsigned int partitions_number = 1; // todobenoit should we handle partitions?
@@ -629,8 +629,7 @@ pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(bool alternative)
   unsigned int *pattern_weights = read_from_fasta(fasta_file, sequences);
 
   // tree
-  bpp::TreeTemplate<Node> *treeToBuild = alternative ? alternativeTree : tree;
-  pll_utree_t * utree = createUtreeFromBPP(treeToBuild);  
+  pll_utree_t * utree = createUtreeFromBPP(bppTree);  
   currentUtree = utree;
   std::map<std::string, int> labelling;
   for (unsigned int i = 0 ; i < utree->tip_count; ++i)
@@ -681,7 +680,6 @@ pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(bool alternative)
   
   } else { 
     pInfo *pll_part = PLL_partitions->partitionData[0];
-    std::cout << pll_part->frequencies << " " << pll_part->gammaRates <<" " << pll_part->substRates << std::endl;
     pll_set_category_rates(partition, pll_part->gammaRates);
     pll_set_frequencies(partition, 0, pll_part->frequencies);
     pll_set_subst_params(partition, 0, pll_part->substRates);
@@ -828,19 +826,25 @@ double LikelihoodEvaluator::fullOptimizeTreeinfoIter(pllmod_treeinfo_t *treeinfo
 }
 
 
+void LikelihoodEvaluator::initialize_LIBPLL2() 
+{
+  loadStrictNamesFromAlignment_forPLL();
+  writeAlignmentFilesForPLL();
+  if(logLikelihood == 0) {
+    logLikelihood = PLL_evaluate(&tree) * scaler_;
+  }   
+}
 
 void LikelihoodEvaluator::initialize_PLL()
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  if (method != PLL && logLikelihood != 0)
-    return;
-  //std::cout << "** LuikelihoodEvaluator::initialize_PLL" << std::endl;
   loadStrictNamesFromAlignment_forPLL();
   writeAlignmentFilesForPLL();
   alpha_ = 1.0;
   PLL_initializePLLInstance();
   PLL_loadAlignment(fileNamePrefix + "alignment.fasta");
   PLL_loadPartitions(fileNamePrefix + "partition.txt");
+  
   if(logLikelihood == 0) {
     logLikelihood = PLL_evaluate(&tree) * scaler_;
   }  
@@ -941,12 +945,6 @@ void LikelihoodEvaluator::applyNNIRoot(bpp::Node *bppParent,
   pllmod_utree_set_length(edge, t1/2.0);
 }
 
-  
-void LikelihoodEvaluator::rebuildTreeinfoFromTree()
-{
-  destroyTreeinfo();
-  currentTreeinfo = buildTreeinfo(false);
-}
   
 void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent, 
     bpp::Node *bppGrandParent,
@@ -1235,7 +1233,7 @@ double LikelihoodEvaluator::libpllEvaluateFromScratch(bpp::TreeTemplate<bpp::Nod
     saveRoot(inputBPPTree, leaves1, leaves2);
   }
  
-  currentTreeinfo = buildTreeinfo(alternativeTree != 0);
+  currentTreeinfo = buildTreeinfo(alternativeTree ? alternativeTree : tree);
   double result_ll = getTreeinfoLikelihood(currentTreeinfo, false);
   fullOptimizeTreeinfo(currentTreeinfo);
   needFullOptim = false;
@@ -1520,10 +1518,13 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
 
 void LikelihoodEvaluator::unload()
 {
+  
+ 
   if(!initialized)
     return;
   initialized = false;
-  if(method != BPP){
+  
+  if(method == PLL || method == HYBRID){
     if(pll_model_already_initialized_){
       pllAlignmentDataDestroy(PLL_alignmentData);
       pllPartitionsDestroy(PLL_instance, &PLL_partitions);
@@ -1567,10 +1568,13 @@ void LikelihoodEvaluator::initialize()
   }
 
   // ### common requirements for initialization
-  if(method != BPP)
-    initialize_PLL();
-  else
+  if(method == LIBPLL2) {
+    initialize_LIBPLL2();
+  }  else if (method == BPP) {
     initialize_BPP_nniLk();
+  } else {
+    initialize_PLL();
+  } 
 
   //
   initialized = true;
@@ -1671,6 +1675,8 @@ SubstitutionModel* LikelihoodEvaluator::getSubstitutionModel()
 
 void LikelihoodEvaluator::loadStrictNamesFromAlignment_forPLL()
 {
+  if(aligmentFilesForPllWritten_)
+    return;
   WHEREAMI( __FILE__ , __LINE__ );
   vector<string> seqNames = sites->getSequencesNames();
   string currName;

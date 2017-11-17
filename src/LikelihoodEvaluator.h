@@ -276,6 +276,12 @@ private:
   * Initialize PLL with the right data
   */
   void initialize_PLL();
+  
+  
+  /**
+  * Initialize LIBPLL2 with the right data
+  */
+  void initialize_LIBPLL2();
  
 public: //todobenoit private
 
@@ -331,9 +337,8 @@ public: //todobenoit private
   };
 
   // build / reset
-  pll_utree_t * createUtreeFromBPP(bpp::TreeTemplate< bpp::Node > *bpptree);
-  pllmod_treeinfo_t * buildTreeinfo(bool alternativeTree);
-  void rebuildTreeinfoFromTree();
+  pll_utree_t * createUtreeFromBPP(const bpp::TreeTemplate< bpp::Node > *bpptree);
+  pllmod_treeinfo_t * buildTreeinfo(const  bpp::TreeTemplate< bpp::Node > *bpptree);
   void destroyRollbacks();
   void destroyTreeinfo();
  

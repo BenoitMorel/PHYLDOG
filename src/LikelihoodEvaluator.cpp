@@ -617,6 +617,23 @@ void LikelihoodEvaluator::destroyTreeinfo()
   currentTreeinfo = 0;
 }
 
+unsigned int getBestLibpllAttribute() {
+  pll_hardware_probe();
+  unsigned int arch = PLL_ATTRIB_ARCH_CPU;
+  std::cout << "Libpll-2 will use ";
+  if (pll_hardware.avx_present) {
+    arch = PLL_ATTRIB_ARCH_AVX;
+    std::cout << "avx";
+  } else if (pll_hardware.sse_present) {
+    arch = PLL_ATTRIB_ARCH_SSE;
+    std::cout << "sse";
+  } else {
+    std::cout << "no";
+  }
+  std::cout << " vectorization" << std::endl;
+  return PLL_ATTRIB_SITE_REPEATS | arch;
+}
+
 pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(const bpp::TreeTemplate<Node> *bppTree)
 {
   WHEREAMI( __FILE__ , __LINE__ );
@@ -645,7 +662,7 @@ pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(const bpp::TreeTemplate<N
       utree->tip_count, partitions_number, brlen_linkage);
 
   // pll_attribute
-  unsigned int attribute = PLL_ATTRIB_ARCH_AVX | PLL_ATTRIB_SITE_REPEATS;
+  unsigned int attribute = getBestLibpllAttribute();
 
 
   // pll_partitions

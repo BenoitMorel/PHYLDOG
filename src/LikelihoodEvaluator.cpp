@@ -620,7 +620,7 @@ void LikelihoodEvaluator::destroyTreeinfo()
 pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(const bpp::TreeTemplate<Node> *bppTree)
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  unsigned int partitions_number = 1; // todobenoit should we handle partitions?
+  unsigned int partitions_number = 1; 
 
   // sequences 
   std::string fileName = fileNamePrefix + "alignment.fasta"; 
@@ -647,10 +647,22 @@ pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(const bpp::TreeTemplate<N
   // pll_attribute
   unsigned int attribute = PLL_ATTRIB_ARCH_AVX | PLL_ATTRIB_SITE_REPEATS;
 
+
   // pll_partitions
+  unsigned int numberOfStates = sites->getAlphabet()->getSize();
+  const unsigned int *charmap = 0;
+  if (numberOfStates == 4) {
+    charmap = pll_map_nt;
+  } else if (numberOfStates == 20) {
+    charmap = pll_map_aa;
+  } else {
+    std::cerr << "Error: Phyldog detected " << numberOfStates << " states " << std::endl;
+    std::cout << "Currently supported states number: 4 or 20" << std::endl;
+    return 0;
+  }
   pll_partition_t *partition = pll_partition_create(utree->tip_count,
       utree->inner_count,
-      4,                // states.
+      numberOfStates,                // states.
       sequences[0].len, // sites
       1,                // rate_matrices
       utree->edge_count,// prob_matrices
@@ -659,8 +671,8 @@ pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(const bpp::TreeTemplate<N
       attribute);       // attr
   
   pll_set_pattern_weights(partition, pattern_weights);
+  
   // add sequences to partitions
-  const unsigned int *charmap = pll_map_nt; // todobenoit do not hardcode that
   for (unsigned int i = 0; i < sequences.size(); ++i) {
     unsigned int tip = labelling[strictToReal[sequences[i].label]];
     pll_set_tip_states(partition, tip, charmap, sequences[i].seq);
@@ -730,7 +742,7 @@ double LikelihoodEvaluator::fullOptimizeTreeinfoIter(pllmod_treeinfo_t *treeinfo
 {
   // This code comes from RaxML
   double new_loglh;
-  unsigned int params_to_optimize = treeinfo->params_to_optimize[0]; // todobenoit read it from treeinfo
+  unsigned int params_to_optimize = treeinfo->params_to_optimize[0]; 
   
   /* optimize SUBSTITUTION RATES */
   if (params_to_optimize & PLLMOD_OPT_PARAM_SUBST_RATES)
@@ -1280,7 +1292,6 @@ double LikelihoodEvaluator::PLL_evaluate(TreeTemplate<Node>** treeToEvaluate)
 double LikelihoodEvaluator::realPLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEvaluate)
 {
 
-  std::cout << "LikelihoodEvaluator::realPLL_evaluate " << std::endl;
   //TODO debug remove
   Newick debugTree;
   stringstream debugSS;

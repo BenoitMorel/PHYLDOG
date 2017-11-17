@@ -463,11 +463,6 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     Node * grandFatherForNNI = parentForNNI->getFather();
     Node * uncleForNNI = grandFatherForNNI->getSon(parentPosition > 1 ? 0 : 1 - parentPosition);
     Node * rootForNNI = treeForNNI->getRootNode();
-    //std::cout << "son " << sonForNNI->getId() << std::endl;
-    //std::cout << "parent " << parentForNNI->getId() << std::endl;
-    //std::cout << "grand parent " << grandFatherForNNI->getId() << std::endl;
-    //std::cout << "uncle " << uncleForNNI->getId() << std::endl;
-    //levaluator_->applyNNI(parentForNNI, grandFatherForNNI, sonForNNI, uncleForNNI, treeForNNI->getRootNode());
         
     if (considerSequenceLikelihood_ ) {
       levaluator_->applyNNI(parentForNNI, grandFatherForNNI, sonForNNI, uncleForNNI, treeForNNI->getRootNode());
@@ -490,14 +485,6 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     double candidateScenarioLk = 0;
     totalIterations_ = totalIterations_+1;
 
-    //std::cout << "BPP tree plop  : " << levaluator_->printer.getBPPNodeString(treeForNNI->getRootNode(), true, false) << std::endl;
-
-   /* 
-        levaluator_->applyNNI(parentForNNI, grandFatherForNNI, sonForNNI, uncleForNNI, treeForNNI->getRootNode());
-        levaluator_->setAlternativeTree(treeForNNI);
-        levaluator_->rollbackLastMove();
-    
-        */
       candidateScenarioLk =  findMLReconciliationDR (spTree_, treeForNNI/*&rootedTree_*/,
 					       seqSp_, spId_,
 					       lossExpectedNumbers_, duplicationExpectedNumbers_,
@@ -519,7 +506,6 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
 
         if (tot < 0)
         {
-          std::cout << "improvment" << std::endl;
           tentativeScenarioLikelihood_= candidateScenarioLk;
         } else {
           levaluator_->rollbackLastMove();
@@ -1030,7 +1016,6 @@ void DLGeneTreeLikelihood::refineGeneTreeSPRsFast3 (map<string, string> params) 
 	    treeForSPR = 0;
 	  }
 	  treeForSPR = rootedTree_->clone();
-    std::cout << "DLGene makeSPR" << std::endl;
     nodesToUpdate = makeSPR(*treeForSPR, nodeForSPR, nodeIdsToRegraft[i], false, true);
     
 	  //Compute the DL likelihood
@@ -1266,7 +1251,6 @@ void DLGeneTreeLikelihood::refineGeneTreeMuffato (map<string, string> params) {
 
       unsigned int numEval = 0;
 
-      std::cout << "setAlternativeTree SPR 2" << std::endl;
       levaluator_->setAlternativeTree(treeForSPR);
 
       logL = candidateScenarioLk + levaluator_->getAlternativeLogLikelihood();

@@ -1353,7 +1353,6 @@ double LikelihoodEvaluator::PLL_evaluate(bpp::TreeTemplate<bpp::Node>** treeToEv
   // pllSetFixedSubstitutionMatrix(subsMatrix_, 6, 0, PLL_partitions, PLL_instance);
   WHEREAMI( __FILE__ , __LINE__ );
   if(!pll_model_already_initialized_){
-    std::cout << "init model" << std::endl;
     pllInitModel(PLL_instance, PLL_partitions);
     pll_model_already_initialized_ = true;
   }

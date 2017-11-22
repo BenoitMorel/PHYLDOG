@@ -3175,11 +3175,12 @@ DiscreteDistribution* getRateDistributionFromOptions ( map <string,string> param
 TreeTemplate<Node> * getTreeFromOptions ( map <string,string> params, Alphabet *alphabet, VectorSiteContainer * sites, SubstitutionModel* model, DiscreteDistribution* rDist, bool& cont )
 {
   string file = ApplicationTools::getStringParameter ( "input.sequence.file",params,"none" );
-
+#ifdef SCOREP
   if (sites->getSequencesNames().size() < 3 || sites->getSequencesNames()[0].size() < 3) {
     std::cout << "getTreeFromOptions todobenoit hacking matrix < 3 case exception" << std::endl;
     return 0;
   }
+#endif
   TreeTemplate<Node> *  rootedTree = 00;
   // Get the initial gene tree
   string initTree = ApplicationTools::getStringParameter ( "init.gene.tree", params, "user", "", false, false );

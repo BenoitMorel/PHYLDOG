@@ -102,10 +102,10 @@ generate_full()
   generate_submit 30 $prefix 55 40 LIBPLL2 16
 }
 
-#generate_small
-#generate_medium
-#generate_big
-#generate_verybig
+generate_small
+generate_medium
+generate_big
+generate_verybig
 generate_full
 
 #

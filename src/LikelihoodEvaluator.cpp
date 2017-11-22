@@ -1574,7 +1574,8 @@ void LikelihoodEvaluator::unload()
       pll_model_already_initialized_ = false;
     }
   }
-  else
+  
+  if (method == BPP)
   {
     delete nniLk;
     if(nniLkAlternative)

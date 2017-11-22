@@ -919,6 +919,12 @@ bool areEquals(pll_unode_t *n1, pll_unode_t *n2)
     return n1 == n2;
 }
 
+bool sprYeldsSameTree(pll_unode_t *n1, pll_unode_t *n2)
+{
+  return (n2 == n1) || (n2 == n1->next) || (n2 == n1->next->next)
+    || (n2->back == n1) || (n2->back == n1->next) || (n2->back == n1->next->next);
+}
+
 // returns the branch between n1 and n2 with the same index as n2
 pll_unode_t *getBranchFromLibpll(pll_unode_t *n1, pll_unode_t *n2) {
   if (!n2->next) {
@@ -1039,56 +1045,65 @@ bpp::Node *getFatherOrBrotherIfRoot(bpp::Node *node)
 void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
       bpp::Node *bppNewBrother)
 {
+  //std::cout << "LikelihoodEvaluator::applySPR " << std::endl;
   if (method != LIBPLL2 && method != HYBRID) {
     return;
   }
+  double previousLikelihood = getTreeinfoLikelihood(currentTreeinfo);
+  //std::cout << "previousLikelihood " << previousLikelihood << std::endl;
   // get bpp nodes 
-  bpp::Node *bppOldFather = bppToCut->getFather();
+  bpp::Node *bppOldFather = getFatherOrBrotherIfRoot(bppToCut);
   bpp::Node *bppOldBrother = getBrother(bppToCut);
-
-  bool sameTree = bppOldFather == bppNewBrother;
-
-  // checks
-  if (sameTree && method != HYBRID) { 
-    // this will lead to the same unrooted tree
-    // in Hybrid mode, we still want to update the BL with 0.1
-    // just to insure consistency with PLL
-    pushRollback(new IdentityRollback(getTreeinfoLikelihood(currentTreeinfo, true)));
-    return;
+  
+  if (!bppOldFather->hasFather()) {
+    std::cout << "  father case " << std::endl;
   }
 
   // this one is the father of the new brother BEFORE spr
   bpp::Node *bppNewBrotherFather = getFatherOrBrotherIfRoot(bppNewBrother);
-  double previousLikelihood = getTreeinfoLikelihood(currentTreeinfo, true);
+
   // get libpll nodes
   pll_unode_t *toCut = getBranch(bppToCut, bppOldFather );
   pll_unode_t *newBrotherFather = getBranch(bppNewBrother, bppNewBrotherFather);
   pll_unode_t *oldBrother = getBranch(bppOldFather, bppOldBrother); 
- 
-  bool atRoot = !bppNewBrother->getFather()->hasFather();
 
-  if (!toCut || !oldBrother || !newBrotherFather) {
-    std::cout << "Error, null pll_unode_t in applySPR" << std::endl;
+  /*
+  std::cout << " bppOldFather " << bppOldFather->getId() << " ";
+  std::cout << " bppOldBrother " << bppOldBrother->getId() << " ";
+  std::cout << " bppNewBrotherFather " << bppNewBrother->getId() << std::endl;
+*/
+
+  if (!toCut || !newBrotherFather) {
+    std::cout << "Error, null pll_unode_t in applySPR " << toCut << " " << newBrotherFather << std::endl;
+    pushRollback(new IdentityRollback(previousLikelihood));
     return;
   }
 
-  pll_tree_rollback_t rb;
-  if (!sameTree) {
-    if (pllmod_utree_spr(toCut, newBrotherFather, &rb)!= PLL_SUCCESS) {
-      std::cout << "cannot apply SPR" << std::endl;
-      std::cout << pll_errmsg << std::endl;
-    }
-  }
-
-  if (!sameTree || method != HYBRID) {
-    pushRollback(new SPRRollback(currentTreeinfo, rb, previousLikelihood));
-  }  else {
-    pushRollback(new SPRIdentityHybridRollback(previousLikelihood, 
+  if (sprYeldsSameTree(toCut, newBrotherFather)) { // will yeld same tree
+    if (method == HYBRID) {
+      if (!oldBrother) {
+        std::cout << "Warning, null oldBrother" << std::endl;
+        pushRollback(new IdentityRollback(previousLikelihood));
+      } else {
+        pushRollback(new SPRIdentityHybridRollback(previousLikelihood,  
                           newBrotherFather, oldBrother));
+      }
+    } else {
+      pushRollback(new IdentityRollback(previousLikelihood));
+    }
+  } else {
+    pll_tree_rollback_t rb;
+    if (pllmod_utree_spr(toCut, newBrotherFather, &rb)!= PLL_SUCCESS) {
+      std::cout << "Error: cannot apply SPR" << std::endl;
+      std::cout << pll_errmsg << std::endl;
+      pushRollback(new IdentityRollback(previousLikelihood));
+      return;
+    }
+    pushRollback(new SPRRollback(currentTreeinfo, rb, previousLikelihood));
   }
-
   if (method == HYBRID) { // be consistent with the bpp and pll trees
     // newBrotherFather->back is the father of toCut after SPR
+    bool atRoot = !bppNewBrother->getFather()->hasFather();
     double bl = 0.1;
     if (atRoot) {
       bl += bppNewBrotherFather->getDistanceToFather();
@@ -1127,7 +1142,7 @@ void LikelihoodEvaluator::rollbackAllMoves()
 
 bool LikelihoodEvaluator::rollbackLastMove()
 {
-  //std::cout << "rollbackLastMove" << std::endl;
+  //std::cout << "LikelihoodEvaluator::rollbackLastMove" << std::endl;
   if (method != LIBPLL2 && method != HYBRID) {
     return false;
   }

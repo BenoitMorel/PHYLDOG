@@ -311,6 +311,7 @@ LikelihoodEvaluator::LikelihoodEvaluator(map<string, string> params):
   
 void LikelihoodEvaluator::loadDataFromParams(){
   WHEREAMI( __FILE__ , __LINE__ );
+  PLL_partitions = 0;
 
   destroyRollbacks();
   

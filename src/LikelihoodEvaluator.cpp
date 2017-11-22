@@ -1082,7 +1082,7 @@ void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
   if (sprYeldsSameTree(toCut, newBrotherFather)) { // will yeld same tree
     if (method == HYBRID) {
       if (!oldBrother) {
-        std::cout << "Warning, null oldBrother" << std::endl;
+        std::cout << "Warning, null oldBrother. Next hybrid mismatch might be ok" << std::endl;
         pushRollback(new IdentityRollback(previousLikelihood));
       } else {
         pushRollback(new SPRIdentityHybridRollback(previousLikelihood,  
@@ -1101,7 +1101,7 @@ void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
     }
     pushRollback(new SPRRollback(currentTreeinfo, rb, previousLikelihood));
   }
-  if (method == HYBRID) { // be consistent with the bpp and pll trees
+  if (method == HYBRID && oldBrother) { // be consistent with the bpp and pll trees
     // newBrotherFather->back is the father of toCut after SPR
     bool atRoot = !bppNewBrother->getFather()->hasFather();
     double bl = 0.1;

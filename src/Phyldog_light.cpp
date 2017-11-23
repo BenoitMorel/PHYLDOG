@@ -167,7 +167,7 @@ int main(int args, char ** argv)
     //All processors parse the main options
     std::map<std::string, std::string> params = AttributesTools::parseOptions(args, argv);
     double scenarioLikelihood_ = 0.0;
-
+    
     // getting the species tree
     std::string spTreeFile =ApplicationTools::getStringParameter("species.tree.file",params,"none");
     ApplicationTools::displayResult("Species Tree file", spTreeFile);

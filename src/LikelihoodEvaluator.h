@@ -105,7 +105,7 @@ public:
   enum LikelihoodMethod{PLL,BPP, LIBPLL2, HYBRID};
   
   
-private:
+public:
   
   LikelihoodMethod method;
     

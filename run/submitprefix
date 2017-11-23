@@ -1,28 +1,30 @@
 source /etc/profile.d/modules.sh
 module load gompi
 
-outputdir=${prefix}_${seed}_${species}_${genes}_${method}_${threads}
+
+outputdir=${prefix}_${dataset}_${seed}_${species}_${genes}_${method}_${threads}
 rm -rf $outputdir
 mkdir $outputdir
 cd $outputdir
 fullpath=$('pwd')
-optionspath="../../ExampleData/OptionFiles/"
-fullpathdata=${fullpath}/ExampleData
+optionspath="../../benoitdata/${dataset}/OptionFiles/"
+fullpathdata=${fullpath}/${dataset}
 mkdir $fullpathdata
+echo "${optionspath}/GeneralOptions.txt"
+cat "${optionspath}/GeneralOptions.txt"
 cp ${optionspath}/GeneralOptions.txt $fullpathdata
 head -n $genes  ${optionspath}/listGenes.txt > $fullpathdata/listGenes.txt
 head -n $species ${optionspath}/listSpecies.txt > $fullpathdata/listSpecies.txt
-sed -i "s#RESULT=/home/morelbt/github/PHYLDOG/ExampleData/ResultFiles/#RESULT=${fullpath}/#g" ${fullpathdata}/GeneralOptions.txt
-sed -i "s#OPT=/home/morelbt/github/PHYLDOG/ExampleData/OptionFiles/#OPT=${fullpathdata}/#g" ${fullpathdata}/GeneralOptions.txt
+sed -i "s#RESULT=/home/morelbt/github/PHYLDOG/benoitdata/${dataset}/ResultFiles/#RESULT=${fullpath}/#g" ${fullpathdata}/GeneralOptions.txt
+sed -i "s#OPT=/home/morelbt/github/PHYLDOG/benoitdata/${dataset}/OptionFiles/#OPT=${fullpathdata}/#g" ${fullpathdata}/GeneralOptions.txt
 echo "rearrangement.gene.tree=spr" >> ${fullpathdata}/GeneralOptions.txt
-echo "reset.gene.trees=yes" >> ${fullpathdata}/GeneralOptions.txt
+echo "reset.gene.trees=no" >> ${fullpathdata}/GeneralOptions.txt
 echo "likelihood.evaluator=${method}" >> ${fullpathdata}/GeneralOptions.txt
 echo "time.limit=24" >> ${fullpathdata}/GeneralOptions.txt
 echo "seed=${seed}" >> ${fullpathdata}/GeneralOptions.txt
 export SCOREP_PROFILING_MAX_CALLPATH_DEPTH=40
-time.limit
 
 
-echo "mpirun -np $threads ../../build/bin/phyldog param=${fullpathdata}/GeneralOptions.txt &> ${fullpath}/logs.txt"
+#mpirun -np $threads ../../../bastien_PHYLDOG/build/bin/phyldog param=${fullpathdata}/GeneralOptions.txt &> ${fullpath}/logs.txt
 mpirun -np $threads ../../build/bin/phyldog param=${fullpathdata}/GeneralOptions.txt &> ${fullpath}/logs.txt
 

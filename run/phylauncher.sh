@@ -18,8 +18,9 @@ generate_submit()
   genes=$4
   method=$5
   threads=$6
+  dataset=$7
   nodes=$(echo "($threads - 1)/16 + 1" | bc)
-  submit_file="physub_${prefix}_${species}_${genes}_${hackmode}_${threads}"
+  submit_file="s_${prefix}_${dataset}_${seed}_${species}_${genes}_${method}_${threads}"
   rm -f  $submit_file
   write  "#!/bin/bash"
   write "#SBATCH -o ng_$submit_file_%j.out"
@@ -36,8 +37,9 @@ generate_submit()
   write "genes=$genes"
   write "method=$method"
   write "threads=$threads"
+  write "dataset=$dataset"
 
-
+  echo $threads
   
   cat submitprefix >> $submit_file
 
@@ -46,66 +48,51 @@ generate_submit()
 }
 
 
-
-generate_small()
+libpll_only()
 {
-  prefix=smallCluster
-  generate_submit 42 $prefix 10 3 PLL 4
-  generate_submit 42 $prefix 10 3 LIBPLL2 4
-  generate_submit 20 $prefix 10 3 PLL 4
-  generate_submit 20 $prefix 10 3 LIBPLL2 4
-  generate_submit 30 $prefix 10 3 PLL 4
-  generate_submit 30 $prefix 10 3 LIBPLL2 4
+
+  prefix=$1
+  species=$2
+  genes=$3
+  threads=$4
+  dataset=$5
+  generate_submit 10 $prefix $species $genes LIBPLL2 $threads $dataset
+  #generate_submit 20 $prefix $species $genes LIBPLL2 $threads $dataset
+  #generate_submit 30 $prefix $species $genes LIBPLL2 $threads $dataset
 }
 
-generate_medium()
+pll_only()
 {
-  prefix=mediumCluster
-  generate_submit 42 $prefix 20 10 PLL 4
-  generate_submit 42 $prefix 20 10 LIBPLL2 4
-  generate_submit 20 $prefix 20 10 PLL 4
-  generate_submit 20 $prefix 20 10 LIBPLL2 4
-  generate_submit 30 $prefix 20 10 PLL 4
-  generate_submit 30 $prefix 20 10 LIBPLL2 4
+
+  prefix=$1
+  species=$2
+  genes=$3
+  threads=$4
+  dataset=$5
+  generate_submit 10 $prefix $species $genes PLL $threads $dataset
+  #generate_submit 20 $prefix $species $genes PLL $threads $dataset
+  #generate_submit 30 $prefix $species $genes PLL $threads $dataset
 }
 
-generate_big()
+compare_methods()
 {
-  prefix=bigCluster
-  generate_submit 42 $prefix 30 20 PLL 10
-  generate_submit 42 $prefix 30 20 LIBPLL2 10
-  generate_submit 20 $prefix 30 20 PLL 10
-  generate_submit 20 $prefix 30 20 LIBPLL2 10
-  generate_submit 30 $prefix 30 20 PLL 10
-  generate_submit 30 $prefix 30 20 LIBPLL2 10
+
+  prefix=$1
+  species=$2
+  genes=$3
+  threads=$4
+  dataset=$5
+  generate_submit 10 $prefix $species $genes LIBPLL2 $threads $dataset
+  #generate_submit 20 $prefix $species $genes LIBPLL2 $threads $dataset
+  #generate_submit 30 $prefix $species $genes LIBPLL2 $threads $dataset
+  generate_submit 10 $prefix $species $genes PLL $threads $dataset
+  #generate_submit 20 $prefix $species $genes PLL $threads $dataset
+  #generate_submit 30 $prefix $species $genes PLL $threads $dataset
 }
 
-generate_verybig()
-{
-  prefix=veryBigCluster
-  generate_submit 42 $prefix 50 40 PLL 16
-  generate_submit 42 $prefix 50 40 LIBPLL2 16
-  generate_submit 20 $prefix 50 40 PLL 16
-  generate_submit 20 $prefix 50 40 LIBPLL2 16
-  generate_submit 30 $prefix 50 40 PLL 16
-  generate_submit 30 $prefix 50 40 LIBPLL2 16
-}
-
-generate_full()
-{
-  prefix=fullCluster
-  #generate_submit 42 $prefix 55 40 PLL 16
-  generate_submit 42 $prefix 55 40 LIBPLL2 16
-  #generate_submit 20 $prefix 55 40 PLL 16
-  generate_submit 20 $prefix 55 40 LIBPLL2 16
-  #generate_submit 30 $prefix 55 40 PLL 16
-  generate_submit 30 $prefix 55 40 LIBPLL2 16
-}
-
-generate_small
-generate_medium
-generate_big
-generate_verybig
-generate_full
-
-#
+#compare_methods smallClusterFullOptNoReset 15 50 4 DataCarine
+#compare_methods mediumClusterFullOptNoReset 15 500 128 DataCarine
+#compare_methods fullClusterFullOptNoReset 15 8880 512 DataCarine
+#pll_only smallClusterNoResetBastien 15 50 4 DataCarine
+#pll_only mediumClusterNoResetBastien 15 500 128 DataCarine
+#pll_only fullClusterNoResetBastien 15 8880 512 DataCarine

@@ -2076,7 +2076,6 @@ void refineGeneTreeWithSPRsFast2 (map<string, string>& params, bpp::TreeTemplate
       if ( /*numLoss != "0"*/ 1  ) {
 
         buildVectorOfRegraftingNodesGeneTree(*spTree, *rootedTree, nodeForSPR, sprLimitGeneTree, nodeIdsToRegraft);
-
         betterTree = false;
         for (unsigned int i =0 ; i<nodeIdsToRegraft.size() ; i++)
         {
@@ -2086,10 +2085,10 @@ void refineGeneTreeWithSPRsFast2 (map<string, string>& params, bpp::TreeTemplate
             treeForSPR = 0;
           }
           treeForSPR = rootedTree->clone();
-          levaluator->mapUtreeToBPPTree(levaluator->currentUtree, treeForSPR);
+          levaluator->mapUtreeToBPPTree(levaluator->currentUtree, rootedTree);
 
           //std::cout << "refineSPR algo makeSPR" << std::endl;
-          levaluator->applySPR(treeForSPR->getNode(nodeForSPR), treeForSPR->getNode(nodeIdsToRegraft[i]));
+          levaluator->applySPR(rootedTree->getNode(nodeForSPR), rootedTree->getNode(nodeIdsToRegraft[i]));
           nodesToUpdate = makeSPR(*treeForSPR, nodeForSPR, nodeIdsToRegraft[i], false, true);
           //Compute the DL likelihood
           candidateScenarioLk =  findMLReconciliationDR (spTree, treeForSPR,
@@ -2176,6 +2175,9 @@ void refineGeneTreeWithSPRsFast2 (map<string, string>& params, bpp::TreeTemplate
           
           levaluator->mapUtreeToBPPTree(levaluator->currentUtree, rootedTree);
           levaluator->applySPR(rootedTree->getNode(bestSPR1), rootedTree->getNode(bestSPR2));
+          if (levaluator->method == LikelihoodEvaluator::LIBPLL2) {
+            levaluator->setAlternativeTree(rootedTree);
+          }
           if (treeForSPR)
           {
             delete treeForSPR;

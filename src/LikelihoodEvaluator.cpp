@@ -735,15 +735,23 @@ void LikelihoodEvaluator::fullOptimizeTreeinfo(pllmod_treeinfo_t *treeinfo)
   }
 
   double previousLogl = getTreeinfoLikelihood(treeinfo); 
+
+
+
   double newLogl = previousLogl;
   std::cout << "LikelihoodEvaluator::fullOptimizeTreeinfo before: ll = " 
     << getTreeinfoLikelihood(treeinfo) << std::endl;
+  std::cout << "Genes in the tree: " << treeinfo->tip_count << std::endl;
+  unsigned int it = 0;
+  unsigned int max_it = 50;
   do {
     previousLogl = newLogl;
     fullOptimizeTreeinfoIter(treeinfo);
     newLogl = getTreeinfoLikelihood(treeinfo);
-  } while (newLogl - previousLogl > tolerance_);
-  std::cout << "LikelihoodEvaluator::fullOptimizeTreeinfo after: ll = " << newLogl<< std::endl;
+    ++it;
+  } while (it < max_it && newLogl - previousLogl > tolerance_);
+  std::cout << "LikelihoodEvaluator::fullOptimizeTreeinfo after: ll = " << newLogl <<
+    " (" << it << " iterations)" << std::endl;
 }
   
   
@@ -1055,10 +1063,6 @@ void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
   bpp::Node *bppOldFather = getFatherOrBrotherIfRoot(bppToCut);
   bpp::Node *bppOldBrother = getBrother(bppToCut);
   
-  if (!bppOldFather->hasFather()) {
-    std::cout << "  father case " << std::endl;
-  }
-
   // this one is the father of the new brother BEFORE spr
   bpp::Node *bppNewBrotherFather = getFatherOrBrotherIfRoot(bppNewBrother);
 
@@ -1066,12 +1070,6 @@ void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
   pll_unode_t *toCut = getBranch(bppToCut, bppOldFather );
   pll_unode_t *newBrotherFather = getBranch(bppNewBrother, bppNewBrotherFather);
   pll_unode_t *oldBrother = getBranch(bppOldFather, bppOldBrother); 
-
-  /*
-  std::cout << " bppOldFather " << bppOldFather->getId() << " ";
-  std::cout << " bppOldBrother " << bppOldBrother->getId() << " ";
-  std::cout << " bppNewBrotherFather " << bppNewBrother->getId() << std::endl;
-*/
 
   if (!toCut || !newBrotherFather) {
     std::cout << "Error, null pll_unode_t in applySPR " << toCut << " " << newBrotherFather << std::endl;
@@ -1113,6 +1111,7 @@ void LikelihoodEvaluator::applySPR(bpp::Node *bppToCut,
     pllmod_utree_set_length(newBrotherFather->back->next->next, 0.1);
     pllmod_utree_set_length(oldBrother, 0.1);
   }
+  //std::cout << "After applySPR: " <<  printer.getTreeinfoString(currentTreeinfo, false, false) << std::endl;
 }
 
 void LikelihoodEvaluator::destroyRollbacks()

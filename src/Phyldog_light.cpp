@@ -228,10 +228,12 @@ int main(int args, char ** argv)
     //with the highest total likelihood as a starting point.
     vector<Tree*> trees;
     std::string geneTree_File =ApplicationTools::getStringParameter ( "gene.tree.file",params,"none" );
-    IMultiTree* treeReader;
-    treeReader = new Newick(true);
-    treeReader->read(geneTree_File, trees);
-    delete treeReader;
+    if (geneTree_File != "none") {
+      IMultiTree* treeReader;
+      treeReader = new Newick(true);
+      treeReader->read(geneTree_File, trees);
+      delete treeReader;
+    }
 
     std::map <std::string, int>  spId = computeSpeciesNamesToIdsMap ( *rootedSpeciesTree_ );
 

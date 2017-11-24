@@ -229,6 +229,7 @@ int main(int args, char ** argv)
     vector<Tree*> trees;
     std::string geneTree_File =ApplicationTools::getStringParameter ( "gene.tree.file",params,"none" );
     if (geneTree_File != "none") {
+      std::cout << "gene tree file " << geneTree_File << std::endl;
       IMultiTree* treeReader;
       treeReader = new Newick(true);
       treeReader->read(geneTree_File, trees);
@@ -304,12 +305,22 @@ int main(int args, char ** argv)
 
       // Now, outputting the gene tree
       temp = outputFile+"_reconciled.tree";
-      writeReconciledGeneTreeToFile ( params, rootedTree_->clone(), rootedSpeciesTree_, seqSp, temp ) ;
+      
+      TreeTemplate<Node> * toWrite = dynamic_cast<TreeTemplate<Node> *> ((rootedTree_))->clone();
+      writeReconciledGeneTreeToFile ( params, toWrite, rootedSpeciesTree_, seqSp, temp ) ;
+      delete toWrite;
+      toWrite = dynamic_cast<TreeTemplate<Node> *> ((rootedTree_))->clone();
       temp = outputFile+"_events.txt";
-      outputNumbersOfEventsToFile( params, rootedTree_->clone(), rootedSpeciesTree_, seqSp, outputFile, temp );
+      outputNumbersOfEventsToFile( params, toWrite, rootedSpeciesTree_, seqSp, outputFile, temp );
+      delete toWrite;
+      toWrite = dynamic_cast<TreeTemplate<Node> *> ((rootedTree_))->clone();
       temp =outputFile+"_orthologs.txt";
-      outputOrthologousAndParalogousGenesToFile( params, rootedTree_->clone(), rootedSpeciesTree_, seqSp, outputFile, temp ) ;
+      outputOrthologousAndParalogousGenesToFile( params, toWrite, rootedSpeciesTree_, seqSp, outputFile, temp ) ;
+      delete toWrite;
 
+      delete rootedSpeciesTree_;
+      delete rootedTree_;
+      delete levaluator_;
       std::cout << "PHYLDOG_LIGHT's done. Bye." << std::endl;
       ApplicationTools::displayTime("Total execution time:");
 

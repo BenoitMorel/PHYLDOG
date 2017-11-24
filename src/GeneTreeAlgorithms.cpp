@@ -723,7 +723,7 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
     if (sites->getSequencesNames().size()) {
       std::cout << sites->getSequencesNames()[0].size() << std::endl;
     }
-    DistanceMatrix* dist = new DistanceMatrix (sites->getSequencesNames());
+    DistanceMatrix dist(sites->getSequencesNames());
     std::cout <<"Expected JC distances."<<std::endl;
     double numSites = sites->getNumberOfSites();
     double sizAlphabet = alphabet->getSize();
@@ -794,12 +794,12 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
               optimizer_->init(params);
               optimizer_->optimize();
               // Store results:
-              (*dist)(i, j) = (*dist)(j, i) = lik->getParameterValue("BrLen");
+              dist(i, j) = dist(j, i) = lik->getParameterValue("BrLen");
               delete lik;
 
             }
             else {
-		(*dist)(i, j) = (*dist)(j, i) = - sizAlphabetMinus1OverSizAlphabet * log ( 1 - dista / sizAlphabetMinus1OverSizAlphabet );
+		dist(i, j) = dist(j, i) = - sizAlphabetMinus1OverSizAlphabet * log ( 1 - dista / sizAlphabetMinus1OverSizAlphabet );
 		//std::cout << "(*dist)(i, j) : "<< (*dist)(i, j) << " dista / sizAlphabetMinus1OverSizAlphabet: "<<  dista / sizAlphabetMinus1OverSizAlphabet << " dista : " << dista  <<std::endl;
 		}
         }
@@ -809,7 +809,7 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
         //Now we have the dist matrix, we can compute our bionj tree.
       BioNJ bionjTreeBuilder ( false, true, false );
       TreeTemplate<Node>* tree = 0;
-      bionjTreeBuilder.setDistanceMatrix(*(dist));
+      bionjTreeBuilder.setDistanceMatrix(dist);
       bionjTreeBuilder.computeTree();
       tree = new TreeTemplate<Node>(*bionjTreeBuilder.getTree());
       std::vector<Node* > nodes = tree->getNodes();
@@ -818,6 +818,7 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
                     nodes[i]->setDistanceToFather(DIST);
             }
       }
+      delete optimizer_;
       return tree;
     }
 }
@@ -894,14 +895,16 @@ void refineGeneTreeUsingSequenceLikelihoodOnly (std::map<std::string, std::strin
     exit(-1);
     }
 
+  NNIHomogeneousTreeLikelihood *oldTl = tl;
   tl = dynamic_cast<NNIHomogeneousTreeLikelihood*>(PhylogeneticsApplicationTools::optimizeParameters(tl,
                                                                                                      tl->getParameters(),
                                                                                                      params));
+  delete oldTl;
   std::cout << "Sequence likelihood: "<< -logL << "; Optimized sequence log likelihood "<< -tl->getValue() <<" for family: " << file << std::endl;
   params[ std::string("optimization.topology.algorithm_nni.method")] = backupParamOptTopo ;
   params[ std::string("optimization.tolerance")] = backupParamOptTol;
   params[ std::string("optimization.max_number_f_eval")] = backupParamnumEval;
-  //delete unrootedGeneTree;
+  delete unrootedGeneTree;
   unrootedGeneTree = new TreeTemplate<Node> ( tl->getTree() );
   delete tl;
 }
@@ -2160,7 +2163,9 @@ void refineGeneTreeWithSPRsFast2 (map<string, string>& params, bpp::TreeTemplate
               }
             }
 
-            writeReconciledGeneTreeToFile (params, dynamic_cast<const TreeTemplate<Node> *> ((bestTree))->clone(), spTree, seqSp, temp);
+            TreeTemplate<Node> * toWrite = dynamic_cast<TreeTemplate<Node> *> ((bestTree))->clone();
+            writeReconciledGeneTreeToFile (params, toWrite, spTree, seqSp, temp);
+            delete toWrite;
 
             //writeReconciledGeneTree ( params, dynamic_cast<const TreeTemplate<Node> *> ((bestTree))->clone(), spTree, seqSp, true ) ;
 

@@ -111,6 +111,7 @@ void writeReconciledGeneTreeToFile ( map<string, string >& params, TreeTemplate<
   out.open ( reconcTree.c_str(), std::ios::out );
   nhx->write ( *geneTree, out );
   out.close();
+  delete nhx;
   return;
 }
 
@@ -3252,6 +3253,7 @@ TreeTemplate<Node> * getTreeFromOptions ( map <string,string> params, Alphabet *
   else throw Exception ( "Unknown init gene tree method. init.gene.tree should be 'user', 'bionj', or 'phyml'." );
   //   }
   cont = true;
+  delete unrootedGeneTree;
   return rootedTree;
 }
 

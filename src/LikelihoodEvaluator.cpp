@@ -354,6 +354,7 @@ void LikelihoodEvaluator::loadDataFromParams(){
     throw(Exception("Unable to load this family: Sequences"));
 
   substitutionModel = getModelFromOptions(params, alphabet, sites, cont);
+  WHEREAMI( __FILE__ , __LINE__ );
 
   if (!cont)
     throw(Exception("Unable to load this family: Model"));
@@ -498,9 +499,13 @@ struct pll_sequence{
   char *label;
   char *seq;
   unsigned int len;
+  ~pll_sequence() {
+    free(label);
+    free(seq);
+  }
 };
 
-typedef std::vector<pll_sequence> pll_sequences;
+typedef std::vector<pll_sequence *> pll_sequences;
 
 unsigned int * read_from_fasta(const char *fasta_file, pll_sequences &sequences)
 {
@@ -513,17 +518,17 @@ unsigned int * read_from_fasta(const char *fasta_file, pll_sequences &sequences)
   int length;
   while (pll_fasta_getnext(fasta, &head, &head_len, &seq, &seq_len, &seqno))
   {
-    sequences.push_back(pll_sequence(head, seq, seq_len));
+    sequences.push_back(new pll_sequence(head, seq, seq_len));
     length = seq_len;
   }
   int count = sequences.size();;
   char** buffer = (char**)malloc(count * sizeof(char *));
   for (unsigned int i = 0; i < count; ++i) {
-    buffer[i] = sequences[i].seq;
+    buffer[i] = sequences[i]->seq;
   }
   unsigned int *weights = pll_compress_site_patterns(buffer, pll_map_nt, count, &length);
   for (unsigned int i = 0; i < count; ++i) {
-    sequences[i].len = length;
+    sequences[i]->len = length;
   }
   free(buffer);
   pll_fasta_close(fasta);
@@ -681,7 +686,7 @@ pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(const bpp::TreeTemplate<N
   pll_partition_t *partition = pll_partition_create(utree->tip_count,
       utree->inner_count,
       numberOfStates,                // states.
-      sequences[0].len, // sites
+      sequences[0]->len, // sites
       1,                // rate_matrices
       utree->edge_count,// prob_matrices
       4,                // categories
@@ -689,11 +694,13 @@ pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(const bpp::TreeTemplate<N
       attribute);       // attr
   
   pll_set_pattern_weights(partition, pattern_weights);
-  
+  free(pattern_weights);
+
   // add sequences to partitions
   for (unsigned int i = 0; i < sequences.size(); ++i) {
-    unsigned int tip = labelling[strictToReal[sequences[i].label]];
-    pll_set_tip_states(partition, tip, charmap, sequences[i].seq);
+    unsigned int tip = labelling[strictToReal[sequences[i]->label]];
+    pll_set_tip_states(partition, tip, charmap, sequences[i]->seq);
+    delete sequences[i];
   }
 
   // model
@@ -1584,7 +1591,9 @@ void LikelihoodEvaluator::unload()
 
 LikelihoodEvaluator::~LikelihoodEvaluator()
 {
+  WHEREAMI( __FILE__ , __LINE__ );
   unload();
+  destroyTreeinfo(); 
   delete tree;
   if(alternativeTree)
     delete alternativeTree;
@@ -1592,8 +1601,10 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
     remove(string(fileNamePrefix + "alignment.fasta").c_str());
     remove(string(fileNamePrefix + "partition.txt").c_str());
   }
-  WHEREAMI( __FILE__ , __LINE__ );
-
+  delete sites;
+  delete substitutionModel;
+  delete rateDistribution;
+  delete alphabet;
 }
 
 void LikelihoodEvaluator::initialize()

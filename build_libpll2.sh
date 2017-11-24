@@ -12,15 +12,12 @@ mkdir $repo
 cd $repo
 git clone --recursive git@github.com:ddarriba/pll-modules.git
 cd ..
-# small hack before we fix this in pllmodules
-# otherwise NNI moves rollback crash in a wrong assert..
-# todobenoit.
-sed -i 's/assert(UNIMPLEMENTED);//g' libpll2_repo/pll-modules/src/tree/pll_tree.c
 
 
 
 #### BUILD ####
 cd $repo/pll-modules/libs/libpll/
+git checkout dev
 ./autogen.sh
 ./configure
 make

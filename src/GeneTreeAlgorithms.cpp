@@ -811,7 +811,7 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
       TreeTemplate<Node>* tree = 0;
       bionjTreeBuilder.setDistanceMatrix(dist);
       bionjTreeBuilder.computeTree();
-      tree = new TreeTemplate<Node>(*bionjTreeBuilder.getTree());
+      tree = bionjTreeBuilder.getTree();
       std::vector<Node* > nodes = tree->getNodes();
       for (size_t i = 0; i < nodes.size(); ++i) {
             if (nodes[i]->hasFather() && nodes[i]->getDistanceToFather() <= 0.0) {

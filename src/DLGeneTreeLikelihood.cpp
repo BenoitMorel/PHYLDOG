@@ -465,7 +465,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     Node * rootForNNI = treeForNNI->getRootNode();
         
     if (considerSequenceLikelihood_ ) {
-      levaluator_->applyNNI(parentForNNI, grandFatherForNNI, sonForNNI, uncleForNNI, treeForNNI->getRootNode());
+      levaluator_->applyNNI(*treeForNNI, sonForNNI);
     }
     parentForNNI->removeSon(sonForNNI);
     grandFatherForNNI->removeSon(uncleForNNI);

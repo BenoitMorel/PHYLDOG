@@ -961,6 +961,18 @@ pll_unode_t *LikelihoodEvaluator::getBranch(bpp::Node *n1, bpp::Node *n2) {
   return getBranchFromLibpll(getLibpllNode(n1), getLibpllNode(n2));
 }
 
+void LikelihoodEvaluator::applyNNI(bpp::TreeTemplate<bpp::Node> &tree,
+    bpp::Node *bppSon)
+{
+  Node * bppParent = bppSon->getFather();
+  Node * bppGrandParent = bppParent->getFather();
+  Node * bppUncle = bppGrandParent->getSon(0);
+  if (bppUncle == bppParent) {
+    bppUncle = bppGrandParent->getSon(1);
+  }
+  Node * bppRoot = tree.getRootNode();
+  return applyNNIIntern(bppParent, bppGrandParent, bppSon, bppUncle, bppRoot);
+}
 void LikelihoodEvaluator::applyNNIRoot(bpp::Node *bppParent,
   bpp::Node *bppGrandParent,
   bpp::Node *bppSon, bpp::Node *bppUncle)
@@ -997,7 +1009,7 @@ void LikelihoodEvaluator::applyNNIRoot(bpp::Node *bppParent,
 }
 
   
-void LikelihoodEvaluator::applyNNI(bpp::Node *bppParent, 
+void LikelihoodEvaluator::applyNNIIntern(bpp::Node *bppParent, 
     bpp::Node *bppGrandParent,
     bpp::Node *bppSon, bpp::Node *bppUncle,
     bpp::Node *bppRoot)

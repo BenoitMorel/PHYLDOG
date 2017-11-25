@@ -374,7 +374,9 @@ public:
   void mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplate< bpp::Node > *bpptree);
 
   // moves 
-  void applyNNI(bpp::Node *bppParent, 
+  void applyNNI(bpp::TreeTemplate<bpp::Node> &tree,
+    bpp::Node *bppSon);
+  void applyNNIIntern(bpp::Node *bppParent, 
     bpp::Node *bppGrandParent,
     bpp::Node *bppSon, bpp::Node *bppUncle,
     bpp::Node *bppRoot);

@@ -619,8 +619,14 @@ void LikelihoodEvaluator::destroyTreeinfo()
 
     pll_utree_graph_destroy(currentTreeinfo->root, NULL);
     pllmod_treeinfo_destroy(currentTreeinfo);
+    currentTreeinfo = 0;
   }
-  currentTreeinfo = 0;
+  if (currentUtree) {
+    free(currentUtree->nodes);
+    free(currentUtree);
+    //pll_utree_destroy(currentUtree, free);
+    currentUtree = 0;
+  }
 }
 
 unsigned int getBestLibpllAttribute() {
@@ -1160,6 +1166,11 @@ void LikelihoodEvaluator::rollbackAllMoves()
 
 bool LikelihoodEvaluator::rollbackLastMove()
 {
+  static int maxSize = 0;
+  if (rollbacks_.size() > maxSize) {
+    maxSize = rollbacks_.size();
+    std::cout << "new rb max size " << maxSize << std::endl;
+  }
   //std::cout << "LikelihoodEvaluator::rollbackLastMove" << std::endl;
   if (method != LIBPLL2 && method != HYBRID) {
     return false;
@@ -1603,9 +1614,14 @@ void LikelihoodEvaluator::unload()
 
 LikelihoodEvaluator::~LikelihoodEvaluator()
 {
+  std::cout << "LikelihoodEvaluator destructor ploupi" << std::endl;
   WHEREAMI( __FILE__ , __LINE__ );
   unload();
   destroyTreeinfo(); 
+  while (rollbacks_.size()) {
+    delete rollbacks_.top();
+    rollbacks_.pop();
+  }
   delete tree;
   if(alternativeTree)
     delete alternativeTree;

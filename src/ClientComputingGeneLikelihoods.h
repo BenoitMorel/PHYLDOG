@@ -323,8 +323,9 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
       {       
         /*if (allAlphabets_[i])
           delete allAlphabets_[i];*/
-        if (allDatasets_[i])
+        if (allDatasets_[i]) {
           delete allDatasets_[i];
+        }
         if (allModels_[i])
           delete allModels_[i];
         if (allDistributions_[i])

@@ -1617,7 +1617,7 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
   std::cout << "LikelihoodEvaluator destructor ploupi" << std::endl;
   WHEREAMI( __FILE__ , __LINE__ );
   unload();
-  destroyTreeinfo(); 
+  //destroyTreeinfo(); 
   while (rollbacks_.size()) {
     delete rollbacks_.top();
     rollbacks_.pop();
@@ -1630,9 +1630,10 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
     remove(string(fileNamePrefix + "partition.txt").c_str());
   }
   delete sites;
-  delete substitutionModel;
-  delete rateDistribution;
   delete alphabet;
+  
+  //delete substitutionModel;
+  //delete rateDistribution;
 }
 
 void LikelihoodEvaluator::initialize()

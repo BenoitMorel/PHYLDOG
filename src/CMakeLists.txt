@@ -51,12 +51,12 @@ SET(PHYLDOGLIGHT_SRCS
   )
 
 
-ADD_EXECUTABLE(phyldog_light Phyldog_light.cpp ${PHYLDOGLIGHT_SRCS})
-target_link_libraries(phyldog_light
-  ${PLL_LIBRARIES}
-  ${PLLMODULES_LIBRARIES}
-  ${BPP_LIBRARIES}
-)
+#ADD_EXECUTABLE(phyldog_light Phyldog_light.cpp ${PHYLDOGLIGHT_SRCS})
+#target_link_libraries(phyldog_light
+#  ${PLL_LIBRARIES}
+#  ${PLLMODULES_LIBRARIES}
+#  ${BPP_LIBRARIES}
+#)
 
 
 

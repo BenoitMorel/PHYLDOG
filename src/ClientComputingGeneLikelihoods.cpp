@@ -118,9 +118,11 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
   for (unsigned int i = 0 ; i< numberOfGeneFamilies_ ; i++)
   {
 
-    reconciledTrees_.push_back(t);
-    duplicationTrees_.push_back(t);
-    lossTrees_.push_back(t);
+    if (reconciliationModel_ == "COAL") {
+      reconciledTrees_.push_back(t);
+    }
+    //duplicationTrees_.push_back(t);
+    //lossTrees_.push_back(t);
     //This is to avoid optimizing gene tree parameters in the first steps of the program,
     //if we optimize the species tree topology.
     if (optimizeSpeciesTreeTopology_ && currentStep_ < 3)
@@ -601,13 +603,15 @@ void ClientComputingGeneLikelihoods::MLSearch() {
       }
       if (recordGeneTrees_)
       {
-        reconciledTrees_[i].push_back(nhx->treeToParenthesis (*geneTree_));
-        if (reconciliationModel_ == "DL") {
+        if (reconciliationModel_ == "COAL") {
+          reconciledTrees_[i].push_back(nhx->treeToParenthesis (*geneTree_));
+        }
+        //if (reconciliationModel_ == "DL") {
           /*      duplicationTrees_[i].push_back(nhx->treeToParenthesis (*spTree_));
            *     lossTrees_[i].push_back(nhx->treeToParenthesis (*spTree_));*/
-          duplicationTrees_[i].push_back(TreeTemplateTools::treeToParenthesis (*spTree_, false, DUPLICATIONS));
-          lossTrees_[i].push_back(TreeTemplateTools::treeToParenthesis (*spTree_, false, LOSSES));
-        }
+          //duplicationTrees_[i].push_back(TreeTemplateTools::treeToParenthesis (*spTree_, false, DUPLICATIONS));
+          //lossTrees_[i].push_back(TreeTemplateTools::treeToParenthesis (*spTree_, false, LOSSES));
+        //}
       }
       if (geneTree_)
       {
@@ -874,9 +878,15 @@ void ClientComputingGeneLikelihoods::outputGeneTrees ( unsigned int & bestIndex 
   {
     Nhx *nhx = new Nhx();
     if (reconciliationModel_ == "DL") {
-      writeReconciledGeneTree ( allParams_[i], treeLikelihoods_[i]->getRootedTree().clone(), spTree_, treeLikelihoods_[i]->getSeqSp(), false ) ;
-      outputNumbersOfEventsPerFamilyPerSpecies( allParams_[i], treeLikelihoods_[i]->getRootedTree().clone(), spTree_, treeLikelihoods_[i]->getSeqSp(), assignedFilenames_[i], false );
-      outputOrthologousAndParalogousGenes(  allParams_[i], treeLikelihoods_[i]->getRootedTree().clone(), spTree_, treeLikelihoods_[i]->getSeqSp(), assignedFilenames_[i], false ) ;
+      TreeTemplate<Node> *tempTree = treeLikelihoods_[i]->getRootedTree().clone();
+      writeReconciledGeneTree ( allParams_[i], tempTree, spTree_, treeLikelihoods_[i]->getSeqSp(), false ) ;
+      delete tempTree;
+      tempTree = treeLikelihoods_[i]->getRootedTree().clone();
+      outputNumbersOfEventsPerFamilyPerSpecies( allParams_[i], tempTree, spTree_, treeLikelihoods_[i]->getSeqSp(), assignedFilenames_[i], false );
+      delete tempTree;
+      tempTree = treeLikelihoods_[i]->getRootedTree().clone();
+      outputOrthologousAndParalogousGenes(  allParams_[i], tempTree, spTree_, treeLikelihoods_[i]->getSeqSp(), assignedFilenames_[i], false ) ;
+      delete tempTree;
       /*
        *
        *       TreeTemplate<Node> * geneTree=nhx->parenthesisToTree(temp);

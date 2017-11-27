@@ -90,9 +90,17 @@ compare_methods()
   #generate_submit 30 $prefix $species $genes PLL $threads $dataset
 }
 
+#templates
 #compare_methods smallClusterFullOptNoReset 15 50 4 DataCarine
 #compare_methods mediumClusterFullOptNoReset 15 500 128 DataCarine
 #compare_methods fullClusterFullOptNoReset 15 8880 512 DataCarine
 #pll_only smallClusterNoResetBastien 15 50 4 DataCarine
 #pll_only mediumClusterNoResetBastien 15 500 128 DataCarine
 #pll_only fullClusterNoResetBastien 15 8880 512 DataCarine
+
+#running
+pll_only fullClusterFullOptNoResetLog 15 8880 512 DataCarine
+#pll_only fullClusterFullOptNoResetLog 15 8880 1024 DataCarine
+
+
+

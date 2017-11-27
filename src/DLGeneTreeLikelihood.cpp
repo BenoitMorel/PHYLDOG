@@ -510,6 +510,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
         } else {
           levaluator_->rollbackLastMove();
         }
+        delete treeForNNI;
         return tot;
 
       }
@@ -517,6 +518,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
       {
         levaluator_->rollbackLastMove();
         tentativeMLindex_ = -1;
+        delete treeForNNI;
         return 1;
       }
     }
@@ -525,11 +527,13 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
       if  (candidateScenarioLk >  scenarioLikelihood_)
       {
         tentativeScenarioLikelihood_= candidateScenarioLk;
+        delete treeForNNI;
         return (- candidateScenarioLk + scenarioLikelihood_);
       }
       else
       {
         tentativeMLindex_ = -1;
+        delete treeForNNI;
         return 1;
       }
     }
@@ -1427,6 +1431,7 @@ void DLGeneTreeLikelihood::refineGeneTreeNNIs(map<string, string> params, unsign
 	  ApplicationTools::displayResult("   Current value", TextTools::toString(- getValue(), 10));
       }
     }
+    delete tree;
     elapsedTime_ += (ApplicationTools::getTime() - startingTime);
     startingTime = ApplicationTools::getTime();
   }

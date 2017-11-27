@@ -168,7 +168,7 @@ params_(params), considerSequenceLikelihood_(true)
 
     //printing the gene trees with the species names instead of the sequence names
     //This is useful to build an input for duptree for instance
-    geneTreeWithSpNames_ = unrootedGeneTree->clone();
+    geneTreeWithSpNames_ = unrootedGeneTree;
     std::vector <Node*> leaves = geneTreeWithSpNames_->getLeaves();
     for (unsigned int j = 0; j < leaves.size() ; j++)
     {
@@ -199,7 +199,7 @@ params_(params), considerSequenceLikelihood_(true)
                                              rootedTree_->getRootNode(),
                                              seqSp_, spId_);
       nhx->write(*rootedTree_, startingGeneTreeFile, true);
-
+      delete nhx;
       // newick.write(*geneTree_, startingGeneTreeFile, true);
     }
     catch (IOException e)

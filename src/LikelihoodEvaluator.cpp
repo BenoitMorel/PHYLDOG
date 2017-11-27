@@ -1617,7 +1617,7 @@ LikelihoodEvaluator::~LikelihoodEvaluator()
   std::cout << "LikelihoodEvaluator destructor ploupi" << std::endl;
   WHEREAMI( __FILE__ , __LINE__ );
   unload();
-  //destroyTreeinfo(); 
+  destroyTreeinfo(); 
   while (rollbacks_.size()) {
     delete rollbacks_.top();
     rollbacks_.pop();

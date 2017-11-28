@@ -430,7 +430,6 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
   //or if we just try all branches because the starting gene trees are parsimonious in
   //numbers of DL.
   if ((nodesToTryInNNISearch_.count(nodeId)==1) /*|| DLStartingGeneTree_*/) {
-    levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, levaluator_->getTree());
     TreeTemplate<Node> * treeForNNI = dynamic_cast<const TreeTemplate<Node> *> (levaluator_->getTree())->clone();
     tentativeMLindex_ = MLindex_;
     tentativeNum0Lineages_ = num0Lineages_;
@@ -463,10 +462,7 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
     Node * grandFatherForNNI = parentForNNI->getFather();
     Node * uncleForNNI = grandFatherForNNI->getSon(parentPosition > 1 ? 0 : 1 - parentPosition);
     Node * rootForNNI = treeForNNI->getRootNode();
-        
-    if (considerSequenceLikelihood_ ) {
-      levaluator_->applyNNI(*treeForNNI, sonForNNI);
-    }
+    
     parentForNNI->removeSon(sonForNNI);
     grandFatherForNNI->removeSon(uncleForNNI);
     parentForNNI->addSon(uncleForNNI);
@@ -497,6 +493,8 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
       if  (candidateScenarioLk >  scenarioLikelihood_)
       { //If it is worth computing the sequence likelihood
         
+        levaluator_->mapUtreeToBPPTree(levaluator_->currentUtree, levaluator_->getTree());
+        levaluator_->applyNNI(*levaluator_->getTree(), levaluator_->getTree()->getNode(nodeId));
         levaluator_->setAlternativeTree(treeForNNI);
         
 
@@ -516,7 +514,6 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
       }
       else
       {
-        levaluator_->rollbackLastMove();
         tentativeMLindex_ = -1;
         delete treeForNNI;
         return 1;

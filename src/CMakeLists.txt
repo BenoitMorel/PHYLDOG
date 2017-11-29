@@ -26,8 +26,8 @@ SET(PHYLDOG_SRCS
   LikelihoodEvaluator.cpp
   )
   
-ADD_EXECUTABLE(phyldog_test Phyldog.cpp ${PHYLDOG_SRCS})
-target_link_libraries(phyldog_test 
+ADD_EXECUTABLE(phyldog Phyldog.cpp ${PHYLDOG_SRCS})
+target_link_libraries(phyldog 
   ${Boost_SERIALIZATION_LIBRARY}
   ${Boost_MPI_LIBRARY}
   ${MPI_LIBRARIES}
@@ -51,12 +51,12 @@ SET(PHYLDOGLIGHT_SRCS
   )
 
 
-#ADD_EXECUTABLE(phyldog_light Phyldog_light.cpp ${PHYLDOGLIGHT_SRCS})
-#target_link_libraries(phyldog_light
-#  ${PLL_LIBRARIES}
-#  ${PLLMODULES_LIBRARIES}
-#  ${BPP_LIBRARIES}
-#)
+ADD_EXECUTABLE(phyldog_light Phyldog_light.cpp ${PHYLDOGLIGHT_SRCS})
+target_link_libraries(phyldog_light
+  ${PLL_LIBRARIES}
+  ${PLLMODULES_LIBRARIES}
+  ${BPP_LIBRARIES}
+)
 
 
 
@@ -70,4 +70,4 @@ SET(PHYLDOGLIGHT_SRCS
 #   ${BPP_LIBRARIES_STATIC}
 # )
 
-install(TARGETS phyldog_test DESTINATION bin)
+install(TARGETS phyldog DESTINATION bin)

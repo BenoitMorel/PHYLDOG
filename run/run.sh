@@ -31,7 +31,7 @@ export SCOREP_PROFILING_MAX_CALLPATH_DEPTH=50
 
 
 
-mpirun -np 4 ../../build/bin/phyldog param=${fullpathdata}/GeneralOptions.txt &> ${fullpath}/logs.txt
+mpirun -np 4 ../../build/bin/phyldog_test param=${fullpathdata}/GeneralOptions.txt &> ${fullpath}/logs.txt
 cd ..
 ./show_summary.sh $outputdir
 

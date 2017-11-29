@@ -98,9 +98,17 @@ compare_methods()
 #pll_only mediumClusterNoResetBastien 15 500 128 DataCarine
 #pll_only fullClusterNoResetBastien 15 8880 512 DataCarine
 
+# for tests
+#libpll_only smallClusterFullOptNoResetScalasca 15 150 16 DataCarine
+
+#to analyse
+#libpll_only fullClusterNoResetScalasca 15 8880 128 DataCarine
+#libpll_only fullClusterNoResetScalasca 15 8880 256 DataCarine
+#libpll_only fullClusterNoResetScalasca 15 8880 512 DataCarine
+#libpll_only fullClusterNoResetScalasca 15 8880 1024 DataCarine
 #running
-pll_only fullClusterFullOptNoResetLog 15 8880 512 DataCarine
-#pll_only fullClusterFullOptNoResetLog 15 8880 1024 DataCarine
-
-
+libpll_only fullClusterNoResetScalasca 15 8880 64 DataCarine
+libpll_only fullClusterNoResetScalasca 15 8880 32 DataCarine
+libpll_only fullClusterNoResetScalasca 15 8880 16 DataCarine
+#libpll_only fullClusterNoResetScalasca 15 8880 1024 DataCarine1024
 

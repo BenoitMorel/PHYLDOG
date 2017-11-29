@@ -125,11 +125,12 @@ params_(params), considerSequenceLikelihood_(true)
      * or build the gene tree.
      *****************************************************************************/
     rootedTree_ = getTreeFromOptions(params_, levaluator_->getAlphabet(), levaluator_->getSites(), levaluator_->getSubstitutionModel(), levaluator_->getRateDistribution(), cont);
+#ifdef SCOREP
     if (!rootedTree_)  {
-      //todobenoit hack exception
       valid = false;
       return;
     }
+#endif
   }
 
   if (cont && qualityFilters)

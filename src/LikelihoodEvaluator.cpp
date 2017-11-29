@@ -95,11 +95,28 @@ using namespace std;
 using namespace bpp;
 
 
-double getTreeinfoLikelihood(pllmod_treeinfo_t *treeinfo, bool incremental = false)
+/**
+ * I am duplicating the same function on purpose for profiling purpose
+ * */
+double getTreeinfoLikelihoodFull(pllmod_treeinfo_t *treeinfo)
 {
-  return pllmod_treeinfo_compute_loglh(treeinfo, incremental);
+  return pllmod_treeinfo_compute_loglh(treeinfo, 0);
 }
 
+double getTreeinfoLikelihoodIncr(pllmod_treeinfo_t *treeinfo)
+{
+  return pllmod_treeinfo_compute_loglh(treeinfo, 1);
+}
+
+double getTreeinfoLikelihood(pllmod_treeinfo_t *treeinfo, bool incremental = false)
+{
+  if (incremental) {
+    return getTreeinfoLikelihoodIncr(treeinfo);
+  } else {
+    return getTreeinfoLikelihoodIncr(treeinfo);
+  }
+  return pllmod_treeinfo_compute_loglh(treeinfo, incremental);
+}
 
 /*
  * @brief Rollback for an identity move (no move)

@@ -646,6 +646,7 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
                                       DiscreteDistribution* rDist,
                                       Alphabet *alphabet) {
 
+  try {
     bool slow = false;
 
 
@@ -821,6 +822,15 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
       delete optimizer_;
       return tree;
     }
+  }
+  catch (Exception e) {
+#ifdef SCOREP
+    std::cout << "hacked exception to avoid scorep crash (buildBionj)" << std::endl;
+    return 0;
+#else
+    throw e;
+#endif
+  }
 }
 
 

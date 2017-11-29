@@ -3171,14 +3171,14 @@ DiscreteDistribution* getRateDistributionFromOptions ( map <string,string> param
   return rDist;
 }
 
-
 /**************************************************************************/
 TreeTemplate<Node> * getTreeFromOptions ( map <string,string> params, Alphabet *alphabet, VectorSiteContainer * sites, SubstitutionModel* model, DiscreteDistribution* rDist, bool& cont )
 {
+  std::cout << "getTreeFromOptions " << sites->getSequencesNames().size() <<  " " << sites->getSequencesNames()[0].size() << std::endl << std::flush;
   string file = ApplicationTools::getStringParameter ( "input.sequence.file",params,"none" );
 #ifdef SCOREP
   if (sites->getSequencesNames().size() < 3 || sites->getSequencesNames()[0].size() < 3) {
-    std::cout << "getTreeFromOptions todobenoit hacking matrix < 3 case exception" << std::endl;
+    std::cout << "getTreeFromOptions matrix < 3 case exception (catch for scorep)" << std::endl;
     return 0;
   }
 #endif
@@ -3199,6 +3199,12 @@ TreeTemplate<Node> * getTreeFromOptions ( map <string,string> params, Alphabet *
       std::cerr << "Error: geneTree_File "<< geneTree_File <<" not found." << std::endl;
       std::cerr << "Building a bionj tree instead for gene " << geneTree_File << std::endl;
       unrootedGeneTree = buildBioNJTree ( params, sites, model, rDist, alphabet );
+#ifdef SCOREP
+      if (!unrootedGeneTree) {
+        std::cout << "hacked exception (after buildBion) for scorep "<< std::endl;
+        return 0;
+      }
+#endif
       if ( rootedTree ) {
         delete rootedTree;
         rootedTree =0;
@@ -3236,7 +3242,12 @@ TreeTemplate<Node> * getTreeFromOptions ( map <string,string> params, Alphabet *
   }
   else if ( ( initTree == "bionj" ) || ( initTree == "phyml" ) ) { //build a BioNJ starting tree, and possibly refine it using PhyML algorithm
     unrootedGeneTree = buildBioNJTree ( params, sites, model, rDist, alphabet );
-
+#ifdef SCOREP
+    if (!unrootedGeneTree) {
+      std::cout << "hacked exception for scorep "<< std::endl;
+      return 0;
+    }
+#endif
     if ( initTree == "phyml" ) { //refine the tree using PhyML algorithm (2003)
       refineGeneTreeUsingSequenceLikelihoodOnly ( params, unrootedGeneTree, sites, model, rDist, file, alphabet );
     }

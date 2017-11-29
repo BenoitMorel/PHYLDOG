@@ -240,13 +240,15 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
         numDeletedFamilies_ = numDeletedFamilies_ +1;
         avoidedFamilyIds.push_back(i);
       }
+#ifdef SCOREP
       if (!tl || !tl->valid) {
-        std::cout << "hacked exception (todobenoit)" << std::endl;
+        std::cout << "hacked exception to avoid scorep crash (tl)" << std::endl;
         avoidFamily = true;
         numDeletedFamilies_ = numDeletedFamilies_ +1;
         avoidedFamilyIds.push_back(i);
         tl = 0;
       }
+#endif
     }
     else if (reconciliationModel_ == "COAL")
     {

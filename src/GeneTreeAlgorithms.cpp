@@ -2101,7 +2101,6 @@ void refineGeneTreeWithSPRsFast2 (map<string, string>& params, bpp::TreeTemplate
           levaluator->mapUtreeToBPPTree(levaluator->currentUtree, rootedTree);
 
           //std::cout << "refineSPR algo makeSPR" << std::endl;
-          levaluator->applySPR(rootedTree->getNode(nodeForSPR), rootedTree->getNode(nodeIdsToRegraft[i]));
           nodesToUpdate = makeSPR(*treeForSPR, nodeForSPR, nodeIdsToRegraft[i], false, true);
           //Compute the DL likelihood
           candidateScenarioLk =  findMLReconciliationDR (spTree, treeForSPR,
@@ -2118,8 +2117,10 @@ void refineGeneTreeWithSPRsFast2 (map<string, string>& params, bpp::TreeTemplate
           {
 
             if (computeSequenceLikelihoodForSPR) {
+              levaluator->applySPR(rootedTree->getNode(nodeForSPR), rootedTree->getNode(nodeIdsToRegraft[i]));
               levaluator->setAlternativeTree(treeForSPR);
               logL = candidateScenarioLk + levaluator->getAlternativeLogLikelihood();
+              levaluator->rollbackLastMove();
             }
             else {
               logL = candidateScenarioLk + bestSequenceLogL;
@@ -2180,7 +2181,6 @@ void refineGeneTreeWithSPRsFast2 (map<string, string>& params, bpp::TreeTemplate
             //writeReconciledGeneTree ( params, dynamic_cast<const TreeTemplate<Node> *> ((bestTree))->clone(), spTree, seqSp, true ) ;
 
           } 
-          levaluator->rollbackLastMove();
         }
         if (betterTree) //If, among all the SPRs tried, a better tree has been found
         {

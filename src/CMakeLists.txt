@@ -26,8 +26,47 @@ SET(PHYLDOG_SRCS
   LikelihoodEvaluator.cpp
   )
   
-ADD_EXECUTABLE(phyldog Phyldog.cpp ${PHYLDOG_SRCS})
-target_link_libraries(phyldog 
+#ADD_EXECUTABLE(phyldog Phyldog.cpp ${PHYLDOG_SRCS})
+#target_link_libraries(phyldog 
+#  ${Boost_SERIALIZATION_LIBRARY}
+#  ${Boost_MPI_LIBRARY}
+#  ${MPI_LIBRARIES}
+#  ${PLL_LIBRARIES}
+#  ${PLLMODULES_LIBRARIES}
+#  ${BPP_LIBRARIES}
+#)
+
+SET(STARTINGTREESBUILDER_SRCS
+  Constants.h
+  MPI_SpeciesTreeLikelihood.cpp
+  MPI_SpeciesTreeLikelihood.h
+  MPI_SpeciesTreeExploration.h
+  MPI_SpeciesTreeExploration.cpp
+  ReconciliationTools.h
+  ReconciliationTools.cpp
+  DLGeneTreeLikelihood.cpp
+  DLGeneTreeLikelihood.h
+  COALGeneTreeLikelihood.cpp
+  COALGeneTreeLikelihood.h
+  GeneTreeLikelihood.cpp
+  GeneTreeLikelihood.h
+  COALTools.cpp
+  COALTools.h
+  GenericTreeExplorationAlgorithms.h
+  GenericTreeExplorationAlgorithms.cpp
+  GeneTreeAlgorithms.h
+  GeneTreeAlgorithms.cpp
+  FastRHomogeneousTreeLikelihood.h
+  FastRHomogeneousTreeLikelihood.cpp
+  ClientComputingGeneLikelihoods.h
+  ClientComputingGeneLikelihoods.cpp
+  LikelihoodEvaluator.h
+  LikelihoodEvaluator.cpp
+  )
+  
+
+ADD_EXECUTABLE(startingtreesbuilder StartingTreesBuilder.cpp ${STARTINGTREESBUILDER_SRCS})
+target_link_libraries(startingtreesbuilder
   ${Boost_SERIALIZATION_LIBRARY}
   ${Boost_MPI_LIBRARY}
   ${MPI_LIBRARIES}
@@ -70,4 +109,4 @@ SET(PHYLDOGLIGHT_SRCS
 #   ${BPP_LIBRARIES_STATIC}
 # )
 
-install(TARGETS phyldog DESTINATION bin)
+#install(TARGETS phyldog DESTINATION bin)

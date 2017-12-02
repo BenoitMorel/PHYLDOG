@@ -107,6 +107,9 @@ compare_methods()
 #libpll_only fullClusterNoResetScalasca 15 8880 16 DataCarine
 #libpll_only fullClusterNoResetScalascaLikelihoodIt 15 8880 256 DataCarine
 #libpll_only fullClusterNoResetScalascaLikelihoodIt 15 8880 1024 DataCarine1024
-libpll_only fullClusterNoResetScalascaRelaxedHC 15 8880 256 DataCarine
+#libpll_only fullClusterNoResetScalascaRelaxedHC 15 8880 256 DataCarine
 #libpll_only fullClusterNoResetScalascaLikelihoodIt 15 8880 1024 DataCarine1024
+
+libpll_only fullClusterMyResetScalasca 15 8880 256 DataCarine
+
 

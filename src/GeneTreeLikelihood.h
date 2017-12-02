@@ -195,7 +195,9 @@ public:
 
   const std::map <std::string, std::string> getSeqSp() {return seqSp_;}
 
-  void setSpTree(bpp::TreeTemplate<bpp::Node> & spTree) { if (spTree_) delete spTree_; spTree_ = spTree.clone(); }
+  void spTreeImproved();
+
+  void setSpTree(bpp::TreeTemplate<bpp::Node> & spTree);
 
   void setSpId(std::map <std::string, int> & spId) {spId_ = spId;}
 

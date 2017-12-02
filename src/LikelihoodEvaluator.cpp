@@ -76,7 +76,7 @@ extern "C" {
 // constants taken from RAXML
 #define DEF_LH_EPSILON            0.1
 #define OPT_LH_EPSILON            0.1
-#define RAXML_PARAM_EPSILON       0.01  //0.01
+#define RAXML_PARAM_EPSILON       0.001  //0.01
 #define RAXML_BFGS_FACTOR         1e7
 
 #define RAXML_BRLEN_SMOOTHINGS    32
@@ -778,7 +778,7 @@ void LikelihoodEvaluator::fullOptimizeTreeinfo(pllmod_treeinfo_t *treeinfo)
   std::cout << "Genes in the tree: " << treeinfo->tip_count << std::endl;
   unsigned int it = 0;
   unsigned int max_it = 50;
-  unsigned int tolerance = 10;
+  unsigned int tolerance = 0.5;
   do {
     previousLogl = newLogl;
     fullOptimizeTreeinfoIter(treeinfo);

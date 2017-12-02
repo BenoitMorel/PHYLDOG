@@ -424,6 +424,18 @@ GeneTreeLikelihood & GeneTreeLikelihood::operator=(const GeneTreeLikelihood & li
   elapsedTime_ = lik.elapsedTime_;
   return *this;
 }
+  
+void GeneTreeLikelihood::spTreeImproved()
+{
+  levaluator_->destroyRollbacks();
+}
+  
+void GeneTreeLikelihood::setSpTree(bpp::TreeTemplate<bpp::Node> & spTree) { 
+  if (spTree_) 
+    delete spTree_; 
+  spTree_ = spTree.clone(); 
+  levaluator_->rollbackAllMoves();
+}
 
 void GeneTreeLikelihood::setGeneTree(TreeTemplate<Node>* tree, TreeTemplate<Node>* rootedTree) {
   WHEREAMI( __FILE__ , __LINE__ );

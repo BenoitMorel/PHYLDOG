@@ -64,6 +64,7 @@ GeneTreeLikelihood::GeneTreeLikelihood():
 levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(), spId_() {
   WHEREAMI( __FILE__ , __LINE__ );
   totalIterations_ = 0;
+  savedGeneTree_ = 0;
   counter_ = 0;
 }
 
@@ -137,6 +138,7 @@ params_(params), considerSequenceLikelihood_(true)
   { //This family is phylogenetically informative
     qualityControlGeneTree ( rootedTree_, levaluator_->getSites(), cont , file) ;
       }
+  savedGeneTree_ = rootedTree_->clone();
 
   if (cont) {
     // set the levaluator tree to the modified one
@@ -351,6 +353,7 @@ levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ 
 {
   WHEREAMI( __FILE__ , __LINE__ );
   levaluator_ = new LikelihoodEvaluator(&tree, &data, model, rDist, params, false, verbose);
+  savedGeneTree_ = levaluator_->getTree()->clone();
   spTree_ = spTree.clone();
   rootedTree_ = rootedTree.clone();
   geneTreeWithSpNames_ = geneTreeWithSpNames.clone();
@@ -427,6 +430,8 @@ GeneTreeLikelihood & GeneTreeLikelihood::operator=(const GeneTreeLikelihood & li
   
 void GeneTreeLikelihood::spTreeImproved()
 {
+  delete savedGeneTree_;
+  savedGeneTree_ = levaluator_->getTree()->clone();
   levaluator_->destroyRollbacks();
 }
   
@@ -435,6 +440,10 @@ void GeneTreeLikelihood::setSpTree(bpp::TreeTemplate<bpp::Node> & spTree) {
     delete spTree_; 
   spTree_ = spTree.clone(); 
   levaluator_->rollbackAllMoves();
+  if (savedGeneTree_){
+    levaluator_->setAlternativeTree(savedGeneTree_);
+    levaluator_->acceptAlternativeTree();
+  }
 }
 
 void GeneTreeLikelihood::setGeneTree(TreeTemplate<Node>* tree, TreeTemplate<Node>* rootedTree) {

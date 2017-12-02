@@ -88,7 +88,7 @@ protected:
    * The new implementation of a likelihood estimator
    */
   LikelihoodEvaluator * levaluator_;
-
+  bpp::TreeTemplate<bpp::Node> * savedGeneTree_;
   //  bpp::TreeTemplate<bpp::Node> * _tree;
   bpp::TreeTemplate<bpp::Node> * spTree_;
   bpp::TreeTemplate<bpp::Node> * rootedTree_;

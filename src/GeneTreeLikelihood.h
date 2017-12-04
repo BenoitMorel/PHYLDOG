@@ -88,7 +88,7 @@ protected:
    * The new implementation of a likelihood estimator
    */
   LikelihoodEvaluator * levaluator_;
-  bpp::TreeTemplate<bpp::Node> * savedGeneTree_;
+
   //  bpp::TreeTemplate<bpp::Node> * _tree;
   bpp::TreeTemplate<bpp::Node> * spTree_;
   bpp::TreeTemplate<bpp::Node> * rootedTree_;
@@ -195,9 +195,7 @@ public:
 
   const std::map <std::string, std::string> getSeqSp() {return seqSp_;}
 
-  void spTreeImproved();
-
-  void setSpTree(bpp::TreeTemplate<bpp::Node> & spTree);
+  void setSpTree(bpp::TreeTemplate<bpp::Node> & spTree) { if (spTree_) delete spTree_; spTree_ = spTree.clone(); }
 
   void setSpId(std::map <std::string, int> & spId) {spId_ = spId;}
 

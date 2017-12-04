@@ -158,15 +158,6 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
                                   currentStep_,
                                   reconciliationModel_
   );
-  // todobenoit hack
-  bool betterSpeciesTree = false;
-  if (currentStep_ >= 10) {
-    betterSpeciesTree = true;
-    currentStep_ -= 10;
-    for (unsigned int i = 0 ; i< numberOfGeneFamilies_ ; i++) {
-      treeLikelihoods_[i]->spTreeImproved();
-    }
-  }
   if (previousStep != currentStep_) {
     std::cout << std::endl;
     std::cout << std::endl;
@@ -673,12 +664,6 @@ void ClientComputingGeneLikelihoods::MLSearch() {
                                       currentSpeciesTree_,
                                       currentStep_,
                                       reconciliationModel_);
-      // todobenoit hack
-      bool betterSpeciesTree = false;
-      if (currentStep_>= 10) {
-        betterSpeciesTree = true;
-        currentStep_ -= 10;
-      }
       if (previousStep != currentStep_) {
         std::cout << std::endl;
         std::cout << std::endl;

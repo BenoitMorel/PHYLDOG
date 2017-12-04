@@ -70,10 +70,10 @@ void MPI_SpeciesTreeLikelihood::updateCoalBls()
 void MPI_SpeciesTreeLikelihood::initialize()
 {
   WHEREAMI( __FILE__ , __LINE__ );
-    if (optimizeSpeciesTreeTopology_)
-        rearrange_ = false;
-    else
-        rearrange_ = true;
+  if (optimizeSpeciesTreeTopology_)
+    rearrange_ = false;
+  else
+    rearrange_ = true;
   stop_ = false;
   Newick newick;
 
@@ -81,10 +81,10 @@ void MPI_SpeciesTreeLikelihood::initialize()
    * First communications between the server and the clients.
    *****************************************************************************/
   firstCommunicationsServerClient (world_ , server_, numbersOfGenesPerClient_,assignedNumberOfGenes_,
-                                   assignedFilenames_, listOfOptionsPerClient_,
-                                   optimizeSpeciesTreeTopology_, speciesTreeNodeNumber_,
-                                   lossExpectedNumbers_, duplicationExpectedNumbers_, num0Lineages_,
-                                   num1Lineages_, num2Lineages_, num12Lineages_, num22Lineages_, coalBls_, currentSpeciesTree_);
+      assignedFilenames_, listOfOptionsPerClient_,
+      optimizeSpeciesTreeTopology_, speciesTreeNodeNumber_,
+      lossExpectedNumbers_, duplicationExpectedNumbers_, num0Lineages_,
+      num1Lineages_, num2Lineages_, num12Lineages_, num22Lineages_, coalBls_, currentSpeciesTree_);
 
   std::vector<unsigned int> numbersOfGeneFamilies;
   unsigned int numberOfGeneFamilies = 0;
@@ -94,7 +94,7 @@ void MPI_SpeciesTreeLikelihood::initialize()
    *****************************************************************************/
 
   numberOfFilteredFamiliesCommunicationsServerClient (world_, server_,
-                                                      rank_, numberOfGeneFamilies );
+      rank_, numberOfGeneFamilies );
 
   /****************************************************************************
    * MRP construction of a starting species tree (if the options say so)
@@ -111,13 +111,13 @@ void MPI_SpeciesTreeLikelihood::initialize()
   if ( (reconciliationModel_ == "DL") && (spTreeDupFile == "none") && (spTreeLossFile == "none") ) {
     //We set preliminary loss and duplication rates, correcting for genome coverage
     computeDuplicationAndLossRatesForTheSpeciesTreeInitially(branchExpectedNumbersOptimization_,
-                                                             num0Lineages_,
-                                                             num1Lineages_,
-                                                             num2Lineages_,
-                                                             lossExpectedNumbers_,
-                                                             duplicationExpectedNumbers_,
-                                                             genomeMissing_,
-                                                             *tree_);
+        num0Lineages_,
+        num1Lineages_,
+        num2Lineages_,
+        lossExpectedNumbers_,
+        duplicationExpectedNumbers_,
+        genomeMissing_,
+        *tree_);
     /*	//TEMP PRINTING
      *		//For loss rates
      *		for (unsigned int i =0; i<num0Lineages_.size() ; i++ )
@@ -126,12 +126,12 @@ void MPI_SpeciesTreeLikelihood::initialize()
      *			if (tree_->getNode(i)->hasFather())
      *			{
      *				tree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
-  }
-  }
-  std::cout <<"\n\n\t\t Starting Species Tree found, with Losses: "<<std::endl;
-  //			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
-  std::cout << TreeTemplateTools::treeToParenthesis(*tree_, false)<<std::endl;
-  */
+     }
+     }
+     std::cout <<"\n\n\t\t Starting Species Tree found, with Losses: "<<std::endl;
+    //			std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "LOSSES")<<std::endl;
+    std::cout << TreeTemplateTools::treeToParenthesis(*tree_, false)<<std::endl;
+    */
 
 
 
@@ -168,13 +168,13 @@ void MPI_SpeciesTreeLikelihood::initialize()
     /*        for (unsigned int i = 0 ; i < tree_->getNumberOfNodes() ; i++)
      *        {
      *            coalBls_.push_back(10);
-  }*/
+     }*/
     breadthFirstreNumber (*tree_, coalBls_);
     std::string temp = "no";
     computeCoalBls (temp,
-                    num12Lineages_,
-                    num22Lineages_,
-                    coalBls_) ;
+        num12Lineages_,
+        num22Lineages_,
+        coalBls_) ;
   }
   //We write the starting species tree to a file
   std::string file = ApplicationTools::getStringParameter("starting.tree.file", params_, "starting.tree");
@@ -187,12 +187,12 @@ void MPI_SpeciesTreeLikelihood::initialize()
   newick.write(*tree_, file, true);
 
   secondCommunicationsServerClient (world_, server_, rank_,
-                                    numberOfGeneFamilies,
-                                    numbersOfGeneFamilies,
-                                    lossExpectedNumbers_,
-                                    duplicationExpectedNumbers_,
-                                    coalBls_,
-                                    currentSpeciesTree_);
+      numberOfGeneFamilies,
+      numbersOfGeneFamilies,
+      lossExpectedNumbers_,
+      duplicationExpectedNumbers_,
+      coalBls_,
+      currentSpeciesTree_);
   // numberOfGeneFamilies = VectorTools::sum(numbersOfGeneFamilies);
   if (numberOfGeneFamilies == 0)
   {
@@ -214,34 +214,34 @@ void MPI_SpeciesTreeLikelihood::initialize()
    *****************************************************************************/
 
   computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(world_,
-                                                         index_,
-                                                         stop_,
-                                                         logL_,
-                                                         num0Lineages_,
-                                                         num1Lineages_,
-                                                         num2Lineages_,
-                                                         allNum0Lineages_,
-                                                         allNum1Lineages_,
-                                                         allNum2Lineages_,
-                                                         lossExpectedNumbers_,
-                                                         duplicationExpectedNumbers_,
-                                                         num12Lineages_,
-                                                         num22Lineages_,
-                                                         coalBls_,
-                                                         reconciliationModel_,
-                                                         rearrange_,
-                                                         server_,
-                                                         branchExpectedNumbersOptimization_,
-                                                         genomeMissing_,
-                                                         *tree_,
-                                                         currentSpeciesTree_,
-                                                         false, currentStep_); //TEST
+      index_,
+      stop_,
+      logL_,
+      num0Lineages_,
+      num1Lineages_,
+      num2Lineages_,
+      allNum0Lineages_,
+      allNum1Lineages_,
+      allNum2Lineages_,
+      lossExpectedNumbers_,
+      duplicationExpectedNumbers_,
+      num12Lineages_,
+      num22Lineages_,
+      coalBls_,
+      reconciliationModel_,
+      rearrange_,
+      server_,
+      branchExpectedNumbersOptimization_,
+      genomeMissing_,
+      *tree_,
+      currentSpeciesTree_,
+      false, currentStep_); //TEST
   std::cout << setprecision(30) <<"\t\tServer: total initial Likelihood value "<< -logL_<<std::endl;
   bestlogL_ = logL_;
   ApplicationTools::displayTime("Execution time so far:");
   /*  for (unsigned int i =0; i<num0Lineages_.size() ; i++ ) {
    *        std::cout <<"branch Number#"<< i<<"Expected numbers:  dup: "<< duplicationExpectedNumbers_[i]<<" loss: "<< lossExpectedNumbers_[i]<<std::endl;
-}*/
+   }*/
   bestNum0Lineages_ = num0Lineages_;
   bestNum1Lineages_ = num1Lineages_;
   bestNum2Lineages_ = num2Lineages_;
@@ -257,13 +257,13 @@ void MPI_SpeciesTreeLikelihood::computeLogLikelihood()
 {
   WHEREAMI( __FILE__ , __LINE__ );
   computeSpeciesTreeLikelihood(world_, index_,  stop_, logL_, num0Lineages_,
-                               num1Lineages_, num2Lineages_,
-                               allNum0Lineages_, allNum1Lineages_,
-                               allNum2Lineages_, lossExpectedNumbers_,
-                               duplicationExpectedNumbers_, num12Lineages_,
-                               num22Lineages_, coalBls_, reconciliationModel_,
-                               rearrange_, server_,
-                               branchExpectedNumbersOptimization_, genomeMissing_, *tree_, currentStep_);
+      num1Lineages_, num2Lineages_,
+      allNum0Lineages_, allNum1Lineages_,
+      allNum2Lineages_, lossExpectedNumbers_,
+      duplicationExpectedNumbers_, num12Lineages_,
+      num22Lineages_, coalBls_, reconciliationModel_,
+      rearrange_, server_,
+      branchExpectedNumbersOptimization_, genomeMissing_, *tree_, currentStep_);
 }
 
 
@@ -427,7 +427,7 @@ void MPI_SpeciesTreeLikelihood::parseOptions()
   branchExpectedNumbersOptimization_ = ApplicationTools::getStringParameter("branch.expected.numbers.optimization",params_,"average");
   std::cout << "Optimization of the branch-wise expected numbers of duplications and losses: "<<branchExpectedNumbersOptimization_ <<std::endl;
   if ((branchExpectedNumbersOptimization_!="average")&&(branchExpectedNumbersOptimization_!="branchwise")&&
-    (branchExpectedNumbersOptimization_!="average_then_branchwise")&&(branchExpectedNumbersOptimization_!="no"))
+      (branchExpectedNumbersOptimization_!="average_then_branchwise")&&(branchExpectedNumbersOptimization_!="no"))
   {
     std::cout << "branchProbabilities.optimization is not properly set; please set to either 'average', 'branchwise', 'average_then_branchwise', or 'no'. "<<std::endl;
     MPI::COMM_WORLD.Abort(1);
@@ -496,8 +496,8 @@ void MPI_SpeciesTreeLikelihood::parseOptions()
   //Current step: information to give when the run is stopped for timing reasons,
   //or to get if given.
   currentStep_ = ApplicationTools::getIntParameter("current.step",params_,0);
-        std::cout << "NEW STEP " << currentStep_ << std::endl;
-        ApplicationTools::displayTime("Execution time");
+  std::cout << "NEW STEP " << currentStep_ << std::endl;
+  ApplicationTools::displayTime("Execution time");
   if (currentStep_ >= 3 && optimizeSpeciesTreeTopology_) {
     std::cout<<"Reading previous topology likelihoods"<<std::endl;
     inputNNIAndRootLks(NNILks_, rootLks_, params_, suffix_);
@@ -601,7 +601,7 @@ void MPI_SpeciesTreeLikelihood::parseOptions()
 void MPI_SpeciesTreeLikelihood::MLSearch()
 {
   WHEREAMI( __FILE__ , __LINE__ );
- //Indices used in the exploration
+  //Indices used in the exploration
   size_t nodeForNNI = 0;
   size_t nodeForRooting = 4;
   // bool noMoreSPR;
@@ -610,16 +610,16 @@ void MPI_SpeciesTreeLikelihood::MLSearch()
   if(optimizeSpeciesTreeTopology_)
   {
     std::cout <<"Optimizing the species tree topology"<<std::endl;
-	MLSearchAndOptimizeTopology();
+    MLSearchAndOptimizeTopology();
     //  noMoreSPR=false;
   }
   else
   {
     MLSearchButNotOptimizeTopology();
-	  //    noMoreSPR=true;
+    //    noMoreSPR=true;
     currentStep_ = 4;
     std::cout << "NEW STEP 4" << std::endl;
-        ApplicationTools::displayTime("Execution time");
+    ApplicationTools::displayTime("Execution time");
   }
 }
 
@@ -656,22 +656,22 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
      *****************************************************************************/
     if ( (currentStep_ == 0) && (ApplicationTools::getTime() < timeLimit_) )
     {
-  WHEREAMI( __FILE__ , __LINE__ );
+      WHEREAMI( __FILE__ , __LINE__ );
       fastTryAllPossibleSPRsAndReRootings(world_, currentTree_, bestTree_,
-                                          index_, bestIndex_, stop_, timeLimit_,
-                                          logL_, bestlogL_,
-                                          num0Lineages_, num1Lineages_, num2Lineages_,
-                                          bestNum0Lineages_, bestNum1Lineages_,
-                                          bestNum2Lineages_,
-                                          allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
-                                          lossExpectedNumbers_, duplicationExpectedNumbers_,
-                                          num12Lineages_, num22Lineages_,
-                                          bestNum12Lineages_, bestNum22Lineages_,
-                                          coalBls_, reconciliationModel_,
-                                          rearrange_, numIterationsWithoutImprovement_,
-                                          server_, branchExpectedNumbersOptimization_,
-                                          genomeMissing_, sprLimit_, false, currentStep_,
-                                          fixedOutgroupSpecies_, outgroupSpecies_);
+          index_, bestIndex_, stop_, timeLimit_,
+          logL_, bestlogL_,
+          num0Lineages_, num1Lineages_, num2Lineages_,
+          bestNum0Lineages_, bestNum1Lineages_,
+          bestNum2Lineages_,
+          allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
+          lossExpectedNumbers_, duplicationExpectedNumbers_,
+          num12Lineages_, num22Lineages_,
+          bestNum12Lineages_, bestNum22Lineages_,
+          coalBls_, reconciliationModel_,
+          rearrange_, numIterationsWithoutImprovement_,
+          server_, branchExpectedNumbersOptimization_,
+          genomeMissing_, sprLimit_, false, currentStep_,
+          fixedOutgroupSpecies_, outgroupSpecies_);
 
 
       if (ApplicationTools::getTime() < timeLimit_)
@@ -683,14 +683,14 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
         ApplicationTools::displayTime("Execution time so far:");
         if (branchExpectedNumbersOptimization_ != "no") {
           currentStep_ = 1;
-        std::cout << "NEW STEP " << currentStep_ << std::endl;
-        ApplicationTools::displayTime("Execution time");
+          std::cout << "NEW STEP " << currentStep_ << std::endl;
+          ApplicationTools::displayTime("Execution time");
         }
         else {
           //  noMoreSPR=true;
           currentStep_ = 3;
-        std::cout << "NEW STEP " << currentStep_ << std::endl;
-        ApplicationTools::displayTime("Execution time");
+          std::cout << "NEW STEP " << currentStep_ << std::endl;
+          ApplicationTools::displayTime("Execution time");
         }
       }
       else
@@ -704,9 +704,9 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
         {
           stop_ = true;
           lastCommunicationsServerClient (world_,
-                                          server_,
-                                          stop_,
-                                          bestIndex_);
+              server_,
+              stop_,
+              bestIndex_);
         }
       }
     }
@@ -721,17 +721,17 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
       std::cout <<"Before updating expected numbers of Duplication and loss; current Likelihood "<<bestlogL_  <<" and logL: "<<logL_<<std::endl;
       backupLossExpectedNumbers_ = lossExpectedNumbers_;
       backupDuplicationExpectedNumbers_ = duplicationExpectedNumbers_;
-  WHEREAMI( __FILE__ , __LINE__ );
+      WHEREAMI( __FILE__ , __LINE__ );
       computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world_, index_,
-                                                                         stop_, logL_,
-                                                                         num0Lineages_, num1Lineages_, num2Lineages_,
-                                                                         allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
-                                                                         lossExpectedNumbers_, duplicationExpectedNumbers_,
-                                                                         num12Lineages_, num22Lineages_,
-                                                                         coalBls_, reconciliationModel_,
-                                                                         rearrange_, server_,
-                                                                         branchExpectedNumbersOptimization_, genomeMissing_,
-                                                                         *currentTree_, bestlogL_, currentStep_);
+          stop_, logL_,
+          num0Lineages_, num1Lineages_, num2Lineages_,
+          allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
+          lossExpectedNumbers_, duplicationExpectedNumbers_,
+          num12Lineages_, num22Lineages_,
+          coalBls_, reconciliationModel_,
+          rearrange_, server_,
+          branchExpectedNumbersOptimization_, genomeMissing_,
+          *currentTree_, bestlogL_, currentStep_);
       std::cout <<"After updating expected numbers of Duplication and loss; current Likelihood "<<logL_<<std::endl;
       if (logL_+0.01<bestlogL_)
       {
@@ -750,9 +750,9 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
         duplicationExpectedNumbers_ = backupDuplicationExpectedNumbers_;
       }
       if (ApplicationTools::getTime() < timeLimit_) {
-    std::cout << "NEW STEP 2" << std::endl;
+        std::cout << "NEW STEP 2" << std::endl;
         ApplicationTools::displayTime("Execution time");
-        
+
         currentStep_ = 2;
       }
     }
@@ -765,21 +765,21 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
       if (currentTree_)
         delete currentTree_;
       currentTree_ = bestTree_->clone();
-  WHEREAMI( __FILE__ , __LINE__ );
+      WHEREAMI( __FILE__ , __LINE__ );
       fastTryAllPossibleSPRsAndReRootings(world_, currentTree_, bestTree_,
-                                          index_, bestIndex_, stop_, timeLimit_,
-                                          logL_, bestlogL_,
-                                          num0Lineages_, num1Lineages_, num2Lineages_,
-                                          bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_,
-                                          allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
-                                          lossExpectedNumbers_, duplicationExpectedNumbers_,
-                                          num12Lineages_, num22Lineages_,
-                                          bestNum12Lineages_, bestNum22Lineages_,
-                                          coalBls_, reconciliationModel_,
-                                          rearrange_, numIterationsWithoutImprovement_,
-                                          server_, branchExpectedNumbersOptimization_,
-                                          genomeMissing_, sprLimit_, true, currentStep_,
-                                          fixedOutgroupSpecies_, outgroupSpecies_);
+          index_, bestIndex_, stop_, timeLimit_,
+          logL_, bestlogL_,
+          num0Lineages_, num1Lineages_, num2Lineages_,
+          bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_,
+          allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
+          lossExpectedNumbers_, duplicationExpectedNumbers_,
+          num12Lineages_, num22Lineages_,
+          bestNum12Lineages_, bestNum22Lineages_,
+          coalBls_, reconciliationModel_,
+          rearrange_, numIterationsWithoutImprovement_,
+          server_, branchExpectedNumbersOptimization_,
+          genomeMissing_, sprLimit_, true, currentStep_,
+          fixedOutgroupSpecies_, outgroupSpecies_);
 
 
       if (ApplicationTools::getTime() < timeLimit_)
@@ -804,9 +804,9 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
         {
           stop_ = true;
           lastCommunicationsServerClient (world_,
-                                          server_,
-                                          stop_,
-                                          bestIndex_);
+              server_,
+              stop_,
+              bestIndex_);
         }
       }
       //  noMoreSPR=true;
@@ -818,7 +818,7 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
      *****************************************************************************/
     if ( (currentStep_ == 3) && (ApplicationTools::getTime() < timeLimit_) )
     {
-  WHEREAMI( __FILE__ , __LINE__ );
+      WHEREAMI( __FILE__ , __LINE__ );
       std::cout << "\n\n\t\t\tNow entering the fully joint optimization step: NNIs on the species tree and gene trees, and optimization of DL expected numbers\n\n"<<std::endl;
       std::cout << TreeTemplateTools::treeToParenthesis(*currentTree_, true)<<std::endl;
       numIterationsWithoutImprovement_ = 0;
@@ -830,16 +830,16 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
       //This first computation is done without rearranging gene trees
 
       //Now gene trees are really rearranged.
-  WHEREAMI( __FILE__ , __LINE__ );
+      WHEREAMI( __FILE__ , __LINE__ );
       computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world_, index_,
-                                                                         stop_, logL_,
-                                                                         num0Lineages_, num1Lineages_, num2Lineages_,
-                                                                         allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
-                                                                         lossExpectedNumbers_, duplicationExpectedNumbers_,
-                                                                         num12Lineages_, num22Lineages_, coalBls_,
-                                                                         reconciliationModel_, rearrange_, server_,
-                                                                         branchExpectedNumbersOptimization_, genomeMissing_,
-                                                                         *currentTree_, bestlogL_, currentStep_);
+          stop_, logL_,
+          num0Lineages_, num1Lineages_, num2Lineages_,
+          allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
+          lossExpectedNumbers_, duplicationExpectedNumbers_,
+          num12Lineages_, num22Lineages_, coalBls_,
+          reconciliationModel_, rearrange_, server_,
+          branchExpectedNumbersOptimization_, genomeMissing_,
+          *currentTree_, bestlogL_, currentStep_);
 
       if (branchExpectedNumbersOptimization_ != "no") {
         std::cout << "\t\tSpecies tree likelihood with gene tree optimization and new branch parameters: "<< - logL_<<" compared to the former log-likelihood : "<< - bestlogL_<<std::endl;
@@ -861,24 +861,24 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
           std::cout <<"\tNNIs: Number of iterations without improvement : "<<numIterationsWithoutImprovement_<<std::endl;
         else
           std::cout <<"\tNNIs or Root changes: Number of iterations without improvement : "<<numIterationsWithoutImprovement_<<std::endl;
-  WHEREAMI( __FILE__ , __LINE__ );
+        WHEREAMI( __FILE__ , __LINE__ );
         localOptimizationWithNNIsAndReRootings(world_, currentTree_, bestTree_,
-                                               index_, bestIndex_,
-                                               stop_, timeLimit_,
-                                               logL_, bestlogL_,
-                                               num0Lineages_, num1Lineages_, num2Lineages_,
-                                               bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_,
-                                               allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
-                                               lossExpectedNumbers_, duplicationExpectedNumbers_,
-                                               num12Lineages_, num22Lineages_,
-                                               bestNum12Lineages_, bestNum22Lineages_,
-                                               coalBls_, reconciliationModel_,
-                                               rearrange_, numIterationsWithoutImprovement_,
-                                               server_, nodeForNNI, nodeForRooting,
-                                               treesToLogLk_,
-                                               branchExpectedNumbersOptimization_, genomeMissing_,
-                                               NNILks_, rootLks_, currentStep_,
-                                               fixedOutgroupSpecies_, outgroupSpecies_);
+            index_, bestIndex_,
+            stop_, timeLimit_,
+            logL_, bestlogL_,
+            num0Lineages_, num1Lineages_, num2Lineages_,
+            bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_,
+            allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
+            lossExpectedNumbers_, duplicationExpectedNumbers_,
+            num12Lineages_, num22Lineages_,
+            bestNum12Lineages_, bestNum22Lineages_,
+            coalBls_, reconciliationModel_,
+            rearrange_, numIterationsWithoutImprovement_,
+            server_, nodeForNNI, nodeForRooting,
+            treesToLogLk_,
+            branchExpectedNumbersOptimization_, genomeMissing_,
+            NNILks_, rootLks_, currentStep_,
+            fixedOutgroupSpecies_, outgroupSpecies_);
         //NNI-based Optimizations ended
         currentStep_ = 4;
         std::cout << "NEW STEP " << currentStep_ << std::endl;
@@ -893,9 +893,9 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
           {
             stop_ = true;
             lastCommunicationsServerClient (world_,
-                                            server_,
-                                            stop_,
-                                            bestIndex_);
+                server_,
+                stop_,
+                bestIndex_);
           }
         }
       }
@@ -904,34 +904,34 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
         //we optimize the expected numbers
         if(branchExpectedNumbersOptimization_ != "no") {
           std::cout <<"\tOptimization of DL parameters: Number of iterations without improvement : "<<numIterationsWithoutImprovement_<<std::endl;
-  WHEREAMI( __FILE__ , __LINE__ );
+          WHEREAMI( __FILE__ , __LINE__ );
           computeSpeciesTreeLikelihoodWhileOptimizingDuplicationAndLossRates(world_, index_,
-                                                                             stop_, logL_,
-                                                                             num0Lineages_, num1Lineages_, num2Lineages_,
-                                                                             allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
-                                                                             lossExpectedNumbers_, duplicationExpectedNumbers_,
-                                                                             num12Lineages_, num22Lineages_,
-                                                                             coalBls_, reconciliationModel_,
-                                                                             rearrange_, server_,
-                                                                             branchExpectedNumbersOptimization_, genomeMissing_,
-                                                                             *currentTree_, bestlogL_, currentStep_);
+              stop_, logL_,
+              num0Lineages_, num1Lineages_, num2Lineages_,
+              allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
+              lossExpectedNumbers_, duplicationExpectedNumbers_,
+              num12Lineages_, num22Lineages_,
+              coalBls_, reconciliationModel_,
+              rearrange_, server_,
+              branchExpectedNumbersOptimization_, genomeMissing_,
+              *currentTree_, bestlogL_, currentStep_);
 
 
 
         }
         //we don't optimize the expected numbers
         else {
-  WHEREAMI( __FILE__ , __LINE__ );
+          WHEREAMI( __FILE__ , __LINE__ );
           computeSpeciesTreeLikelihood(world_, index_,
-                                       stop_, logL_,
-                                       num0Lineages_, num1Lineages_, num2Lineages_,
-                                       allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
-                                       lossExpectedNumbers_, duplicationExpectedNumbers_,
-                                       num12Lineages_, num22Lineages_,
-                                       coalBls_, reconciliationModel_,
-                                       rearrange_, server_,
-                                       branchExpectedNumbersOptimization_, genomeMissing_,
-                                       *currentTree_, currentStep_);
+              stop_, logL_,
+              num0Lineages_, num1Lineages_, num2Lineages_,
+              allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
+              lossExpectedNumbers_, duplicationExpectedNumbers_,
+              num12Lineages_, num22Lineages_,
+              coalBls_, reconciliationModel_,
+              rearrange_, server_,
+              branchExpectedNumbersOptimization_, genomeMissing_,
+              *currentTree_, currentStep_);
 
         }
 
@@ -949,9 +949,9 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
           {
             stop_ = true;
             lastCommunicationsServerClient (world_,
-                                            server_,
-                                            stop_,
-                                            bestIndex_);
+                server_,
+                stop_,
+                bestIndex_);
           }
         }
 
@@ -968,20 +968,20 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
 
         //Now we do SPRs in the gene trees only
         std::cout << "\n\n\t\t\tStep of final optimization using SPRs on gene trees alone, with optimization of DL numbers.\n\n"<< std::endl;
-  WHEREAMI( __FILE__ , __LINE__ );
+        WHEREAMI( __FILE__ , __LINE__ );
         optimizeOnlyDuplicationAndLossRates(world_, currentTree_, bestTree_,
-                                            index_, bestIndex_,
-                                            stop_, timeLimit_,
-                                            logL_, bestlogL_,
-                                            num0Lineages_, num1Lineages_, num2Lineages_,
-                                            bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_,
-                                            allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
-                                            lossExpectedNumbers_, duplicationExpectedNumbers_,
-                                            num12Lineages_, num22Lineages_,
-                                            coalBls_, reconciliationModel_,
-                                            rearrange_, numIterationsWithoutImprovement_,
-                                            server_, branchExpectedNumbersOptimization_,
-                                            genomeMissing_, currentStep_);
+            index_, bestIndex_,
+            stop_, timeLimit_,
+            logL_, bestlogL_,
+            num0Lineages_, num1Lineages_, num2Lineages_,
+            bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_,
+            allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
+            lossExpectedNumbers_, duplicationExpectedNumbers_,
+            num12Lineages_, num22Lineages_,
+            coalBls_, reconciliationModel_,
+            rearrange_, numIterationsWithoutImprovement_,
+            server_, branchExpectedNumbersOptimization_,
+            genomeMissing_, currentStep_);
 
 
 
@@ -1007,15 +1007,15 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
       std::cout << "\n\n\t\t\tStep of final optimization over.\n\n"<< std::endl;
       ApplicationTools::displayTime("Execution time so far:");
       currentStep_ = 5;
-        std::cout << "NEW STEP " << currentStep_ << std::endl;
-        ApplicationTools::displayTime("Execution time");
+      std::cout << "NEW STEP " << currentStep_ << std::endl;
+      ApplicationTools::displayTime("Execution time");
       if (stop_==false)
       {
         stop_ = true;
         lastCommunicationsServerClient (world_,
-                                        server_,
-                                        stop_,
-                                        bestIndex_);
+            server_,
+            stop_,
+            bestIndex_);
       }
     }
     else if (ApplicationTools::getTime() >= timeLimit_)
@@ -1026,9 +1026,9 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
       {
         stop_ = true;
         lastCommunicationsServerClient (world_,
-                                        server_,
-                                        stop_,
-                                        bestIndex_);
+            server_,
+            stop_,
+            bestIndex_);
 
       }
     }
@@ -1093,8 +1093,8 @@ void MPI_SpeciesTreeLikelihood::MLSearchButNotOptimizeTopology()
   {
     rearrange_ = true; //Now we rearrange gene trees
     currentStep_ = 4;
-        std::cout << "NEW STEP " << currentStep_ << std::endl;
-        ApplicationTools::displayTime("Execution time");
+    std::cout << "NEW STEP " << currentStep_ << std::endl;
+    ApplicationTools::displayTime("Execution time");
     if (ApplicationTools::getTime() < timeLimit_) {
       if (rearrange_) {
         if (currentTree_)
@@ -1105,20 +1105,20 @@ void MPI_SpeciesTreeLikelihood::MLSearchButNotOptimizeTopology()
 
         //Now we do SPRs in the gene trees only
         std::cout << "\n\n\t\t\tOptimization of the likelihood without changing the species tree topology.\n\n"<< std::endl;
-  WHEREAMI( __FILE__ , __LINE__ );
+        WHEREAMI( __FILE__ , __LINE__ );
         optimizeOnlyDuplicationAndLossRates(world_, currentTree_, bestTree_,
-                                            index_, bestIndex_,
-                                            stop_, timeLimit_,
-                                            logL_, bestlogL_,
-                                            num0Lineages_, num1Lineages_, num2Lineages_,
-                                            bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_,
-                                            allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
-                                            lossExpectedNumbers_, duplicationExpectedNumbers_,
-                                            num12Lineages_, num22Lineages_,
-                                            coalBls_, reconciliationModel_,
-                                            rearrange_, numIterationsWithoutImprovement_,
-                                            server_, branchExpectedNumbersOptimization_,
-                                            genomeMissing_, currentStep_);
+            index_, bestIndex_,
+            stop_, timeLimit_,
+            logL_, bestlogL_,
+            num0Lineages_, num1Lineages_, num2Lineages_,
+            bestNum0Lineages_, bestNum1Lineages_, bestNum2Lineages_,
+            allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
+            lossExpectedNumbers_, duplicationExpectedNumbers_,
+            num12Lineages_, num22Lineages_,
+            coalBls_, reconciliationModel_,
+            rearrange_, numIterationsWithoutImprovement_,
+            server_, branchExpectedNumbersOptimization_,
+            genomeMissing_, currentStep_);
 
         if (logL_+0.01<bestlogL_)
         {
@@ -1142,15 +1142,15 @@ void MPI_SpeciesTreeLikelihood::MLSearchButNotOptimizeTopology()
       std::cout << "\n\n\t\t\tStep of final optimization over.\n\n"<< std::endl;
       ApplicationTools::displayTime("Execution time so far:");
       currentStep_ = 5;
-        std::cout << "NEW STEP " << currentStep_ << std::endl;
-        ApplicationTools::displayTime("Execution time");
+      std::cout << "NEW STEP " << currentStep_ << std::endl;
+      ApplicationTools::displayTime("Execution time");
       if (stop_==false)
       {
         stop_ = true;
         lastCommunicationsServerClient (world_,
-                                        server_,
-                                        stop_,
-                                        bestIndex_);
+            server_,
+            stop_,
+            bestIndex_);
       }
     }
     else if (ApplicationTools::getTime() >= timeLimit_)
@@ -1161,9 +1161,9 @@ void MPI_SpeciesTreeLikelihood::MLSearchButNotOptimizeTopology()
       {
         stop_ = true;
         lastCommunicationsServerClient (world_,
-                                        server_,
-                                        stop_,
-                                        bestIndex_);
+            server_,
+            stop_,
+            bestIndex_);
 
       }
     }
@@ -1204,129 +1204,129 @@ void MPI_SpeciesTreeLikelihood::MLSearchButNotOptimizeTopology()
 /*******************************************************************************/
 void MPI_SpeciesTreeLikelihood::outputALRTTree () {
   WHEREAMI( __FILE__ , __LINE__ );
-    //COMPUTING ALRTs
-    //In Anisimova and Gascuel, the relevant distribution is a mixture of chi^2_1 and chi^2_0.
-    //Here, I am not sure one can do the same. We stick with the classical chi^2_1 distribution, more conservative.
+  //COMPUTING ALRTs
+  //In Anisimova and Gascuel, the relevant distribution is a mixture of chi^2_1 and chi^2_0.
+  //Here, I am not sure one can do the same. We stick with the classical chi^2_1 distribution, more conservative.
 
-    for (unsigned int i = 0; i<bestTree_->getNumberOfNodes() ; i++ )
+  for (unsigned int i = 0; i<bestTree_->getNumberOfNodes() ; i++ )
+  {
+    if ((! bestTree_->getNode(i)->isLeaf()) && (bestTree_->getNode(i)->hasFather()))
     {
-      if ((! bestTree_->getNode(i)->isLeaf()) && (bestTree_->getNode(i)->hasFather()))
+      // double proba=(1/2)*(RandomTools::pChisq(2*(NNILks_[i] - bestlogL_), 1)+1); //If one wants to use the mixture.
+      double proba=RandomTools::pChisq(2*(NNILks_[i] - bestlogL_), 1);
+      //Bonferroni correction
+      proba = 1-3*(1-proba);
+      if (proba<0)
       {
-        // double proba=(1/2)*(RandomTools::pChisq(2*(NNILks_[i] - bestlogL_), 1)+1); //If one wants to use the mixture.
-        double proba=RandomTools::pChisq(2*(NNILks_[i] - bestlogL_), 1);
-        //Bonferroni correction
-        proba = 1-3*(1-proba);
-        if (proba<0)
-        {
-          std::cout <<"Negative aLRT!"<<std::endl;
-          proba = 0;
-        }
-        //std::cout <<"Branch "<<i<<" second best Lk: "<< NNILks_[i]<< ";Lk difference: "<< NNILks_[i] - bestlogL_ <<"; aLRT: "<<proba<<std::endl;
-        bestTree_->getNode(i)->setBranchProperty("ALRT", Number<double>(proba));
+        std::cout <<"Negative aLRT!"<<std::endl;
+        proba = 0;
       }
-      else
-      {
-        bestTree_->getNode(i)->setBranchProperty("ALRT", Number<double>(1));
-      }
+      //std::cout <<"Branch "<<i<<" second best Lk: "<< NNILks_[i]<< ";Lk difference: "<< NNILks_[i] - bestlogL_ <<"; aLRT: "<<proba<<std::endl;
+      bestTree_->getNode(i)->setBranchProperty("ALRT", Number<double>(proba));
     }
-    std::cout <<"\n\n\t\tBest Species Tree found, with node Ids: "<<std::endl;
-    std::cout << TreeTemplateTools::treeToParenthesis (*bestTree_, true)<<std::endl;
-    std::cout <<"\n\n\t\tBest Species Tree found, with aLRTs: "<<std::endl;
-    std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "ALRT")<<std::endl;
-   }
+    else
+    {
+      bestTree_->getNode(i)->setBranchProperty("ALRT", Number<double>(1));
+    }
+  }
+  std::cout <<"\n\n\t\tBest Species Tree found, with node Ids: "<<std::endl;
+  std::cout << TreeTemplateTools::treeToParenthesis (*bestTree_, true)<<std::endl;
+  std::cout <<"\n\n\t\tBest Species Tree found, with aLRTs: "<<std::endl;
+  std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "ALRT")<<std::endl;
+}
 
 
 /*******************************************************************************/
 void MPI_SpeciesTreeLikelihood::outputEndResults () {
   WHEREAMI( __FILE__ , __LINE__ );
-       std::cout <<"\n\n\t\tSpecies Tree, with node Ids: "<<std::endl;
-    std::cout << TreeTemplateTools::treeToParenthesis (*bestTree_, true)<<std::endl;
-     //Here we output the species tree with rates of duplication and loss, or coalescent units
-    if (reconciliationModel_ == "DL") {
-      //For duplication rates
-      for (unsigned int i =0; i<num0Lineages_.size() ; i++ )
+  std::cout <<"\n\n\t\tSpecies Tree, with node Ids: "<<std::endl;
+  std::cout << TreeTemplateTools::treeToParenthesis (*bestTree_, true)<<std::endl;
+  //Here we output the species tree with rates of duplication and loss, or coalescent units
+  if (reconciliationModel_ == "DL") {
+    //For duplication rates
+    for (unsigned int i =0; i<num0Lineages_.size() ; i++ )
+    {
+      bestTree_->getNode(i)->setBranchProperty("DUPLICATIONS", Number<double>( duplicationExpectedNumbers_[i]));
+      if (bestTree_->getNode(i)->hasFather())
       {
-        bestTree_->getNode(i)->setBranchProperty("DUPLICATIONS", Number<double>( duplicationExpectedNumbers_[i]));
-        if (bestTree_->getNode(i)->hasFather())
-        {
-          bestTree_->getNode(i)->setDistanceToFather(duplicationExpectedNumbers_[i]);
-        }
+        bestTree_->getNode(i)->setDistanceToFather(duplicationExpectedNumbers_[i]);
       }
-      std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", params_, "AllDuplications.tree", "", false, false);
-      dupTree = dupTree + suffix_;
-      std::ofstream out (dupTree.c_str(), std::ios::out);
-      out << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
-      out.close();
-      std::cout <<"\n\n\t\tBest Species Tree found, with duplication numbers as branch lengths: "<<std::endl;
-      std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
-
-      //For loss rates
-      for (unsigned int i =0; i<num0Lineages_.size() ; i++ )
-      {
-        bestTree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
-        if (bestTree_->getNode(i)->hasFather())
-        {
-          bestTree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
-        }
-      }
-
-      std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", params_, "AllLosses.tree", "", false, false);
-      lossTree = lossTree + suffix_;
-      out.open (lossTree.c_str(), std::ios::out);
-      out << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
-      out.close();
-      std::cout <<"\n\n\t\tBest Species Tree found, with loss numbers as branch lengths: "<<std::endl;
-      std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
-
     }
-    else if (reconciliationModel_ == "COAL") {
-      //For duplication rates
-      for (unsigned int i =0; i<num0Lineages_.size() ; i++ )
+    std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", params_, "AllDuplications.tree", "", false, false);
+    dupTree = dupTree + suffix_;
+    std::ofstream out (dupTree.c_str(), std::ios::out);
+    out << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
+    out.close();
+    std::cout <<"\n\n\t\tBest Species Tree found, with duplication numbers as branch lengths: "<<std::endl;
+    std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
+
+    //For loss rates
+    for (unsigned int i =0; i<num0Lineages_.size() ; i++ )
+    {
+      bestTree_->getNode(i)->setBranchProperty("LOSSES", Number<double>(lossExpectedNumbers_[i]));
+      if (bestTree_->getNode(i)->hasFather())
       {
-        // bestTree_->getNode(i)->setBranchProperty("COAL", Number<double>( coalBls_[i]));
-        if (bestTree_->getNode(i)->hasFather())
-        {
-          bestTree_->getNode(i)->setDistanceToFather(coalBls_[i]);
-        }
+        bestTree_->getNode(i)->setDistanceToFather(lossExpectedNumbers_[i]);
       }
-      std::string coalTree = ApplicationTools::getStringParameter("output.coalescence.tree.file", params_, "AllCoalescentUnits.tree", "", false, false);
-      coalTree = coalTree + suffix_;
-      std::ofstream out (coalTree.c_str(), std::ios::out);
-
-      //out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "COAL")<<std::endl;
-      out << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
-      out.close();
-      std::cout <<"\n\n\t\tBest Species Tree found, with branch lengths in coalescent units: "<<std::endl;
-      //std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "COAL")<<std::endl;
-      std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
-
     }
-    std::string numTree = ApplicationTools::getStringParameter("output.numbered.tree.file", params_, "ServerNumbered.tree", "", false, false);
-    numTree = numTree + suffix_;
-    std::ofstream out;
-    out.open (numTree.c_str(), std::ios::out);
-    out << TreeTemplateTools::treeToParenthesis (*bestTree_, true)<<std::endl;
+
+    std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", params_, "AllLosses.tree", "", false, false);
+    lossTree = lossTree + suffix_;
+    out.open (lossTree.c_str(), std::ios::out);
+    out << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
     out.close();
+    std::cout <<"\n\n\t\tBest Species Tree found, with loss numbers as branch lengths: "<<std::endl;
+    std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
 
-    //Here we output the species tree with numbers of times
-    //a given number of lineages has been found per branch.
-    assignNumLineagesOnSpeciesTree(*bestTree_,
-                                   num0Lineages_,
-                                   num1Lineages_,
-                                   num2Lineages_);
+  }
+  else if (reconciliationModel_ == "COAL") {
+    //For duplication rates
+    for (unsigned int i =0; i<num0Lineages_.size() ; i++ )
+    {
+      // bestTree_->getNode(i)->setBranchProperty("COAL", Number<double>( coalBls_[i]));
+      if (bestTree_->getNode(i)->hasFather())
+      {
+        bestTree_->getNode(i)->setDistanceToFather(coalBls_[i]);
+      }
+    }
+    std::string coalTree = ApplicationTools::getStringParameter("output.coalescence.tree.file", params_, "AllCoalescentUnits.tree", "", false, false);
+    coalTree = coalTree + suffix_;
+    std::ofstream out (coalTree.c_str(), std::ios::out);
 
-    std::string lineagesTree = ApplicationTools::getStringParameter("output.lineages.tree.file", params_, "lineageNumbers.tree", "", false, false);
-    lineagesTree = lineagesTree + suffix_;
-    out.open (lineagesTree.c_str(), std::ios::out);
-    out << TreeTemplateTools::treeToParenthesis(*bestTree_, false, NUMLINEAGES)<<std::endl;
+    //out << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "COAL")<<std::endl;
+    out << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
     out.close();
-    std::string file = ApplicationTools::getStringParameter("output.tree.file", params_, "output.tree");
+    std::cout <<"\n\n\t\tBest Species Tree found, with branch lengths in coalescent units: "<<std::endl;
+    //std::cout << treeToParenthesisWithDoubleNodeValues(*bestTree_, false, "COAL")<<std::endl;
+    std::cout << TreeTemplateTools::treeToParenthesis(*bestTree_, false)<<std::endl;
 
-    Newick newick;
+  }
+  std::string numTree = ApplicationTools::getStringParameter("output.numbered.tree.file", params_, "ServerNumbered.tree", "", false, false);
+  numTree = numTree + suffix_;
+  std::ofstream out;
+  out.open (numTree.c_str(), std::ios::out);
+  out << TreeTemplateTools::treeToParenthesis (*bestTree_, true)<<std::endl;
+  out.close();
 
-    newick.write(*bestTree_, file, true);
+  //Here we output the species tree with numbers of times
+  //a given number of lineages has been found per branch.
+  assignNumLineagesOnSpeciesTree(*bestTree_,
+      num0Lineages_,
+      num1Lineages_,
+      num2Lineages_);
 
-    std::cout << "\t\tServer : best found logLikelihood value : "<< - bestlogL_<<std::endl;
+  std::string lineagesTree = ApplicationTools::getStringParameter("output.lineages.tree.file", params_, "lineageNumbers.tree", "", false, false);
+  lineagesTree = lineagesTree + suffix_;
+  out.open (lineagesTree.c_str(), std::ios::out);
+  out << TreeTemplateTools::treeToParenthesis(*bestTree_, false, NUMLINEAGES)<<std::endl;
+  out.close();
+  std::string file = ApplicationTools::getStringParameter("output.tree.file", params_, "output.tree");
+
+  Newick newick;
+
+  newick.write(*bestTree_, file, true);
+
+  std::cout << "\t\tServer : best found logLikelihood value : "<< - bestlogL_<<std::endl;
 }
 
 
@@ -1356,7 +1356,7 @@ void MPI_SpeciesTreeLikelihood::buildMRPSpeciesTree() {
     MPI::COMM_WORLD.Abort(1);
     exit(-1);
   }
-//  TreeTools::midpointRooting(*tree_);
+  //  TreeTools::midpointRooting(*tree_);
   TreeTemplateTools::midRoot(*tree_, TreeTemplateTools::MIDROOT_SUM_OF_SQUARES, true);
   breadthFirstreNumber (*tree_);
   return;

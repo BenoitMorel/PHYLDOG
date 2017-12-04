@@ -73,13 +73,13 @@ std::string nodeToParenthesisBIS(const Tree & tree, int nodeId, bool bootstrap) 
       s << "," << nodeToParenthesisBIS(tree, sonsId[i], bootstrap);
     }
     s << ")";
-    
+
     if(bootstrap)
     {
       if(tree.hasBranchProperty(nodeId, "BOOTSTRAP"))
         s << (dynamic_cast<const Number<double> *>(tree.getBranchProperty(nodeId, "BOOTSTRAP"))->getValue());
     }
-    
+
   }
   if(tree.hasDistanceToFather(nodeId)) s << ":" << tree.getDistanceToFather(nodeId);
   return s.str();  
@@ -100,23 +100,23 @@ void getNodesInSubtreeIDs(Node* node,std::set<unsigned int>& IDs)
  * and pasted beneath node with Id newFatherId.
  ************************************************************************/
 std::vector<Node*> makeSPR(TreeTemplate<Node> &tree, 
-                           int cutNodeId, 
-                           int newBrotherId, 
-                           bool verbose, 
-                           bool returnNodesToUpdate)
+    int cutNodeId, 
+    int newBrotherId, 
+    bool verbose, 
+    bool returnNodesToUpdate)
 {
   //std::cout << "Generic::makeSpr " << cutNodeId << " " << newBrotherId << std::endl; 
   Node *cutNode, *newBrother, *oldFather, *oldGrandFather, *brother, *newBrothersFather, *N;
   std::vector<Node*> nodesToUpdate;
   double dist = 0.1;    
-  
+
   if (verbose)
     std::cout <<"\t\t\tMaking a SPR, moving node "<<cutNodeId<< " as brother of node "<< newBrotherId<< std::endl;
-   
-  
+
+
   newBrother = tree.getNode(newBrotherId);
   cutNode = tree.getNode(cutNodeId);
-  
+
   // first, we check if newBrother is included in the subtree of cutnode
   std::set<unsigned int> subtreeIDs;
   getNodesInSubtreeIDs(cutNode,subtreeIDs);
@@ -124,10 +124,10 @@ std::vector<Node*> makeSPR(TreeTemplate<Node> &tree,
     cout << "Trying to regraft a node in its subtree!" << endl;
     return nodesToUpdate;
   }
-  
-  
- 
-    
+
+
+
+
   if ((!(cutNode->hasFather()))||(!(newBrother->hasFather()))) {
     std::cout <<"Error in makeSPR"<< std::endl;
     if (!(cutNode->hasFather())) {
@@ -138,26 +138,26 @@ std::vector<Node*> makeSPR(TreeTemplate<Node> &tree,
     }
     exit (-1);
   }
-  
+
   oldFather = cutNode->getFather();
   //Get all old brothers ; a binary tree is assumed here (because of the "break")
   for(unsigned int i=0;i<oldFather->getNumberOfSons();i++)
     if(oldFather->getSon(i)!=cutNode){brother=oldFather->getSon(i); break;}
-    
-    newBrothersFather = newBrother->getFather();
+
+  newBrothersFather = newBrother->getFather();
   if (newBrothersFather == oldFather) {
     return nodesToUpdate;
   }
-  
+
   if (!(oldFather->hasFather())) {//we displace the outgroup, need to reroot the tree
     //NB : brother is the other son of the root
     int id0 = oldFather->getId();
     int idBrother = brother->getId();
     N=new Node();
-    
+
     N->addSon(newBrother);
     newBrother->setDistanceToFather(dist);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
-    
+
     //we remove cutNode from its old neighborhood
     for(unsigned int i=0;i<oldFather->getNumberOfSons();i++) {
       if(oldFather->getSon(i)==cutNode){oldFather->removeSon(i); break;} 
@@ -165,17 +165,17 @@ std::vector<Node*> makeSPR(TreeTemplate<Node> &tree,
     // we move node cutNode
     N->addSon(cutNode);
     cutNode->setDistanceToFather(dist); // BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
-    
+
     // update N neighbours 
     for(unsigned int i=0;i<newBrothersFather->getNumberOfSons();i++)
       if(newBrothersFather->getSon(i)==newBrother)
       {
         newBrothersFather->setSon(i, N); break;
       }
-      N->setDistanceToFather(dist); // BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
-      
-      unsigned int oldFatherId = oldFather->getId();
-      tree.rootAt(brother->getId());
+    N->setDistanceToFather(dist); // BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
+
+    unsigned int oldFatherId = oldFather->getId();
+    tree.rootAt(brother->getId());
     for(unsigned int i=0;i<brother->getNumberOfSons();i++) {
       if(brother->getSon(i)==oldFather){brother->removeSon(i);break;}
     }
@@ -189,36 +189,36 @@ std::vector<Node*> makeSPR(TreeTemplate<Node> &tree,
     int id0 = oldFather->getId();
     //we create a new node N which will be the father of cutNode and newBrother
     N=new Node();
-    
+
     N->addSon(newBrother);
     newBrother->setDistanceToFather(dist);// BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
     // we move node cutNode
     N->addSon(cutNode);
-    
+
     cutNode->setDistanceToFather(dist); // BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
-    
+
     // update N neighbours    
     for(unsigned int i=0;i<newBrothersFather->getNumberOfSons();i++)
       if(newBrothersFather->getSon(i)==newBrother){newBrothersFather->setSon(i, N); break;}
-      N->setDistanceToFather(dist); // BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
-      oldGrandFather = oldFather->getFather();
+    N->setDistanceToFather(dist); // BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
+    oldGrandFather = oldFather->getFather();
     for(unsigned int i=0;i<oldGrandFather->getNumberOfSons();i++)
       if(oldGrandFather->getSon(i)==oldFather){oldGrandFather->setSon(i, brother); break;}
-      brother->setDistanceToFather(dist); // BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
-      delete oldFather;
+    brother->setDistanceToFather(dist); // BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
+    delete oldFather;
     N->setId(id0);
   }
   if (returnNodesToUpdate) {
     nodesToUpdate.push_back(cutNode);
     nodesToUpdate.push_back(N);
-    
+
     if (cutNode->getNumberOfSons() > 0)
       nodesToUpdate = VectorTools::vectorUnion (nodesToUpdate, cutNode->getSons() );
     if (brother->getNumberOfSons() > 0)
       nodesToUpdate = VectorTools::vectorUnion (nodesToUpdate, brother->getSons() );
     std::vector<Node*> nodesToUpdate2 = TreeTemplateTools::getPathBetweenAnyTwoNodes (*brother, *cutNode, true);
     nodesToUpdate = VectorTools::vectorUnion (nodesToUpdate, nodesToUpdate2);
-    
+
     // nodesToUpdate.push_back(newBrother);
     //We also need to add the path to the root, if the root is not included already
     if ( ! VectorTools::contains(nodesToUpdate, tree.getRootNode() ) ) {
@@ -246,34 +246,34 @@ std::vector<Node*> makeSPR(TreeTemplate<Node> &tree,
  * and pasted beneath node with Id newFatherId. Beware this function does not necessarily return a proper binary tree.
  ************************************************************************/
 void makeMuffatoSPR(TreeTemplate<Node> &tree, 
-                    Node* cutNode, 
-                    Node* newFather, 
-                    bool verbose)
+    Node* cutNode, 
+    Node* newFather, 
+    bool verbose)
 {
-  
+
   std::cout << "ploupi::makeMuffatoSpr " << std::endl; 
   Node *oldFather, *N;
   double dist = 0.1;  
-  
+
   if (verbose)
     std::cout <<"\t\t\tMaking a Muffato SPR, moving node "<< cutNode->getId() << " as son of node "<< newFather->getId() << std::endl;
-    
+
   if ( ! ( cutNode->hasFather() ) ) {
     std::cout <<"Error in makeMuffatoSPR"<< std::endl;
     std::cout << " Node "<< cutNode->getId() <<" has no father"<< std::endl;
     exit (-1);
   }
-  
+
   oldFather = cutNode->getFather();
-  
+
   //If the newFather already has two sons, then we need to create a new node (to keep a binary tree)    
   if ( newFather->getNumberOfSons() > 1 ) {
     //we create a new node N which will be the father of cutNode and newBrother
     N=new Node();
-    
+
     std::vector< Node* > newBrothers = newFather->getSons();
     size_t siz = newBrothers.size();
-    
+
     for (size_t i = 0 ; i < siz; i++) {
       newFather->removeSon( newBrothers[i] );
       N->addSon( newBrothers[i] );//TEST PRINT id OF newBrothers[i]
@@ -283,12 +283,12 @@ void makeMuffatoSPR(TreeTemplate<Node> &tree,
     N->setDistanceToFather(dist); // BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
   }
   oldFather->removeSon( cutNode );
-  
+
   newFather->addSon(cutNode);
   cutNode->setDistanceToFather(dist); // BY DEFAULT RIGHT NOW. MAY NEED TO CHANGE IN THE FUTURE
-  
+
   //In principle we may not need to clean up behind us, because we only use this function from editDuplicationNodesMuffato
-  
+
   return ;
 }
 
@@ -305,10 +305,10 @@ void makeNNI(TreeTemplate<Node> &tree, int nodeId)
   std::cout <<"Making a NNI involving node :"<<nodeId<< std::endl;
   double dist = 0.1;  
   Node * son    = tree.getNode(nodeId);
-  
+
   if(!son->hasFather()) throw NodeException("makeNNI(). Node 'son' must not be the root node.", nodeId);
   Node * parent = son->getFather();
-  
+
   if(!parent->hasFather()) throw NodeException("makeNNI(). Node 'parent' must not be the root node.", parent->getId());
   Node * grandFather = parent->getFather();
   //From here: Bifurcation assumed.
@@ -316,7 +316,7 @@ void makeNNI(TreeTemplate<Node> &tree, int nodeId)
   //If we are at root node with a trifurcation, this does not matter, since 2 NNI are possible (see doc of the NNISearchable interface).
   unsigned int parentPosition = grandFather->getSonPosition(parent);
   Node * uncle = grandFather->getSon(parentPosition > 1 ? 0 : 1 - parentPosition);
-  
+
   parent->removeSon(son);
   grandFather->removeSon(uncle);
   parent->addSon(uncle);
@@ -333,7 +333,7 @@ void makeNNI(TreeTemplate<Node> &tree, int nodeId)
  ************************************************************************/
 void buildVectorOfRegraftingNodes(TreeTemplate<Node> &tree, int nodeForSPR, std::vector <int> & nodeIdsToRegraft)
 {
-  
+
   std::vector <int> allNodeIds = tree.getNodesId();
   std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(tree.getNode(nodeForSPR)));
   forbiddenIds.push_back(tree.getRootNode()->getId());
@@ -342,11 +342,11 @@ void buildVectorOfRegraftingNodes(TreeTemplate<Node> &tree, int nodeForSPR, std:
   //Get one brother ; a binary tree is supposed here (because of the "break")
   for(unsigned int i=0;i<tree.getNode(oldFatherId)->getNumberOfSons();i++)
     if(tree.getNode(oldFatherId)->getSon(i)->getId()!=nodeForSPR){brotherId=tree.getNode(oldFatherId)->getSon(i)->getId(); break;}
-    if ((tree.getNode(oldFatherId)->hasFather())||(!tree.getNode(brotherId)->isLeaf())) {
-      forbiddenIds.push_back(brotherId);
-    }
-    
-    std::vector <int> toRemove;
+  if ((tree.getNode(oldFatherId)->hasFather())||(!tree.getNode(brotherId)->isLeaf())) {
+    forbiddenIds.push_back(brotherId);
+  }
+
+  std::vector <int> toRemove;
   for (unsigned int i = 0 ; i< allNodeIds.size() ; i++) {
     if (VectorTools::contains(forbiddenIds, allNodeIds[i])) {
       toRemove.push_back(i);
@@ -357,10 +357,10 @@ void buildVectorOfRegraftingNodes(TreeTemplate<Node> &tree, int nodeForSPR, std:
     std::vector<int>::iterator vi = allNodeIds.begin();
     allNodeIds.erase(vi+toRemove[i]);
   }
-  
+
   //Now allNodeIds contains all the Ids of nodes where the subtree can be reattached.
   nodeIdsToRegraft = allNodeIds;
-  
+
 }
 
 
@@ -445,7 +445,7 @@ void buildVectorOfRegraftingNodesLimitedDistance(TreeTemplate<Node> &tree, int n
   int oldFatherId = tree.getNode(nodeForSPR)->getFather()->getId();
   forbiddenIds.push_back(oldFatherId);
   forbiddenIds.push_back(tree.getRootNode()->getId());
-  
+
   //We remove the nodes that are not appropriate for regrafting
   std::vector <int> toRemove;
   for (unsigned int i = 0 ; i< allNodeIds.size() ; i++) {
@@ -453,16 +453,16 @@ void buildVectorOfRegraftingNodesLimitedDistance(TreeTemplate<Node> &tree, int n
       toRemove.push_back(i);
     }
   }
-  
+
   sort(toRemove.begin(), toRemove.end(), cmp);
- for (unsigned int i = 0 ; i< toRemove.size() ; i++) {
+  for (unsigned int i = 0 ; i< toRemove.size() ; i++) {
     std::vector<int>::iterator vi = allNodeIds.begin();
     allNodeIds.erase(vi+toRemove[i]);
   }
-  
+
   //Now allNodeIds contains all the Ids of nodes where the subtree can be reattached.
   nodeIdsToRegraft = allNodeIds;
-  
+
 }
 
 
@@ -478,7 +478,7 @@ void buildVectorOfRegraftingNodesLimitedDistanceLowerNodes(TreeTemplate<Node> &t
   getNeighboringNodesIdLimitedDistanceLowerNodes(tree, nodeForSPR, distance, allNodeIds);
   std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(tree.getNode(nodeForSPR)));
   forbiddenIds.push_back(tree.getRootNode()->getId());
-  
+
   //We remove the nodes that are not appropriate for regrafting
   std::vector <int> toRemove;
   for (unsigned int i = 0 ; i< allNodeIds.size() ; i++) {
@@ -491,10 +491,10 @@ void buildVectorOfRegraftingNodesLimitedDistanceLowerNodes(TreeTemplate<Node> &t
     std::vector<int>::iterator vi = allNodeIds.begin();
     allNodeIds.erase(vi+toRemove[i]);
   }
-  
+
   //Now allNodeIds contains all the Ids of nodes where the subtree can be reattached.
   nodeIdsToRegraft = allNodeIds;
-  
+
 }
 
 
@@ -535,7 +535,7 @@ void makeDeterministicModifications(TreeTemplate<Node> &tree, size_t & nodeForNN
     Node * N = tree.getRootNode();
     std::vector <int> firstHalfNodeIds = TreeTemplateTools::getNodesId(*(N->getSon(0)));
     std::vector <int> secondHalfNodeIds = TreeTemplateTools::getNodesId(*(N->getSon(1)));
-    
+
     if (secondHalfNodeIds.size()<firstHalfNodeIds.size()) {
       allNodeIds = firstHalfNodeIds;
       for (unsigned int i = 0 ; i< secondHalfNodeIds.size() ; i++ ) {
@@ -549,16 +549,16 @@ void makeDeterministicModifications(TreeTemplate<Node> &tree, size_t & nodeForNN
       }
     }
     std::vector <int> forbiddenIds = TreeTemplateTools::getNodesId(*(tree.getNode(nodeForSPR)));
-    
+
     int oldFatherId = tree.getNode(nodeForSPR)->getFather()->getId();
     int brotherId;
     //Get one brother ; a binary tree is supposed here (because of the "break")
     for(size_t i=0;i<tree.getNode(oldFatherId)->getNumberOfSons();i++)
       if( (size_t) tree.getNode(oldFatherId)->getSon(i)->getId() != nodeForSPR ){brotherId=tree.getNode(oldFatherId)->getSon(i)->getId(); break;}
-      if ((tree.getNode(oldFatherId)->hasFather())||(!tree.getNode(brotherId)->isLeaf())) {
-        forbiddenIds.push_back(brotherId);
-      }
-      std::vector <int> toRemove;
+    if ((tree.getNode(oldFatherId)->hasFather())||(!tree.getNode(brotherId)->isLeaf())) {
+      forbiddenIds.push_back(brotherId);
+    }
+    std::vector <int> toRemove;
     for (size_t i = 0 ; i< allNodeIds.size() ; i++) {
       if (VectorTools::contains(forbiddenIds, allNodeIds[i])) {
         toRemove.push_back(i);
@@ -575,7 +575,7 @@ void makeDeterministicModifications(TreeTemplate<Node> &tree, size_t & nodeForNN
     makeSPR(tree, nodeForSPR, newBrotherId);
     nodeForSPR++;
   }
-  
+
 }
 
 
@@ -668,8 +668,8 @@ void makeDeterministicNNIsAndRootChangesOnly(TreeTemplate<Node> &tree, size_t & 
  ************************************************************************/
 
 bool checkChangeHasNotBeenDone(TreeTemplate<Node> &tree, TreeTemplate<Node> *bestTree, size_t & nodeForNNI, 
-                               size_t & nodeForRooting, std::vector < double >  &NNILks, 
-                               std::vector < double >  &rootLks)
+    size_t & nodeForRooting, std::vector < double >  &NNILks, 
+    std::vector < double >  &rootLks)
 {
   if (nodeForNNI < tree.getNumberOfNodes()) 
   {//Make a NNI or rerooting move
@@ -755,7 +755,7 @@ Tree* MRP(const vector<Tree*>& vecTr)
 {
   //matrix representation
   VectorSiteContainer* sites = TreeTools::MRPEncode(vecTr);
-  
+
   //starting bioNJ tree
   const DNA* alphabet= dynamic_cast<const DNA*>(sites->getAlphabet());
   auto_ptr<SubstitutionModel>   jc (new JCnuc( alphabet ) );
@@ -822,7 +822,7 @@ bool isTreeRootedWithOutgroup (const TreeTemplate<Node> &tree, const std::vector
     descendantNames = TreeTemplateTools::getLeavesNames( *n );
   }
   std::vector<std::string> testTaxa ; 
-  
+
   VectorTools::diff < std::string >(descendantNames, *(const_cast< std::vector<std::string>* > (&outgroupTaxa)), testTaxa) ;
   if ( testTaxa.size() == 0 ) {
     return true;

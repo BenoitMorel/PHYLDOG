@@ -1,5 +1,5 @@
 /*
-Copyright or © or Copr. Centre National de la Recherche Scientifique
+   Copyright or © or Copr. Centre National de la Recherche Scientifique
 contributor : Bastien Boussau (2009-2013)
 
 bastien.boussau@univ-lyon1.fr
@@ -56,46 +56,46 @@ namespace mpi = boost::mpi;
 
 
 /*
-This program takes a species tree file, sequence alignments and files describing the relations between sequences and species.
-To compile it, use the Makefile !
-*/
+   This program takes a species tree file, sequence alignments and files describing the relations between sequences and species.
+   To compile it, use the Makefile !
+   */
 
 /******************************************************************************/
 
 void help()
 {
-    (*ApplicationTools::message << "__________________________________________________________________________").endLine();
-    (*ApplicationTools::message << "phyldog parameter1_name=parameter1_value parameter2_name=parameter2_value"   ).endLine();
-    (*ApplicationTools::message << "      ... param=option_file").endLine();
-    (*ApplicationTools::message << "Example of some options: ").endLine();
-    (*ApplicationTools::message).endLine();
+  (*ApplicationTools::message << "__________________________________________________________________________").endLine();
+  (*ApplicationTools::message << "phyldog parameter1_name=parameter1_value parameter2_name=parameter2_value"   ).endLine();
+  (*ApplicationTools::message << "      ... param=option_file").endLine();
+  (*ApplicationTools::message << "Example of some options: ").endLine();
+  (*ApplicationTools::message).endLine();
 
-    /*SequenceApplicationTools::printInputAlignmentHelp();
-     PhylogeneticsApplicationTools::printInputTreeHelp();
-     PhylogeneticsApplicationTools::printSubstitutionModelHelp();
-     PhylogeneticsApplicationTools::printRateDistributionHelp();
-     PhylogeneticsApplicationTools::printCovarionModelHelp();
-     PhylogeneticsApplicationTools::printOptimizationHelp(true, false);
-     PhylogeneticsApplicationTools::printOutputTreeHelp();*/
-    //  (*ApplicationTools::message << "output.infos                      | file where to write site infos").endLine();
-    //  (*ApplicationTools::message << "output.estimates                  | file where to write estimated parameter values").endLine();
-    (*ApplicationTools::message << "PATH                                 | path to the directory containing input and output files").endLine();
-    (*ApplicationTools::message << "init.species.tree                    | user or random or mrp").endLine();
-    (*ApplicationTools::message << "species.tree.file                    | if the former is set to \"user\", path to a species tree" ).endLine();
-    (*ApplicationTools::message << "species.names.file                   | if instead it was set to \"random\", or \"mrp\" path to a list of species names ").endLine();
-    (*ApplicationTools::message << "starting.tree.file                   | file where to write the initial species tree").endLine();
-    (*ApplicationTools::message << "output.tree.file                     | file where to write the end species tree").endLine();
-    (*ApplicationTools::message << "output.temporary.tree.file           | file where to write the temporary species tree in case the job is ended because of time constraints.").endLine();
+  /*SequenceApplicationTools::printInputAlignmentHelp();
+    PhylogeneticsApplicationTools::printInputTreeHelp();
+    PhylogeneticsApplicationTools::printSubstitutionModelHelp();
+    PhylogeneticsApplicationTools::printRateDistributionHelp();
+    PhylogeneticsApplicationTools::printCovarionModelHelp();
+    PhylogeneticsApplicationTools::printOptimizationHelp(true, false);
+    PhylogeneticsApplicationTools::printOutputTreeHelp();*/
+  //  (*ApplicationTools::message << "output.infos                      | file where to write site infos").endLine();
+  //  (*ApplicationTools::message << "output.estimates                  | file where to write estimated parameter values").endLine();
+  (*ApplicationTools::message << "PATH                                 | path to the directory containing input and output files").endLine();
+  (*ApplicationTools::message << "init.species.tree                    | user or random or mrp").endLine();
+  (*ApplicationTools::message << "species.tree.file                    | if the former is set to \"user\", path to a species tree" ).endLine();
+  (*ApplicationTools::message << "species.names.file                   | if instead it was set to \"random\", or \"mrp\" path to a list of species names ").endLine();
+  (*ApplicationTools::message << "starting.tree.file                   | file where to write the initial species tree").endLine();
+  (*ApplicationTools::message << "output.tree.file                     | file where to write the end species tree").endLine();
+  (*ApplicationTools::message << "output.temporary.tree.file           | file where to write the temporary species tree in case the job is ended because of time constraints.").endLine();
 
-    //(*ApplicationTools::message << "species.id.limit.for.root.position| Threshold for trying root positions").endLine();
-    (*ApplicationTools::message << "genelist.file                        | file containing a list of gene option files to analyse").endLine();
-    (*ApplicationTools::message << "branch.expected.numbers.optimization | average, branchwise, average_then_branchwise or no: how we optimize duplication and loss probabilities").endLine();
-    (*ApplicationTools::message << "genome.coverage.file                 | file giving the percent coverage of the genomes used").endLine();
-    (*ApplicationTools::message << "spr.limit                            | integer giving the breadth of SPR movements, in number of nodes. 0.1* number of nodes in the species tree might be OK.").endLine();
-    (*ApplicationTools::message << "reconciliation.model                 | 'DL' or 'COAL' giving the type of model to reconcile gene trees against the species tree.").endLine();
+  //(*ApplicationTools::message << "species.id.limit.for.root.position| Threshold for trying root positions").endLine();
+  (*ApplicationTools::message << "genelist.file                        | file containing a list of gene option files to analyse").endLine();
+  (*ApplicationTools::message << "branch.expected.numbers.optimization | average, branchwise, average_then_branchwise or no: how we optimize duplication and loss probabilities").endLine();
+  (*ApplicationTools::message << "genome.coverage.file                 | file giving the percent coverage of the genomes used").endLine();
+  (*ApplicationTools::message << "spr.limit                            | integer giving the breadth of SPR movements, in number of nodes. 0.1* number of nodes in the species tree might be OK.").endLine();
+  (*ApplicationTools::message << "reconciliation.model                 | 'DL' or 'COAL' giving the type of model to reconcile gene trees against the species tree.").endLine();
 
-    (*ApplicationTools::message << "  Refer to the README file or the Bio++ Program Suite Manual for a list of supplementary options.").endLine();
-    (*ApplicationTools::message << "__________________________________________________________________________").endLine();
+  (*ApplicationTools::message << "  Refer to the README file or the Bio++ Program Suite Manual for a list of supplementary options.").endLine();
+  (*ApplicationTools::message << "__________________________________________________________________________").endLine();
 }
 
 
@@ -107,10 +107,10 @@ std::vector <int> operator + (std::vector <int> x, std::vector <int> y) {
   unsigned int temp=x.size();
   if (temp!=y.size()) {
     std::cout <<"problem : adding two std::vectors of unequal sizes."<<std::endl;
-        MPI::COMM_WORLD.Abort(1);
+    MPI::COMM_WORLD.Abort(1);
     exit (-1);
   }
- std::vector<int> result;
+  std::vector<int> result;
   for(unsigned int i = 0 ; i<temp ; i++){
     result.push_back(x[i]+y[i]);
   }
@@ -121,10 +121,10 @@ std::vector <double> operator + (std::vector <double> x, std::vector <double> y)
   unsigned int temp=x.size();
   if (temp!=y.size()) {
     std::cout <<"problem : adding two std::vectors of unequal sizes."<<std::endl;
-        MPI::COMM_WORLD.Abort(1);
+    MPI::COMM_WORLD.Abort(1);
     exit (-1);
   }
- std::vector<double> result;
+  std::vector<double> result;
   for(unsigned int i = 0 ; i<temp ; i++){
     result.push_back(x[i]+y[i]);
   }
@@ -175,7 +175,7 @@ int main(int args, char ** argv)
 
   try {
     ApplicationTools::startTimer();
-        //All processors parse the main options
+    //All processors parse the main options
     std::map<std::string, std::string> params = AttributesTools::parseOptions(args, argv);
     unsigned int seed = ApplicationTools::getIntParameter("seed", params, 42);
     if (rank == server) {
@@ -184,107 +184,107 @@ int main(int args, char ** argv)
     srand(seed);
     RandomTools::setSeed(seed);
 
-        //##################################################################################################################
-        //##################################################################################################################
-        //############################################# IF AT THE SERVER NODE ##############################################
-        //##################################################################################################################
-        //##################################################################################################################
+    //##################################################################################################################
+    //##################################################################################################################
+    //############################################# IF AT THE SERVER NODE ##############################################
+    //##################################################################################################################
+    //##################################################################################################################
 
     if (rank == server) {
-  WHEREAMI( __FILE__ , __LINE__ );
+      WHEREAMI( __FILE__ , __LINE__ );
 
-            /*
-            int z = 0;
-            //   char hostname[256];
-            //gethostname(hostname, sizeof(hostname));
-            std::cout <<"PID: "<<getpid()<<std::endl;
-            std::cout <<"z: "<<z<<std::endl;
-            //printf("PID %d on %s ready for attach\n", getpid(), hostname);
-            // fflush(stdout);
-            while (0 == z){
-                std::cout << z <<std::endl;
-                sleep(5);
-            }*/
+      /*
+         int z = 0;
+      //   char hostname[256];
+      //gethostname(hostname, sizeof(hostname));
+      std::cout <<"PID: "<<getpid()<<std::endl;
+      std::cout <<"z: "<<z<<std::endl;
+      //printf("PID %d on %s ready for attach\n", getpid(), hostname);
+      // fflush(stdout);
+      while (0 == z){
+      std::cout << z <<std::endl;
+      sleep(5);
+      }*/
 
 
-            std::cout << "******************************************************************" << std::endl;
-            std::cout << "*                   PHYLDOG, version 1.1.0                       *" << std::endl;
-            std::cout << "* Author: B. Boussau                            Created 16/07/07 *" << std::endl;
-            std::cout << "******************************************************************" << std::endl;
-            std::cout << std::endl;
+      std::cout << "******************************************************************" << std::endl;
+      std::cout << "*                   PHYLDOG, version 1.1.0                       *" << std::endl;
+      std::cout << "* Author: B. Boussau                            Created 16/07/07 *" << std::endl;
+      std::cout << "******************************************************************" << std::endl;
+      std::cout << std::endl;
 
-            std::cout <<"Server of rank "<<rank <<" with PID "<< TextTools::toString((int)getpid())<<std::endl;
+      std::cout <<"Server of rank "<<rank <<" with PID "<< TextTools::toString((int)getpid())<<std::endl;
 
-            MPI_SpeciesTreeLikelihood spTL = MPI_SpeciesTreeLikelihood(world, server, size, params);
-            //initialization, first communications, first likelihood computation
+      MPI_SpeciesTreeLikelihood spTL = MPI_SpeciesTreeLikelihood(world, server, size, params);
+      //initialization, first communications, first likelihood computation
 
-            spTL.initialize();
+      spTL.initialize();
 
-            spTL.MLSearch();
+      spTL.MLSearch();
 
       std::cout << "PHYLDOG's done. Bye." << std::endl;
       ApplicationTools::displayTime("Total execution time:");
-            MPI_Barrier(world);
-            MPI::Finalize( );
+      MPI_Barrier(world);
+      MPI::Finalize( );
     }//End if at the server node
 
 
-        //##################################################################################################################
-        //##################################################################################################################
-        //############################################# IF AT A CLIENT NODE ################################################
-        //##################################################################################################################
-        //##################################################################################################################
-        if (rank >server)
-	  {
-  WHEREAMI( __FILE__ , __LINE__ );
-               //  Code useful to use GDB on clients.
- 	/*	int z = 0;
- 	      //   char hostname[256];
- 	      //gethostname(hostname, sizeof(hostname));
- 	      std::cout <<"- PID: "<<getpid()<<std::endl;
- 	      std::cout <<"-   z: "<<z<<std::endl;
- 	      //printf("PID %d on %s ready for attach\n", getpid(), hostname);
- 	      // fflush(stdout);
- 	      while (0 == z){
-                 std::cout << " z=" << z <<std::endl;
-                 sleep(5);
- 	      }*/
+    //##################################################################################################################
+    //##################################################################################################################
+    //############################################# IF AT A CLIENT NODE ################################################
+    //##################################################################################################################
+    //##################################################################################################################
+    if (rank >server)
+    {
+      WHEREAMI( __FILE__ , __LINE__ );
+      //  Code useful to use GDB on clients.
+      /*	int z = 0;
+      //   char hostname[256];
+      //gethostname(hostname, sizeof(hostname));
+      std::cout <<"- PID: "<<getpid()<<std::endl;
+      std::cout <<"-   z: "<<z<<std::endl;
+      //printf("PID %d on %s ready for attach\n", getpid(), hostname);
+      // fflush(stdout);
+      while (0 == z){
+      std::cout << " z=" << z <<std::endl;
+      sleep(5);
+      }*/
 
-	      ApplicationTools::startTimer();
-	      bool debug = ApplicationTools::getBooleanParameter("debug",params,false);
-	      string path = ApplicationTools::getStringParameter("PATH", params, "", "", true, false);
-	      string outputFile = path + "Client_"+TextTools::toString(rank)+".out";
-	      streambuf *psbuf, *backup, *backupcerr;
-	      ofstream filestr;
-	      if (!debug) {
-		  //Redirecting stdout to a specific file for this client
-		  filestr.open (outputFile.c_str());
-		  backup = cout.rdbuf();     // back up cout's streambuf
-		  backupcerr = cerr.rdbuf(); // back up cerr's streambuf
-		  psbuf = filestr.rdbuf();   // get file's streambuf
-		  cout.rdbuf(psbuf);         // assign streambuf to cout
-		  cerr.rdbuf(psbuf);
-	      }
+      ApplicationTools::startTimer();
+      bool debug = ApplicationTools::getBooleanParameter("debug",params,false);
+      string path = ApplicationTools::getStringParameter("PATH", params, "", "", true, false);
+      string outputFile = path + "Client_"+TextTools::toString(rank)+".out";
+      streambuf *psbuf, *backup, *backupcerr;
+      ofstream filestr;
+      if (!debug) {
+        //Redirecting stdout to a specific file for this client
+        filestr.open (outputFile.c_str());
+        backup = cout.rdbuf();     // back up cout's streambuf
+        backupcerr = cerr.rdbuf(); // back up cerr's streambuf
+        psbuf = filestr.rdbuf();   // get file's streambuf
+        cout.rdbuf(psbuf);         // assign streambuf to cout
+        cerr.rdbuf(psbuf);
+      }
 
-	      //initialization, first communications, first likelihood computation
-	      ClientComputingGeneLikelihoods client = ClientComputingGeneLikelihoods(world, server, rank, params);
+      //initialization, first communications, first likelihood computation
+      ClientComputingGeneLikelihoods client = ClientComputingGeneLikelihoods(world, server, rank, params);
 
-	      //Main loop, computation of the gene tree likelihoods given species trees sent by the server.
-	      client.MLSearch();
+      //Main loop, computation of the gene tree likelihoods given species trees sent by the server.
+      client.MLSearch();
 
-			if (!debug) {
-				cerr.rdbuf(backupcerr);    // restore cerr's original streambuf
-				cout.rdbuf(backup);        // restore cout's original streambuf
-				filestr.close();
-			}
-			MPI_Barrier(world);
-			MPI::Finalize( );
-		}//end if a client node
+      if (!debug) {
+        cerr.rdbuf(backupcerr);    // restore cerr's original streambuf
+        cout.rdbuf(backup);        // restore cout's original streambuf
+        filestr.close();
+      }
+      MPI_Barrier(world);
+      MPI::Finalize( );
+    }//end if a client node
   }
   catch(std::exception & e)
   {
     std::cout << e.what() << std::endl;
-        MPI::COMM_WORLD.Abort(1);
+    MPI::COMM_WORLD.Abort(1);
     exit(-1);
   }
   return (0);
@@ -300,22 +300,22 @@ int main(int args, char ** argv)
 
 
 /*
- // This bit of code is useful to use GDB on clients, when put into the client's code:
- //launch the application, which will output the client pid
- //then launch gdb, attach to the given pid ("attach pid" or "gdb phyldog pid"),
- //use "up" to go up the stacks, and set the variable z to !=0 to get out of the loop with "set var z = 8".
- int z = 0;
- //   char hostname[256];
- //gethostname(hostname, sizeof(hostname));
- std::cout <<"PID: "<<getpid()<<std::endl;
- std::cout <<"z: "<<z<<std::endl;
- //printf("PID %d on %s ready for attach\n", getpid(), hostname);
- // fflush(stdout);
- while (0 == z){
- std::cout <<z<<std::endl;
- sleep(5);
- }
- */
+// This bit of code is useful to use GDB on clients, when put into the client's code:
+//launch the application, which will output the client pid
+//then launch gdb, attach to the given pid ("attach pid" or "gdb phyldog pid"),
+//use "up" to go up the stacks, and set the variable z to !=0 to get out of the loop with "set var z = 8".
+int z = 0;
+//   char hostname[256];
+//gethostname(hostname, sizeof(hostname));
+std::cout <<"PID: "<<getpid()<<std::endl;
+std::cout <<"z: "<<z<<std::endl;
+//printf("PID %d on %s ready for attach\n", getpid(), hostname);
+// fflush(stdout);
+while (0 == z){
+std::cout <<z<<std::endl;
+sleep(5);
+}
+*/
 
 
 
@@ -334,14 +334,14 @@ int main(int args, char ** argv)
 
 
 /*This code permits outputting trees with numbers of duplication or loss events at branches
- //set total numbers of loss and duplications on branches
- setLossesAndDuplications(*bestTree, bestLossNumbers, bestDuplicationNumbers);
- std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", params, "AllDuplications.tree", "", false, false);
- std::ofstream out (dupTree.c_str(), std::ios::out);
- out << treeToParenthesisWithIntNodeValues (*bestTree, false, DUPLICATIONS)<<std::endl;
- out.close();
- std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", params, "AllLosses.tree", "", false, false);
- out.open (lossTree.c_str(), std::ios::out);
- out << treeToParenthesisWithIntNodeValues (*bestTree, false, LOSSES)<<std::endl;
- out.close();
- */
+//set total numbers of loss and duplications on branches
+setLossesAndDuplications(*bestTree, bestLossNumbers, bestDuplicationNumbers);
+std::string dupTree = ApplicationTools::getStringParameter("output.duplications.tree.file", params, "AllDuplications.tree", "", false, false);
+std::ofstream out (dupTree.c_str(), std::ios::out);
+out << treeToParenthesisWithIntNodeValues (*bestTree, false, DUPLICATIONS)<<std::endl;
+out.close();
+std::string lossTree = ApplicationTools::getStringParameter("output.losses.tree.file", params, "AllLosses.tree", "", false, false);
+out.open (lossTree.c_str(), std::ios::out);
+out << treeToParenthesisWithIntNodeValues (*bestTree, false, LOSSES)<<std::endl;
+out.close();
+*/

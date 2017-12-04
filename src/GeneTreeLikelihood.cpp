@@ -431,14 +431,14 @@ void GeneTreeLikelihood::setGeneTree(TreeTemplate<Node>* tree, TreeTemplate<Node
   rootedTree_= dynamic_cast<TreeTemplate<Node> *> (rootedTree->clone());
   //recreating geneTreeWithSpNames_
   if (geneTreeWithSpNames_) delete geneTreeWithSpNames_;
- 	geneTreeWithSpNames_ = tree->clone();
-	std::vector <Node*> leaves = geneTreeWithSpNames_->getLeaves();
-	for (unsigned int j =0; j<leaves.size() ; j++)
-	  {
-	    leaves[j]->setName(seqSp_.at(leaves[j]->getName()));
-	  }
+  geneTreeWithSpNames_ = tree->clone();
+  std::vector <Node*> leaves = geneTreeWithSpNames_->getLeaves();
+  for (unsigned int j =0; j<leaves.size() ; j++)
+  {
+    leaves[j]->setName(seqSp_.at(leaves[j]->getName()));
+  }
   levaluator_->rollbackAllMoves();
-	levaluator_->setAlternativeTree(rootedTree);
+  levaluator_->setAlternativeTree(rootedTree);
   levaluator_->acceptAlternativeTree();
 }
 

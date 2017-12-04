@@ -1221,6 +1221,9 @@ void reroot(bpp::TreeTemplate<bpp::Node>* tree,
     const set<string> &leaves1,
     const set<string> &leaves2)
 {
+  if (tree->isRooted()) {
+    tree->unroot();
+  }
     // the plyogenetic root is between the current topological
     // root and one of the three sons
     // so, one of the three sons of a root is the outgroup
@@ -1230,9 +1233,10 @@ void reroot(bpp::TreeTemplate<bpp::Node>* tree,
       vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currSon);
       set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
 
-      if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
+      if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2)) {
         tree->newOutGroup(*currSon);
 
+      }
     }
 
     // if not, we will try all the internal branches as potential roots
@@ -1244,8 +1248,9 @@ void reroot(bpp::TreeTemplate<bpp::Node>* tree,
         vector<string> currLeavesVector = TreeTemplateTools::getLeavesNames(**currCandidate);
         set<string> currLeavesSet(currLeavesVector.begin(),currLeavesVector.end());
       
-        if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2))
-        tree->newOutGroup(*currCandidate);
+        if((currLeavesSet.size() == leaves1.size() && currLeavesSet == leaves1) || (currLeavesSet.size() == leaves2.size() && currLeavesSet == leaves2)) {
+          tree->newOutGroup(*currCandidate);
+        }
       }
     }
 
@@ -1291,6 +1296,14 @@ double LikelihoodEvaluator::libpllEvaluateIterative(bpp::TreeTemplate<bpp::Node>
   if (!currentTreeinfo) {
     return libpllEvaluateFromScratch(treeToEvaluate);
   }
+  // save root to find it back
+  bool wasRooted = ((*treeToEvaluate)->isRooted() ? true : false);
+  set<string> leaves1, leaves2;
+  
+
+  if(wasRooted){
+    saveRoot(*treeToEvaluate, leaves1, leaves2);
+  }
   
   //std::cout << "TreeInfo" <<  printer.getTreeinfoString(currentTreeinfo, true, false, false) << std::endl;
   //std::cout << "Tree BPP" <<  printer.getBPPNodeString((*treeToEvaluate)->getRootNode(), true, false) << std::endl;
@@ -1303,6 +1316,9 @@ double LikelihoodEvaluator::libpllEvaluateIterative(bpp::TreeTemplate<bpp::Node>
   }
   double result_ll = getTreeinfoLikelihood(currentTreeinfo);
   updateTreeToEvaluate(treeToEvaluate, currentTreeinfo, printer);
+  if (wasRooted) {
+    reroot(*treeToEvaluate, leaves1, leaves2);
+  }
   mapUtreeToBPPTree(currentUtree, *treeToEvaluate);
   return result_ll;
 }
@@ -1315,9 +1331,6 @@ double LikelihoodEvaluator::libpllEvaluateFromScratch(bpp::TreeTemplate<bpp::Nod
     destroyTreeinfo();
   }
   TreeTemplate<Node>* inputBPPTree = (*treeToEvaluate)->clone();
-  Newick inputNewick;
-  stringstream inputNewickString;
-  inputNewick.write(**treeToEvaluate,inputNewickString);
   // save root to find it back
   bool wasRooted = (inputBPPTree->isRooted() ? true : false);
   set<string> leaves1, leaves2;
@@ -1331,12 +1344,7 @@ double LikelihoodEvaluator::libpllEvaluateFromScratch(bpp::TreeTemplate<bpp::Nod
   needFullOptim = false;
   result_ll = getTreeinfoLikelihood(currentTreeinfo);
 
-  std::string newStr = printer.getTreeinfoString(currentTreeinfo, true, false, false);
-  stringstream outputNewickString;
-  outputNewickString.str(newStr);
-  Newick outputNewick;
-  delete *treeToEvaluate;
-  *treeToEvaluate = outputNewick.read(outputNewickString);
+  updateTreeToEvaluate(treeToEvaluate, currentTreeinfo, printer);
   if (wasRooted) {
     reroot(*treeToEvaluate, leaves1, leaves2);
   }
@@ -1350,11 +1358,24 @@ double LikelihoodEvaluator::libpllEvaluateFromScratch(bpp::TreeTemplate<bpp::Nod
 double LikelihoodEvaluator::HYBRID_evaluate(TreeTemplate<Node>** treeToEvaluate)
 {
   TreeTemplate<Node> *pllTree = (*treeToEvaluate)->clone();
+  std::string treeBefore = printer.getBPPNodeString((*treeToEvaluate)->getRootNode(), true, false);
   double pllRes = PLL_evaluate(&pllTree);
+  std::string treeAfterPLL = printer.getBPPNodeString(pllTree->getRootNode(), true, false);
+  if (treeBefore.compare(treeAfterPLL)) {
+    std::cout << "warning: different tree after updating PLL likelihood:" << std::endl;
+    std::cout << treeBefore << std::endl;
+    std::cout << treeAfterPLL << std::endl;
+  }
   delete pllTree;
   double libpllRes = LIBPLL2_evaluate(treeToEvaluate);
+  std::string treeAfterLIBPLL2 = printer.getBPPNodeString((*treeToEvaluate)->getRootNode(), true, false);
+  if (treeBefore.compare(treeAfterLIBPLL2)) {
+    std::cout << "warning: different tree after updating libpll-2 likelihood:" << std::endl;
+    std::cout << treeBefore << std::endl;
+    std::cout << treeAfterLIBPLL2 << std::endl;
+  }
   if (fabs(pllRes - libpllRes) > 0.0001) {
-    std::cout << "error: different results with PLL and libpll-2" << std::endl;
+    std::cout << "error: different results with PLL " << pllRes << " and libpll-2 " << libpllRes << std::endl;
   }
   return libpllRes;
 

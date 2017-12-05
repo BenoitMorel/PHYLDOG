@@ -150,7 +150,9 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
   //  MPI_Barrier(world);
   broadcast(world_, stop_, server_);
   unsigned int previousStep = currentStep_;
+  bool speciesTreeImproved = false;
   broadcastsAllInformationButStop(world_, server_, rearrange_,
+                                  speciesTreeImproved,
                                   lossExpectedNumbers_,
                                   duplicationExpectedNumbers_,
                                   coalBls_,
@@ -158,6 +160,9 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
                                   currentStep_,
                                   reconciliationModel_
   );
+  if (speciesTreeImproved) {
+    std::cout << "Species tree improved" << std::endl;
+  }
   if (previousStep != currentStep_) {
     std::cout << std::endl;
     std::cout << std::endl;
@@ -657,13 +662,18 @@ void ClientComputingGeneLikelihoods::MLSearch() {
         startingTime = ApplicationTools::getTime();
       }
       unsigned int previousStep = currentStep_;
+      bool speciesTreeImproved = false;
       broadcastsAllInformationButStop(world_, server_, rearrange_,
+                                      speciesTreeImproved, 
                                       lossExpectedNumbers_,
                                       duplicationExpectedNumbers_,
                                       coalBls_,
                                       currentSpeciesTree_,
                                       currentStep_,
                                       reconciliationModel_);
+      if (speciesTreeImproved) {
+        std::cout << "Species tree improved" << std::endl;
+      }
       if (previousStep != currentStep_) {
         std::cout << std::endl;
         std::cout << std::endl;

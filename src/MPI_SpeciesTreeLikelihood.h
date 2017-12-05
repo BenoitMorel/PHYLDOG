@@ -129,6 +129,7 @@ namespace bpp
         std::vector< unsigned int > num22Lineages_;
         std::vector< unsigned int > bestNum12Lineages_;
         std::vector< unsigned int > bestNum22Lineages_;
+        
 
 		//to fix the root of the tree
 		bool fixedOutgroupSpecies_;
@@ -140,6 +141,9 @@ namespace bpp
 
         //Whether we should rearrange the gene trees
         bool rearrange_;
+        //Did the speciesTree improved since the last communcation with the client?
+        //If yes, say it to clients at the next communcication
+        bool speciesTreeImproved_;
         //Number of iterations of the search algorithm without improvement
         unsigned int numIterationsWithoutImprovement_;
         //How far can we regraft subtrees when doing a spr
@@ -194,6 +198,7 @@ namespace bpp
         bestNum12Lineages_(), bestNum22Lineages_(),
 		fixedOutgroupSpecies_(0), outgroupSpecies_(),
         coalBls_(), backupCoalBls_(),
+        speciesTreeImproved_(0),
         rearrange_(0),
         numIterationsWithoutImprovement_(0),
 		sprLimit_(0),
@@ -249,6 +254,7 @@ namespace bpp
 		fixedOutgroupSpecies_(stl.fixedOutgroupSpecies_), outgroupSpecies_(stl.outgroupSpecies_),
         coalBls_(stl.coalBls_), backupCoalBls_(stl.backupCoalBls_),
         rearrange_(stl.rearrange_),
+        speciesTreeImproved_(stl.speciesTreeImproved_),
         numIterationsWithoutImprovement_(stl.numIterationsWithoutImprovement_),
 		sprLimit_(stl.sprLimit_),
         branchExpectedNumbersOptimization_(stl.branchExpectedNumbersOptimization_),
@@ -288,6 +294,7 @@ namespace bpp
             coalBls_ = stl.coalBls_;
             backupCoalBls_ = stl.backupCoalBls_;
             rearrange_ = stl.rearrange_;
+            speciesTreeImproved_ = stl.speciesTreeImproved_;
             numIterationsWithoutImprovement_ = stl.numIterationsWithoutImprovement_;
             branchExpectedNumbersOptimization_ = stl.branchExpectedNumbersOptimization_;
             genomeMissing_ = stl.genomeMissing_;

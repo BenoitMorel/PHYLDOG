@@ -76,7 +76,7 @@ void MPI_SpeciesTreeLikelihood::initialize()
     rearrange_ = true;
   stop_ = false;
   Newick newick;
-
+  speciesTreeImproved_ = false;
   /****************************************************************************
    * First communications between the server and the clients.
    *****************************************************************************/
@@ -212,7 +212,6 @@ void MPI_SpeciesTreeLikelihood::initialize()
   /****************************************************************************
    * First species tree likelihood computation.
    *****************************************************************************/
-
   computeSpeciesTreeLikelihoodWithGivenStringSpeciesTree(world_,
       index_,
       stop_,
@@ -229,6 +228,7 @@ void MPI_SpeciesTreeLikelihood::initialize()
       num22Lineages_,
       coalBls_,
       reconciliationModel_,
+      speciesTreeImproved_,
       rearrange_,
       server_,
       branchExpectedNumbersOptimization_,
@@ -262,7 +262,9 @@ void MPI_SpeciesTreeLikelihood::computeLogLikelihood()
       allNum2Lineages_, lossExpectedNumbers_,
       duplicationExpectedNumbers_, num12Lineages_,
       num22Lineages_, coalBls_, reconciliationModel_,
-      rearrange_, server_,
+      rearrange_, 
+      speciesTreeImproved_,
+      server_,
       branchExpectedNumbersOptimization_, genomeMissing_, *tree_, currentStep_);
 }
 
@@ -605,7 +607,6 @@ void MPI_SpeciesTreeLikelihood::MLSearch()
   size_t nodeForNNI = 0;
   size_t nodeForRooting = 4;
   // bool noMoreSPR;
-  /* broadcastsAllInformation(world_, server_, stop_, rearrange_, lossExpectedNumbers_, duplicationExpectedNumbers_, currentSpeciesTree_, currentStep_);*/
 
   if(optimizeSpeciesTreeTopology_)
   {
@@ -668,7 +669,9 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
           num12Lineages_, num22Lineages_,
           bestNum12Lineages_, bestNum22Lineages_,
           coalBls_, reconciliationModel_,
-          rearrange_, numIterationsWithoutImprovement_,
+          rearrange_, 
+          speciesTreeImproved_,
+          numIterationsWithoutImprovement_,
           server_, branchExpectedNumbersOptimization_,
           genomeMissing_, sprLimit_, false, currentStep_,
           fixedOutgroupSpecies_, outgroupSpecies_);
@@ -729,7 +732,9 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
           lossExpectedNumbers_, duplicationExpectedNumbers_,
           num12Lineages_, num22Lineages_,
           coalBls_, reconciliationModel_,
-          rearrange_, server_,
+          rearrange_, 
+          speciesTreeImproved_,
+          server_,
           branchExpectedNumbersOptimization_, genomeMissing_,
           *currentTree_, bestlogL_, currentStep_);
       std::cout <<"After updating expected numbers of Duplication and loss; current Likelihood "<<logL_<<std::endl;
@@ -776,7 +781,9 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
           num12Lineages_, num22Lineages_,
           bestNum12Lineages_, bestNum22Lineages_,
           coalBls_, reconciliationModel_,
-          rearrange_, numIterationsWithoutImprovement_,
+          rearrange_, 
+          speciesTreeImproved_,
+          numIterationsWithoutImprovement_,
           server_, branchExpectedNumbersOptimization_,
           genomeMissing_, sprLimit_, true, currentStep_,
           fixedOutgroupSpecies_, outgroupSpecies_);
@@ -837,7 +844,9 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
           allNum0Lineages_, allNum1Lineages_, allNum2Lineages_,
           lossExpectedNumbers_, duplicationExpectedNumbers_,
           num12Lineages_, num22Lineages_, coalBls_,
-          reconciliationModel_, rearrange_, server_,
+          reconciliationModel_, rearrange_,
+          speciesTreeImproved_,
+          server_,
           branchExpectedNumbersOptimization_, genomeMissing_,
           *currentTree_, bestlogL_, currentStep_);
 
@@ -873,7 +882,9 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
             num12Lineages_, num22Lineages_,
             bestNum12Lineages_, bestNum22Lineages_,
             coalBls_, reconciliationModel_,
-            rearrange_, numIterationsWithoutImprovement_,
+            rearrange_, 
+            speciesTreeImproved_,
+            numIterationsWithoutImprovement_,
             server_, nodeForNNI, nodeForRooting,
             treesToLogLk_,
             branchExpectedNumbersOptimization_, genomeMissing_,
@@ -912,7 +923,9 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
               lossExpectedNumbers_, duplicationExpectedNumbers_,
               num12Lineages_, num22Lineages_,
               coalBls_, reconciliationModel_,
-              rearrange_, server_,
+              rearrange_, 
+              speciesTreeImproved_,
+              server_,
               branchExpectedNumbersOptimization_, genomeMissing_,
               *currentTree_, bestlogL_, currentStep_);
 
@@ -929,7 +942,9 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
               lossExpectedNumbers_, duplicationExpectedNumbers_,
               num12Lineages_, num22Lineages_,
               coalBls_, reconciliationModel_,
-              rearrange_, server_,
+              rearrange_, 
+              speciesTreeImproved_,
+              server_,
               branchExpectedNumbersOptimization_, genomeMissing_,
               *currentTree_, currentStep_);
 
@@ -979,7 +994,9 @@ void MPI_SpeciesTreeLikelihood::MLSearchAndOptimizeTopology()
             lossExpectedNumbers_, duplicationExpectedNumbers_,
             num12Lineages_, num22Lineages_,
             coalBls_, reconciliationModel_,
-            rearrange_, numIterationsWithoutImprovement_,
+            rearrange_,
+            speciesTreeImproved_,
+            numIterationsWithoutImprovement_,
             server_, branchExpectedNumbersOptimization_,
             genomeMissing_, currentStep_);
 
@@ -1116,7 +1133,9 @@ void MPI_SpeciesTreeLikelihood::MLSearchButNotOptimizeTopology()
             lossExpectedNumbers_, duplicationExpectedNumbers_,
             num12Lineages_, num22Lineages_,
             coalBls_, reconciliationModel_,
-            rearrange_, numIterationsWithoutImprovement_,
+            rearrange_, 
+            speciesTreeImproved_,
+            numIterationsWithoutImprovement_,
             server_, branchExpectedNumbersOptimization_,
             genomeMissing_, currentStep_);
 

@@ -122,6 +122,27 @@ double getTreeinfoLikelihoodNoRecompute(pllmod_treeinfo_t *treeinfo)
   return treeinfo->partition_loglh[0];
 }
 
+/* branch lengths not present in the newick file get a value of 0.000001 */
+static void setMissingBL(pll_utree_t * tree, double length)
+{
+  unsigned int i;
+
+  for (i = 0; i < tree->tip_count; ++i)
+    if (!tree->nodes[i]->length)
+      tree->nodes[i]->length = length;
+
+  for (i = tree->tip_count; i < tree->tip_count + tree->inner_count; ++i)
+  {
+    if (!tree->nodes[i]->length)
+      tree->nodes[i]->length = length;
+    if (!tree->nodes[i]->next->length)
+      tree->nodes[i]->next->length = length;
+    if (!tree->nodes[i]->next->next->length)
+      tree->nodes[i]->next->next->length = length;
+  } 
+}
+
+
 /*
  * @brief Rollback for an identity move (no move)
  */
@@ -568,6 +589,7 @@ pll_utree_t * LikelihoodEvaluator::createUtreeFromBPP(const bpp::TreeTemplate< b
   pll_utree_t * utree = pll_rtree_unroot(rtree);
   pll_rtree_destroy(rtree, free);
   pll_utree_reset_template_indices(getUtreeRoot(utree), utree->tip_count);
+  setMissingBL(utree, 0.000001);
   return utree;
 }
 

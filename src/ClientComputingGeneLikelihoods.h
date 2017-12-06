@@ -360,7 +360,24 @@ ClientComputingGeneLikelihoods(const mpi::communicator& world,
 
     int unrootedGeneTree;
    // COALGeneTreeLikelihood* tl;
+   
+
+    Nhx *nhx;
+    string rearrangementType;
+    bool timing;
+    double startingTime;
+    double totalTime;
+    unsigned int previousStep;
+
+    void MLSearchIteration();  
+
+    void MLSearchIterationBeforeCommunication();  
+
+    void MLSearchIterationCommunication(); 
     
+    void MLSearchIterationAfterCommunication(); 
+    
+    void MLSearchStop();
     
     
     

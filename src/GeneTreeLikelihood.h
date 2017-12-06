@@ -93,6 +93,8 @@ protected:
   bpp::TreeTemplate<bpp::Node> * spTree_;
   bpp::TreeTemplate<bpp::Node> * rootedTree_;
   bpp::TreeTemplate<bpp::Node> * geneTreeWithSpNames_;
+  bpp::TreeTemplate<bpp::Node> * savedRootedTree_;
+  bpp::TreeTemplate<bpp::Node> * savedGeneTreeWithSpNames_;
   std::map <std::string, std::string> seqSp_; //link between sequence and species
   std::map <std::string, int> spId_;
   std::set <int> nodesToTryInNNISearch_;
@@ -195,7 +197,9 @@ public:
 
   const std::map <std::string, std::string> getSeqSp() {return seqSp_;}
 
-  void setSpTree(bpp::TreeTemplate<bpp::Node> & spTree) { if (spTree_) delete spTree_; spTree_ = spTree.clone(); }
+  void setSpTree(bpp::TreeTemplate<bpp::Node> & spTree);
+
+  void speciesTreeImproved();
 
   void setSpId(std::map <std::string, int> & spId) {spId_ = spId;}
 
@@ -229,7 +233,7 @@ public:
   }
   unsigned int seqsToRemove();
 
-  void setGeneTree(bpp::TreeTemplate<bpp::Node>* tree, bpp::TreeTemplate<bpp::Node>* rootedTree) ;
+  void setGeneTree(bpp::TreeTemplate<bpp::Node>* tree, bpp::TreeTemplate<bpp::Node>* rootedTree, bool updateLeavesNames = true) ;
 
   std::map <std::string, std::string > getParams () {
     return params_;

@@ -161,7 +161,10 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
                                   reconciliationModel_
   );
   if (speciesTreeImproved) {
-    std::cout << "Species tree improved" << std::endl;
+    //std::cout << "Species tree improved" << std::endl;
+    for (unsigned int i = 0 ; i< numberOfGeneFamilies_ ; i++) {
+      treeLikelihoods_[i]->speciesTreeImproved();
+    }
   }
   if (previousStep != currentStep_) {
     std::cout << std::endl;
@@ -672,7 +675,10 @@ void ClientComputingGeneLikelihoods::MLSearch() {
                                       currentStep_,
                                       reconciliationModel_);
       if (speciesTreeImproved) {
-        std::cout << "Species tree improved" << std::endl;
+        //std::cout << "Species tree improved" << std::endl;
+        for (unsigned int i = 0 ; i< numberOfGeneFamilies_ ; i++) {
+          treeLikelihoods_[i]->speciesTreeImproved();
+        }
       }
       if (previousStep != currentStep_) {
         std::cout << std::endl;

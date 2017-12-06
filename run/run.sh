@@ -25,6 +25,7 @@ sed -i "s#RESULT=/home/morelbt/github/PHYLDOG/ExampleData/ResultFiles/#RESULT=${
 sed -i "s#OPT=/home/morelbt/github/PHYLDOG/ExampleData/OptionFiles/#OPT=${fullpathdata}/#g" ${fullpathdata}/GeneralOptions.txt
 echo "rearrangement.gene.tree=spr" >> ${fullpathdata}/GeneralOptions.txt
 echo "reset.gene.trees=no" >> ${fullpathdata}/GeneralOptions.txt
+echo "reset.gene.smart=yes" >> ${fullpathdata}/GeneralOptions.txt
 echo "likelihood.evaluator=${method}" >> ${fullpathdata}/GeneralOptions.txt
 echo "seed=${seed}" >> ${fullpathdata}/GeneralOptions.txt
 export SCOREP_PROFILING_MAX_CALLPATH_DEPTH=50

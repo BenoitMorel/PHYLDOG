@@ -504,7 +504,9 @@ double DLGeneTreeLikelihood::testNNI(int nodeId) const throw (NodeException)
 
         if (tot < 0)
         {
+          std::cout << "    gene tree improves: " << candidateScenarioLk << " + " << levaluator_->getAlternativeLogLikelihood() << std::endl;
           tentativeScenarioLikelihood_= candidateScenarioLk;
+          levaluator_->saveCurrentState();
         } else {
           levaluator_->rollbackLastMove();
         }

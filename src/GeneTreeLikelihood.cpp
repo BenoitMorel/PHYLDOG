@@ -61,7 +61,10 @@ class geneTreeLikelihoodException: public exception
 
 
 GeneTreeLikelihood::GeneTreeLikelihood():
-levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(), spId_() {
+  levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), 
+  savedRootedTree_(00), 
+  savedGeneTreeWithSpNames_(00),
+  seqSp_(), spId_() {
   WHEREAMI( __FILE__ , __LINE__ );
   totalIterations_ = 0;
   counter_ = 0;
@@ -73,8 +76,11 @@ GeneTreeLikelihood::GeneTreeLikelihood(
   map<string, string> params,
   TreeTemplate<Node> & spTree )
 throw (exception):
-levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_(), spId_(),
-params_(params), considerSequenceLikelihood_(true)
+  levaluator_(00), spTree_(00), rootedTree_(00), 
+  geneTreeWithSpNames_(00), seqSp_(), spId_(),
+  savedRootedTree_(00), 
+  savedGeneTreeWithSpNames_(00),
+  params_(params), considerSequenceLikelihood_(true)
 {
   WHEREAMI( __FILE__ , __LINE__ );
   valid = true;
@@ -347,7 +353,10 @@ GeneTreeLikelihood::GeneTreeLikelihood(
   bool considerSequenceLikelihood,
   unsigned int sprLimitGeneTree)
 throw (Exception):
-levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (seqSp), spId_(spId), params_(params)
+  levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), 
+  savedRootedTree_(00), 
+  savedGeneTreeWithSpNames_(00),
+  seqSp_ (seqSp), spId_(spId), params_(params)
 {
   WHEREAMI( __FILE__ , __LINE__ );
   levaluator_ = new LikelihoodEvaluator(&tree, &data, model, rDist, params, false, verbose);
@@ -372,7 +381,10 @@ levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ 
  * @brief Copy constructor.
  */
 GeneTreeLikelihood::GeneTreeLikelihood(const GeneTreeLikelihood & lik):
-levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), seqSp_ (lik.seqSp_), spId_(lik.spId_), timeLimit_(lik.timeLimit_), elapsedTime_(lik.elapsedTime_)
+  levaluator_(00), spTree_(00), rootedTree_(00), geneTreeWithSpNames_(00), 
+  savedRootedTree_(00), 
+  savedGeneTreeWithSpNames_(00),
+  seqSp_ (lik.seqSp_), spId_(lik.spId_), timeLimit_(lik.timeLimit_), elapsedTime_(lik.elapsedTime_)
 {
   WHEREAMI( __FILE__ , __LINE__ );
   levaluator_ = lik.levaluator_->clone();
@@ -424,18 +436,51 @@ GeneTreeLikelihood & GeneTreeLikelihood::operator=(const GeneTreeLikelihood & li
   elapsedTime_ = lik.elapsedTime_;
   return *this;
 }
+  
 
-void GeneTreeLikelihood::setGeneTree(TreeTemplate<Node>* tree, TreeTemplate<Node>* rootedTree) {
+void GeneTreeLikelihood::setSpTree(bpp::TreeTemplate<bpp::Node> & spTree) { 
+  //std::cout << "setsptree" << std::endl;
+  if (spTree_) 
+    delete spTree_; 
+  spTree_ = spTree.clone();
+  if (ApplicationTools::getBooleanParameter("reset.gene.smart",params_,false)) {
+    if (savedRootedTree_ && savedGeneTreeWithSpNames_) {
+      setGeneTree(savedGeneTreeWithSpNames_, savedRootedTree_);
+    }
+  }
+  //std::cout << "end" << std::endl;
+}
+  
+void GeneTreeLikelihood::speciesTreeImproved()
+{
+  std::cout << "species tree improved" << std::endl;
+  if (ApplicationTools::getBooleanParameter("reset.gene.smart",params_,false) 
+      && rootedTree_ && geneTreeWithSpNames_) {
+    levaluator_->loadSavedState();
+    std::cout << "Likelihood of the tree to save " << levaluator_->computeCurrentLikelihood() << std::endl;
+    delete savedRootedTree_;
+    delete savedGeneTreeWithSpNames_;
+    savedRootedTree_ = (bpp::TreeTemplate<bpp::Node> *)levaluator_->getTree()->clone();
+    savedGeneTreeWithSpNames_ = (bpp::TreeTemplate<bpp::Node> *)savedRootedTree_->clone();
+    savedGeneTreeWithSpNames_->unroot();
+    levaluator_->destroyRollbacks();
+  }
+}
+
+void GeneTreeLikelihood::setGeneTree(TreeTemplate<Node>* tree, TreeTemplate<Node>* rootedTree, bool updateLeavesNames) {
+  
   WHEREAMI( __FILE__ , __LINE__ );
-  if (rootedTree_) delete rootedTree_;
+  if (rootedTree_) 
+    delete rootedTree_;
   rootedTree_= dynamic_cast<TreeTemplate<Node> *> (rootedTree->clone());
-  //recreating geneTreeWithSpNames_
-  if (geneTreeWithSpNames_) delete geneTreeWithSpNames_;
+  if (geneTreeWithSpNames_) 
+    delete geneTreeWithSpNames_;
   geneTreeWithSpNames_ = tree->clone();
   std::vector <Node*> leaves = geneTreeWithSpNames_->getLeaves();
-  for (unsigned int j =0; j<leaves.size() ; j++)
-  {
-    leaves[j]->setName(seqSp_.at(leaves[j]->getName()));
+  if (updateLeavesNames) {
+    for (unsigned int j =0; j<leaves.size() ; j++) {
+      leaves[j]->setName(seqSp_.at(leaves[j]->getName()));
+    }
   }
   levaluator_->rollbackAllMoves();
   levaluator_->setAlternativeTree(rootedTree);

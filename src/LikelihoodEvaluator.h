@@ -388,6 +388,9 @@ public:
   bool rollbackLastMove();
   void rollbackAllMoves();  
   void pushRollback(Rollback *rollback);
+  void saveCurrentState();
+  void loadSavedState();
+
 
   // likelihood evaluation
   double libpllEvaluateFromScratch(bpp::TreeTemplate<bpp::Node>** treeToEvaluate);
@@ -398,12 +401,15 @@ public:
   double optimizeTreeinfoLocal(pllmod_treeinfo_t *treeinfo);
   double fullOptimizeTreeinfoIter(pllmod_treeinfo_t *treeinfo);
 
+  double computeCurrentLikelihood();
+
   BenoitPrinter printer;
   Rollback *rollback_;
   bool needFullOptim;
   pllmod_treeinfo_t *currentTreeinfo;
   pll_utree_t *currentUtree;
   std::stack<Rollback *> rollbacks_;
+  unsigned int rollbackCheckpoint_;
 private: 
 
   /**

@@ -42,7 +42,7 @@ generate_submit()
   echo $threads
   
   cat submitprefix >> $submit_file
-
+  cat $submit_file
   sbatch $submit_file
   rm $submit_file
 }

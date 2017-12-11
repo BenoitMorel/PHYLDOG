@@ -30,15 +30,29 @@ def fixListGenes(inputFile, newOptionsDir):
       w.write(os.path.join(newOptionsDir,f)) 
 
 
-def preparePhydlogFiles(prefix, suffix, dataset, seed, speciesNumber, genesNumber, method, useBestTrees, geneTreeSuffix):
+def preparePhydlogFiles(prefix, suffix, dataset, seed, speciesNumber, genesNumber, method, startingTrees):
   """ 
   Create a new directory, extract and modify an original dataset to this directory, and return the directory name
   prefix and suffix are appended at the begining and the end of the new directory name
   """
+
+  if (startingTrees == "bionj"):
+    useBestTrees = False
+  elif (startingTrees == "raxmlStart"):
+    useBestTrees = True
+    geneTreeSuffix = ".raxml.startTree"
+  elif (startingTrees == "raxmlParsi"):
+    useBestTrees = True
+    geneTreeSuffix = ".raxml.parsiTree"
+  elif (startingTrees == "raxmlBest"):
+    useBestTrees = True
+    geneTreeSuffix = ".raxml.bestTree"
+  else:
+    raise Exception('Invalid startingTrees mode')
   # get paths
   path = os.path.dirname(os.path.realpath(__file__))
   phyldogDir = os.path.dirname(path)
-  outputDir = prefix + "_" + dataset + "_" + seed + "_" + speciesNumber + "_" + genesNumber + "_" + method + suffix
+  outputDir = prefix + "_" + dataset + "_" + seed + "_" + speciesNumber + "_" + genesNumber + "_" + method + "_" + startingTrees + suffix
   outputDir = os.path.join(path, outputDir)
   originDataDir = os.path.join(phyldogDir, "benoitdata", dataset)
   originOptionsDir = os.path.join(originDataDir, "OptionFiles")
@@ -66,14 +80,20 @@ def preparePhydlogFiles(prefix, suffix, dataset, seed, speciesNumber, genesNumbe
     w.write("seed=" + seed + "\n")
   # build per gene files
   if (useBestTrees):
+    notFoundCount = 0
     optionsFilenames = (opt for opt in os.listdir(newOptionsDir) if opt.endswith(".opt"))
     for opt in optionsFilenames:
       geneName = os.path.splitext(opt)[0]
-      print(geneName)
       optFile = os.path.join(newOptionsDir, opt)
       geneTreeFile = os.path.join(geneTreesDir, geneName + geneTreeSuffix)
-      replaceLinesStartingWith(optFile, "init.gene.tree=bionj", "init.gene.tree=user")
       replaceLinesStartingWith(optFile, "RESULT=", "RESULT=" + resultsDir + "/")
-      replaceLinesStartingWith(optFile, "gene.tree.file=", "gene.tree.file=" + geneTreeFile)
+      if os.path.isfile(geneTreeFile):
+        replaceLinesStartingWith(optFile, "init.gene.tree=bionj", "init.gene.tree=user")
+        replaceLinesStartingWith(optFile, "gene.tree.file=", "gene.tree.file=" + geneTreeFile)
+      else:
+        print("Warning: " + geneTreeFile + " not found")
+        notFoundCount += 1
+    if notFoundCount > 0:
+      print("Failed to find " + str(notFoundCount) + " genes trees files. Bionj trees will be generated instead") 
   return outputDir
 

@@ -7,19 +7,21 @@ import utilsrun
 
 # parse command line
 if (len(sys.argv) < 7):
-  print("Invalid syntax")
+  print("Expected syntax: ")
+  print("python genericrun.py prefix dataset seed speciesNumber genesNumber method startingTrees")
+  raise Exception('Invalid syntax')
 prefix=sys.argv[1]
 dataset=sys.argv[2]
 seed=sys.argv[3]
 speciesNumber=sys.argv[4]
 genesNumber=sys.argv[5]
 method=sys.argv[6]
-useBestTrees = True
-geneTreeSuffix = ".raxml.startTree"
+startingTrees = sys.argv[7]
 suffix = ""
 
+
 #prepare files
-outputDir = utilsrun.preparePhydlogFiles(prefix, suffix, dataset, seed, speciesNumber, genesNumber, method, useBestTrees, geneTreeSuffix)
+outputDir = utilsrun.preparePhydlogFiles(prefix, suffix, dataset, seed, speciesNumber, genesNumber, method, startingTrees)
 newGeneralOptionsFile = os.path.join(outputDir, dataset, "OptionFiles", "GeneralOptions.txt")
 logFile = os.path.join(outputDir, "logs.txt")
 executable = "../../build/bin/phyldog"

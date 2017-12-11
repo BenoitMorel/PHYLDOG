@@ -464,6 +464,7 @@ void LikelihoodEvaluator::PLL_loadNewick_fromFile(string path)
 void LikelihoodEvaluator::PLL_loadNewick_fromString(string newick)
 {
   WHEREAMI( __FILE__ , __LINE__ );
+  std::cout << "load from string " << newick << std::endl;
   PLL_newick = pllNewickParseString (newick.c_str());
   if (!PLL_newick)
   {
@@ -480,6 +481,7 @@ void LikelihoodEvaluator::PLL_loadPartitions(string path)
 {
   WHEREAMI( __FILE__ , __LINE__ );
   /* Parse the partitions file into a partition queue structure */
+  std::cout << " partition path " << path << std::endl;
   PLL_partitionInfo = pllPartitionParse (path.c_str());
 
 
@@ -585,6 +587,7 @@ pll_unode_t *LikelihoodEvaluator::getUtreeRoot(pll_utree_t * utree)
 pll_utree_t * LikelihoodEvaluator::createUtreeFromBPP(const bpp::TreeTemplate< bpp::Node > *bpptree)
 {
   std::string newick = bpp::TreeTemplateTools::treeToParenthesis(*bpptree);
+  std::cout << "tree " << newick << std::endl;
   pll_rtree_t * rtree = pll_rtree_parse_newick_string(newick.c_str());
   pll_utree_t * utree = pll_rtree_unroot(rtree);
   pll_rtree_destroy(rtree, free);
@@ -1653,7 +1656,7 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
 void LikelihoodEvaluator::unload()
 {
 
-
+  return;
   if(!initialized)
     return;
   initialized = false;

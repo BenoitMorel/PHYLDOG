@@ -58,11 +58,11 @@ SET(PHYLDOGLIGHT_SRCS
 #  ${BPP_LIBRARIES}
 #)
 
-ADD_EXECUTABLE(investigation Investigation.cpp ${PHYLDOGLIGHT_SRCS})
+ADD_EXECUTABLE(investigation Investigation.cpp )#${PHYLDOGLIGHT_SRCS})
 target_link_libraries(investigation
   ${PLL_LIBRARIES}
   ${PLLMODULES_LIBRARIES}
-  ${BPP_LIBRARIES}
+  # ${BPP_LIBRARIES}
 )
 
 

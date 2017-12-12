@@ -19,6 +19,7 @@ method=sys.argv[6]
 startingTrees = sys.argv[7]
 suffix = ""
 
+path = os.getcwd()
 
 #prepare files
 outputDir = utilsrun.preparePhydlogFiles(prefix, suffix, dataset, seed, speciesNumber, genesNumber, method, startingTrees)

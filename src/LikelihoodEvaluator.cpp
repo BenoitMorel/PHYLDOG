@@ -464,7 +464,7 @@ void LikelihoodEvaluator::PLL_loadNewick_fromFile(string path)
 void LikelihoodEvaluator::PLL_loadNewick_fromString(string newick)
 {
   WHEREAMI( __FILE__ , __LINE__ );
-  std::cout << "load from string " << newick << std::endl;
+  
   PLL_newick = pllNewickParseString (newick.c_str());
   if (!PLL_newick)
   {
@@ -763,8 +763,9 @@ pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(const bpp::TreeTemplate<N
      ) {
     double subst[6] = {1, 1, 1, 1, 1, 1};
     double gammaRates[4] = {0.136954, 0.476752, 1, 2.38629};
+    double frequencies[4] = {0, 0, 0, 0};
     pll_set_category_rates(partition, gammaRates);
-    pll_set_frequencies(partition, 0, &(substitutionModel->getFrequencies()[0]));
+    pll_set_frequencies(partition, 0, frequencies);
     pll_set_subst_params(partition, 0, subst);
 
   } else { 

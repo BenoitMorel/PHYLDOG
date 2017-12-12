@@ -772,7 +772,7 @@ pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(const bpp::TreeTemplate<N
   }
 
   // treeinfo and partition
-  int params_to_optimize = PLLMOD_OPT_PARAM_ALL; 
+  int params_to_optimize = PLLMOD_OPT_PARAM_ALL & ~PLLMOD_OPT_PARAM_FREE_RATES; 
   unsigned int params_indices[4] = {0,0,0,0}; 
   pllmod_treeinfo_init_partition(treeinfo, 0, partition,
       params_to_optimize,

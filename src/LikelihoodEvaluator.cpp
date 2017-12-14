@@ -1587,7 +1587,7 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
   NNIHomogeneousTreeLikelihood * drlk = 0;
   drlk  = new NNIHomogeneousTreeLikelihood (**treeToEvaluate,
       *(nniLk->getData()),
-      nniLk->getSubstitutionModel(),
+      (bpp::TransitionModel*)nniLk->getSubstitutionModel(),
       nniLk->getRateDistribution(),
       true, false);
 

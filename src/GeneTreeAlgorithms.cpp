@@ -771,7 +771,7 @@ TreeTemplate<Node>  * buildBioNJTree (std::map<std::string, std::string> & param
             dista = ;
             }
             else */
-          if ( dista >= sizAlphabetMinus1OverSizAlphabet || isnan( dista )  ) {
+          if ( dista >= sizAlphabetMinus1OverSizAlphabet || (dista != dista) /*isnan( dista ) broken isnan in C++ */) {
             std::cout << "Distance cannot be properly estimated, performing numerical optimization."<< std::endl;
             //  (*dist)(i, j)  = (*dist)(j, i) = 3.0;
             //Then we compute a numerical estimate of the distance:

@@ -722,7 +722,7 @@ pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(const bpp::TreeTemplate<N
 
   // pll_partitions
   unsigned int numberOfStates = sites->getAlphabet()->getSize();
-  const unsigned int *charmap = 0;
+  const pll_state_t *charmap = 0;
   if (numberOfStates == 4) {
     charmap = pll_map_nt;
   } else if (numberOfStates == 20) {

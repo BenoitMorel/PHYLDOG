@@ -1968,6 +1968,7 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
 
       if (considerSequenceLikelihood )
       {
+        levaluator->destroyTreeinfo();
         levaluator->setAlternativeTree(candidateTree);
         candidateSequenceLk = levaluator->getAlternativeLogLikelihood();
       }
@@ -2014,7 +2015,9 @@ void editDuplicationNodesMuffato(TreeTemplate<Node> & spTree,
       delete candidateTree;
     }
     std::cout << "Best Tree: "<< bestI <<" : scenario LogLk: "<< bestScenarioLk <<" ; sequence logLk : " << bestSequenceLogL <<std::endl;
-
+    
+    levaluator->destroyTreeinfo();
+    levaluator->setAlternativeTree(levaluator->getTree()); 
     return bestI;
   }
 

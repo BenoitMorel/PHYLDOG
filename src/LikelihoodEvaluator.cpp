@@ -652,23 +652,25 @@ void LikelihoodEvaluator::mapUtreeToBPPTree(pll_utree_t *utree, bpp::TreeTemplat
 
 void LikelihoodEvaluator::destroyTreeinfo()
 {
-  if (currentTreeinfo)
-  {
-    for (unsigned int i = 0; i < currentTreeinfo->partition_count; ++i)
+  if (method == LIBPLL2 || method == HYBRID) {
+    if (currentTreeinfo)
     {
-      if (currentTreeinfo->partitions[i])
-        pll_partition_destroy(currentTreeinfo->partitions[i]);
-    }
+      for (unsigned int i = 0; i < currentTreeinfo->partition_count; ++i)
+      {
+        if (currentTreeinfo->partitions[i])
+          pll_partition_destroy(currentTreeinfo->partitions[i]);
+      }
 
-    pll_utree_graph_destroy(currentTreeinfo->root, NULL);
-    pllmod_treeinfo_destroy(currentTreeinfo);
-    currentTreeinfo = 0;
-  }
-  if (currentUtree) {
-    free(currentUtree->nodes);
-    free(currentUtree);
-    //pll_utree_destroy(currentUtree, free);
-    currentUtree = 0;
+      pll_utree_graph_destroy(currentTreeinfo->root, NULL);
+      pllmod_treeinfo_destroy(currentTreeinfo);
+      currentTreeinfo = 0;
+    }
+    if (currentUtree) {
+      free(currentUtree->nodes);
+      free(currentUtree);
+      //pll_utree_destroy(currentUtree, free);
+      currentUtree = 0;
+    }
   }
 }
 

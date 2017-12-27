@@ -18,7 +18,7 @@ def createSubmit(fullPath, cores):
     w.write("export SCOREP_PROFILING_MAX_CALLPATH_DEPTH=100\n")
     w.write("export SCOREP_PROFILING_ENABLE_CORE_FILES=1\n")
     outputDir = os.path.dirname(fullPath)
-    w.write("export SCOREP_EXPERIMENT_DIRECTORY=" + outputDir + "\n") 
+    w.write("export SCOREP_EXPERIMENT_DIRECTORY=" + os.path.join(outputDir, "scorep") +  "\n") 
     w.write("\n")
 
 def createPhyldogSubmit(directory, name, executable, generalOptionsFile, cores):

@@ -7,7 +7,7 @@ filesToReplace=( "src/CMakeFiles/benchreconciliation.dir/build.make" "src/CMakeF
 #gccPrefix="skin "
 #gccSuffix=" -g -DSCOREP"
 gccPrefix=""
-gccSuffix=" -pg "
+gccSuffix=" -g -pg "
 
 for fileToReplace in "${filesToReplace[@]}"
 do

@@ -38,63 +38,87 @@ struct ReconciliationCache {
   std::vector<std::vector< double > > logBranchProbabilities;
 };
 
+    
+void FastReconciliationTools::initialize()
+{
+  unsigned int maxSpeciesId = TreeTools::getMaxId(_speciesTree, _speciesTree.getRootId());
+  _speciesNodes = std::vector<Node *>(maxSpeciesId + 1, 0);
+  std::vector<Node *> nodes = _speciesTree.getNodes();
+  for (unsigned int i = 0; i < nodes.size(); ++i) {
+    _speciesNodes[nodes[i]->getId()] = nodes[i];
+  }
+}
 
-double FastReconciliationTools::findMLReconciliationDR (TreeTemplate<Node> * spTree,
+
+FastReconciliationTools::FastReconciliationTools(TreeTemplate<Node> * spTree,
         TreeTemplate<Node> * geneTree,
         const std::map<std::string, std::string > seqSp,
         const std::map<std::string, int > spID,
         std::vector< double> lossRates,
         std::vector < double> duplicationRates,
-        int & MLindex,
         std::vector <int> &num0lineages,
         std::vector <int> &num1lineages,
         std::vector <int> &num2lineages,
         std::set <int> &nodesToTryInNNISearch,
-        const bool fillTables)
+        bool fillTables):
+  _speciesTree(*spTree),
+  _geneTree(*geneTree),
+  _seqSp(seqSp),
+  _spID(spID),
+  _lossRates(lossRates),
+  _duplicationRates(duplicationRates),
+  _fillTables(fillTables),
+  _cache(new ReconciliationCache(TreeTools::getMaxId(*spTree, spTree->getRootId()))),
+  _num0lineages(num0lineages),
+  _num1lineages(num1lineages),
+  _num2lineages(num2lineages),
+  _nodesToTryInNNISearch(nodesToTryInNNISearch)
 {
   assert(speciesTree->isRooted());
   assert(geneTreeTree->isRooted());
-  
-  std::vector <double> nodeData ( 3, 0.0 );
-  std::vector <std::vector<double> > likelihoodData ( geneTree->getNumberOfNodes(), nodeData );
-  std::vector <int> nodeSpId ( 3, 0 );
-  std::vector <std::vector<int> > speciesIDs ( geneTree->getNumberOfNodes(), nodeSpId );
-  std::vector <std::vector<int> > dupData = speciesIDs;
-  //This std::map keeps rootings likelihoods. The key is the likelihood value, and the value is the node to put as outgroup.
-  std::map <double, Node*> LksToNodes;
+ 
+  initialize();
+  std::vector <double> nodeData(3, 0.0);
+  _likelihoodData = std::vector <std::vector<double> >(_geneTree.getNumberOfNodes(), nodeData);
+  std::vector <int> nodeSpId(3, 0);
+  _speciesIDs = std::vector <std::vector<int> >(_geneTree.getNumberOfNodes(), nodeSpId);
+  _dupData = _speciesIDs;
+}
+    
+FastReconciliationTools::~FastReconciliationTools()
+{
+  delete _cache;
+}
 
-  Node * geneRoot = geneTree->getRootNode();
-  double initialLikelihood = computeSubtreeLikelihoodPostorder ( *spTree, *geneTree,
-      geneRoot, seqSp, spID,
-      likelihoodData, lossRates,
-      duplicationRates, speciesIDs, dupData );
+double FastReconciliationTools::findMLReconciliationDR(int &MLindex) {
+  Node * geneRoot = _geneTree.getRootNode();
+  double initialLikelihood = computeSubtreeLikelihoodPostorder (_speciesTree, _geneTree,
+      geneRoot, _seqSp, _spID,
+      _likelihoodData, _lossRates,
+      _duplicationRates, _speciesIDs, _dupData );
 
   std::vector <Node *> sons = geneRoot->getSons();
 
   if ( sons.size() !=2 ) {
     std::cerr <<"Error: "<<sons.size() << "sons at the root!"<<std::endl;
   }
-  LksToNodes[initialLikelihood] = sons[0];
+  _LksToNodes[initialLikelihood] = sons[0];
   //We fill the likelihood and species ID data for the root node.
   //We use "directions" 1 and 2 and leave "direction" 0 empty for coherence
   //with other nodes.
-  likelihoodData[geneRoot->getId()][1] = likelihoodData[geneRoot->getSon ( 1 )->getId()][0];
-  likelihoodData[geneRoot->getId()][2] = likelihoodData[geneRoot->getSon ( 0 )->getId()][0];
-  speciesIDs[geneRoot->getId()][1] = speciesIDs[geneRoot->getSon ( 1 )->getId()][0];
-  speciesIDs[geneRoot->getId()][2] = speciesIDs[geneRoot->getSon ( 0 )->getId()][0];
-  dupData[geneRoot->getId()][1] = dupData[geneRoot->getSon ( 1 )->getId()][0];
-  dupData[geneRoot->getId()][2] = dupData[geneRoot->getSon ( 0 )->getId()][0];
+  _likelihoodData[geneRoot->getId()][1] = _likelihoodData[geneRoot->getSon ( 1 )->getId()][0];
+  _likelihoodData[geneRoot->getId()][2] = _likelihoodData[geneRoot->getSon ( 0 )->getId()][0];
+  _speciesIDs[geneRoot->getId()][1] = _speciesIDs[geneRoot->getSon ( 1 )->getId()][0];
+  _speciesIDs[geneRoot->getId()][2] = _speciesIDs[geneRoot->getSon ( 0 )->getId()][0];
+  _dupData[geneRoot->getId()][1] = _dupData[geneRoot->getSon ( 1 )->getId()][0];
+  _dupData[geneRoot->getId()][2] = _dupData[geneRoot->getSon ( 0 )->getId()][0];
 
   for ( unsigned int i = 0; i< sons.size(); i++ ) {
     for ( unsigned int j =0; j<sons[i]->getNumberOfSons(); j++ ) {
-      computeSubtreeLikelihoodPreorder ( *spTree, *geneTree,
-          sons[i], seqSp, spID,
-          likelihoodData,
-          lossRates, duplicationRates,
-          speciesIDs, dupData, j, LksToNodes );
+      computeSubtreeLikelihoodPreorder ( sons[i], j);
     }
   }
-  vector<Node*> nodes = geneTree->getNodes();
+  vector<Node*> nodes = _geneTree.getNodes();
   for ( unsigned int i = 0 ; i < nodes.size() ; i++ ) {
     if ( nodes[i]->hasNodeProperty ( "outgroupNode" ) ) {
       nodes[i]->deleteNodeProperty ( "outgroupNode" );
@@ -102,34 +126,36 @@ double FastReconciliationTools::findMLReconciliationDR (TreeTemplate<Node> * spT
     }
   }
 
-  LksToNodes.rbegin()->second->setNodeProperty ( "outgroupNode", BppString ( "here" ) );
+  _LksToNodes.rbegin()->second->setNodeProperty ( "outgroupNode", BppString ( "here" ) );
 
-  if ( fillTables ) {
+  if ( _fillTables ) {
+
     //Now the best root has been found. I can thus run a function with this best root to fill all the needed tables. This additional tree traversal could be avoided.
     //To this end, the needed tables should be filled by the postfix and prefix traversals. This has not been done yet.
     //resetting
-    speciesIDs = std::vector<std::vector<int> > ( geneTree->getNumberOfNodes(), nodeSpId );
-    dupData = speciesIDs;
+    std::vector <int> nodeSpId(3, 0);
+    _speciesIDs = std::vector<std::vector<int> > ( _geneTree.getNumberOfNodes(), nodeSpId );
+    _dupData = _speciesIDs;
     // Getting a well-rooted tree
-    TreeTemplate<Node > * tree = geneTree->clone();
-    tree->newOutGroup ( LksToNodes.rbegin()->second->getId() );
-    nodesToTryInNNISearch.clear();
+    TreeTemplate<Node > * tree = _geneTree.clone();
+    tree->newOutGroup ( _LksToNodes.rbegin()->second->getId() );
+    _nodesToTryInNNISearch.clear();
     //Resetting numLineages std::vectors
-    resetVector ( num0lineages );
-    resetVector ( num1lineages );
-    resetVector ( num2lineages );
-    computeNumbersOfLineagesFromRoot ( spTree, tree,
+    resetVector ( _num0lineages );
+    resetVector ( _num1lineages );
+    resetVector ( _num2lineages );
+    computeNumbersOfLineagesFromRoot ( &_speciesTree, tree,
         tree->getRootNode(),
-        seqSp, spID,
-        num0lineages, num1lineages,
-        num2lineages, speciesIDs,
-        dupData, nodesToTryInNNISearch );
+        _seqSp, _spID,
+        _num0lineages, _num1lineages,
+        _num2lineages, _speciesIDs,
+        _dupData, _nodesToTryInNNISearch );
     delete tree;
   }
   
   //We return the best likelihood
-  MLindex = LksToNodes.rbegin()->second->getId();
-  return LksToNodes.rbegin()->first;
+  MLindex = _LksToNodes.rbegin()->second->getId();
+  return _LksToNodes.rbegin()->first;
 }
 
 
@@ -160,9 +186,8 @@ double FastReconciliationTools::computeConditionalLikelihoodAndAssignSpId ( Tree
     int b, b0, oldb;
     a = a0 = olda = son0SpId;
     b = b0 = oldb = son1SpId;
-
-    Node * temp0 = tree.getNode ( son0SpId );
-    Node * temp1 = tree.getNode ( son1SpId );
+    Node * temp0 = _speciesNodes[son0SpId];
+    Node * temp1 = _speciesNodes[son1SpId];
 
 
     double oldLL = rootLikelihood;
@@ -302,16 +327,8 @@ double FastReconciliationTools::computeSubtreeLikelihoodPostorderIter ( TreeTemp
  * "direction"th son of node. direction = sonNumber+1
  *
  ****************************************************************************/
-void FastReconciliationTools::computeRootingLikelihood ( TreeTemplate<Node> & spTree,
-    Node * node,
-    std::vector <std::vector<double> > & likelihoodData,
-    const std::vector< double> & lossRates,
-    const std::vector < double> & duplicationRates,
-    std::vector <std::vector<int> > & speciesIDs,
-    std::vector <std::vector<int> > & dupData,
-    int sonNumber,
-    std::map <double, Node*> & LksToNodes,
-    ReconciliationCache &cache)
+void FastReconciliationTools::computeRootingLikelihood(Node * node,
+    int sonNumber)
 {
   int geneNodeId = node->getId();
 
@@ -338,18 +355,18 @@ void FastReconciliationTools::computeRootingLikelihood ( TreeTemplate<Node> & sp
   directionNode0 = directionForFather;
   directionNode1 = 0;
 
-  computeConditionalLikelihoodAndAssignSpId ( spTree, nodes,
-      likelihoodData[geneNodeId][sonNumber+1],
-      likelihoodData[idNode0][directionNode0],
-      likelihoodData[idNode1][directionNode1],
-      lossRates, duplicationRates,
-      speciesIDs[geneNodeId][sonNumber+1],
-      speciesIDs[idNode0][directionNode0],
-      speciesIDs[idNode1][directionNode1],
-      dupData[geneNodeId][sonNumber+1],
-      dupData[idNode0][directionNode0],
-      dupData[idNode1][directionNode1], false,
-      cache);
+  computeConditionalLikelihoodAndAssignSpId ( _speciesTree, nodes,
+      _likelihoodData[geneNodeId][sonNumber+1],
+      _likelihoodData[idNode0][directionNode0],
+      _likelihoodData[idNode1][directionNode1],
+      _lossRates, _duplicationRates,
+      _speciesIDs[geneNodeId][sonNumber+1],
+      _speciesIDs[idNode0][directionNode0],
+      _speciesIDs[idNode1][directionNode1],
+      _dupData[geneNodeId][sonNumber+1],
+      _dupData[idNode0][directionNode0],
+      _dupData[idNode1][directionNode1], false,
+      *_cache);
   //Now we have the conditional likelihood of the upper subtree,
   //as well as the conditional likelihood of the lower subtree (which we already had)
   //We can thus compute the total likelihood of the rooting.
@@ -368,21 +385,20 @@ void FastReconciliationTools::computeRootingLikelihood ( TreeTemplate<Node> & sp
   int rootSpId;
   int rootDupData = 0;
 
-  computeConditionalLikelihoodAndAssignSpId ( spTree, sons,
+  computeConditionalLikelihoodAndAssignSpId (_speciesTree, sons,
       rootLikelihood,
-      likelihoodData[idSon0][directionSon0],
-      likelihoodData[idSon1][directionSon1],
-      lossRates, duplicationRates,
-      rootSpId, speciesIDs[idSon0][directionSon0],
-      speciesIDs[idSon1][directionSon1],
-      rootDupData, dupData[idSon0][directionSon0],
-      dupData[idSon1][directionSon1], true,
-      cache);
-  while ( LksToNodes.find ( rootLikelihood ) !=LksToNodes.end() ) {
-    // std::cout <<"changing rootLikelihood !!!!!!!!!!!!!!!!!!!"<<std::endl;
+      _likelihoodData[idSon0][directionSon0],
+      _likelihoodData[idSon1][directionSon1],
+      _lossRates, _duplicationRates,
+      rootSpId, _speciesIDs[idSon0][directionSon0],
+      _speciesIDs[idSon1][directionSon1],
+      rootDupData, _dupData[idSon0][directionSon0],
+      _dupData[idSon1][directionSon1], true,
+      *_cache);
+  while ( _LksToNodes.find ( rootLikelihood ) != _LksToNodes.end() ) {
     rootLikelihood+=SMALLPROBA;
   }
-  LksToNodes[rootLikelihood]=node->getSon ( sonNumber );
+  _LksToNodes[rootLikelihood] = node->getSon ( sonNumber );
 }
 
 
@@ -394,61 +410,30 @@ void FastReconciliationTools::computeRootingLikelihood ( TreeTemplate<Node> & sp
  * speciesIDs contains all species IDs for all nodes.
  *
  ****************************************************************************/
-void FastReconciliationTools::computeSubtreeLikelihoodPreorder ( TreeTemplate<Node> & spTree,
-    TreeTemplate<Node> & geneTree,
+void FastReconciliationTools::computeSubtreeLikelihoodPreorder (
     Node * node,
-    const std::map<std::string, std::string > & seqSp,
-    const std::map<std::string, int > & spID,
-    std::vector <std::vector<double> > & likelihoodData,
-    const std::vector< double> & lossRates,
-    const std::vector < double> & duplicationRates,
-    std::vector <std::vector<int> > & speciesIDs,
-    std::vector <std::vector<int> > & dupData,
-    int sonNumber,
-    std::map <double, Node*> & LksToNodes )
+    int sonNumber)
 
 {
-  ReconciliationCache cache(TreeTools::getMaxId(spTree, spTree.getRootId()));
-  computeSubtreeLikelihoodPreorderIter(spTree, geneTree,node,seqSp,spID,likelihoodData,lossRates,
-      duplicationRates,speciesIDs,dupData,sonNumber,LksToNodes, cache);
+  computeSubtreeLikelihoodPreorderIter(node, sonNumber);
 }
 
-void FastReconciliationTools::computeSubtreeLikelihoodPreorderIter ( TreeTemplate<Node> & spTree,
-    TreeTemplate<Node> & geneTree,
-    Node * node,
-    const std::map<std::string, std::string > & seqSp,
-    const std::map<std::string, int > & spID,
-    std::vector <std::vector<double> > & likelihoodData,
-    const std::vector< double> & lossRates,
-    const std::vector < double> & duplicationRates,
-    std::vector <std::vector<int> > & speciesIDs,
-    std::vector <std::vector<int> > & dupData,
-    int sonNumber,
-    std::map <double, Node*> & LksToNodes ,
-    ReconciliationCache &cache)
+void FastReconciliationTools::computeSubtreeLikelihoodPreorderIter (Node * node,
+    int sonNumber)
 {
-  computeRootingLikelihood ( spTree, node,
-      likelihoodData, lossRates,
-      duplicationRates, speciesIDs,
-      dupData, sonNumber, LksToNodes, cache);
+  computeRootingLikelihood(node, sonNumber);
   if ( node->isLeaf() ) {
     return;
   }
   Node * son;
-  if ( sonNumber==1 ) {
-    son= node->getSon ( 1 );
+  if ( sonNumber == 1 ) {
+    son = node->getSon ( 1 );
   }
   else {
-    son= node->getSon ( 0 );
+    son = node->getSon ( 0 );
   }
-  {
-    for ( unsigned int j =0; j<son->getNumberOfSons(); j++ ) {
-      computeSubtreeLikelihoodPreorderIter ( spTree, geneTree,
-          son, seqSp, spID,
-          likelihoodData,
-          lossRates, duplicationRates,
-          speciesIDs, dupData, j, LksToNodes, cache);
-    }
+  for ( unsigned int j =0; j<son->getNumberOfSons(); j++ ) {
+    computeSubtreeLikelihoodPreorderIter (son, j);
   }
 }
 

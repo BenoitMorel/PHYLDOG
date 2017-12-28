@@ -128,21 +128,21 @@ int main(int args, char ** argv)
   std::vector<int> nodes = speciesTree->getNodesId();
   const unsigned int ITERATIONS = 30;
   for (unsigned int iteration = 0; iteration < ITERATIONS; ++iteration) {
+    std::cout << "Iteration" << std::endl;
     for (unsigned int i = 0; i < nodes.size(); ++i) {
       speciesTree->newOutGroup(nodes[i]);
-      FastReconciliationTools rc;
-      ll = rc.findMLReconciliationDR(speciesTree, 
+      FastReconciliationTools rc(speciesTree, 
         geneTree, 
         genesToSpecies,
         speciesIDs, 
         lossRates,
         duplicationRates,
-        MLindex,
         num0lineages,
         num1lineages,
         num2lineages,
         nodesToTryInNNISearch,
         false);
+      ll = rc.findMLReconciliationDR(MLindex);
       if (iteration == ITERATIONS - 1) 
         std::cout << " Reconciliation ll: " << ll << std::endl;
     }

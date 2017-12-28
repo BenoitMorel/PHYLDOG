@@ -20,19 +20,21 @@ struct ReconciliationCache;
 class FastReconciliationTools {
 
   public:
-    double findMLReconciliationDR (TreeTemplate<Node> * speciesTree,
+    FastReconciliationTools(TreeTemplate<Node> * speciesTree,
         TreeTemplate<Node> * geneTree,
         const std::map<std::string, std::string > seqSp,
         const std::map<std::string, int > spID,
         std::vector< double> lossRates,
         std::vector < double> duplicationRates,
-        int & MLindex,
         std::vector <int> &num0lineages,
         std::vector <int> &num1lineages,
         std::vector <int> &num2lineages,
         std::set <int> &nodesToTryInNNISearch,
         const bool fillTables = true );
 
+    ~FastReconciliationTools();
+    
+    double findMLReconciliationDR(int & MLindex);
 
     static double computeLogBranchProbability ( const double & duplicationProbability, 
         const double & lossProbability, 
@@ -40,44 +42,14 @@ class FastReconciliationTools {
 
   private:
 
-    void computeSubtreeLikelihoodPreorderIter ( TreeTemplate<Node> & spTree,
-        TreeTemplate<Node> & geneTree,
-        Node * node,
-        const std::map<std::string, std::string > & seqSp,
-        const std::map<std::string, int > & spID,
-        std::vector <std::vector<double> > & likelihoodData,
-        const std::vector< double> & lossRates,
-        const std::vector < double> & duplicationRates,
-        std::vector <std::vector<int> > & speciesIDs,
-        std::vector <std::vector<int> > & dupData,
-        int sonNumber,
-        std::map <double, Node*> & LksToNodes,
-        ReconciliationCache &cache);
+    void computeSubtreeLikelihoodPreorder (Node * node,
+        int sonNumber);
 
-    void computeSubtreeLikelihoodPreorder ( TreeTemplate<Node> & spTree,
-        TreeTemplate<Node> & geneTree,
-        Node * node,
-        const std::map<std::string, std::string > & seqSp,
-        const std::map<std::string, int > & spID,
-        std::vector <std::vector<double> > & likelihoodData,
-        const std::vector< double> & lossRates,
-        const std::vector < double> & duplicationRates,
-        std::vector <std::vector<int> > & speciesIDs,
-        std::vector <std::vector<int> > & dupData,
-        int sonNumber,
-        std::map <double, Node*> & LksToNodes );
+    void computeSubtreeLikelihoodPreorderIter (Node * node,
+        int sonNumber);
 
-    void computeRootingLikelihood ( TreeTemplate<Node> & spTree,
-        Node * node,
-        std::vector <std::vector<double> > & likelihoodData,
-        const std::vector< double> & lossRates,
-        const std::vector < double> & duplicationRates,
-        std::vector <std::vector<int> > & speciesIDs,
-        std::vector <std::vector<int> > & dupData,
-        int sonNumber,
-        std::map <double, Node*> & LksToNodes,
-        ReconciliationCache &cache);
-
+    void computeRootingLikelihood (Node * node,
+        int sonNumber);
 
     double computeSubtreeLikelihoodPostorder ( TreeTemplate<Node> & spTree,
         TreeTemplate<Node> & geneTree,
@@ -193,8 +165,31 @@ class FastReconciliationTools {
     static void resetVector(std::vector<unsigned int> & v);
     static void resetVector(std::vector<int> & v);
     static void resetVector(std::vector<double> & v);
+   
 
+    /* precompute stuff */
+    void initialize();
+private:
+    TreeTemplate<Node> &_speciesTree;
+    TreeTemplate<Node> &_geneTree;
+    std::vector<Node *> _speciesNodes;
+    std::map<std::string, std::string > _seqSp;
+    std::map<std::string, int > _spID;
+    std::vector<double> _lossRates;
+    std::vector<double> _duplicationRates;
+    std::vector <std::vector<int> > _speciesIDs;
+    std::vector <std::vector<int> > _dupData;
+    //This std::map keeps rootings likelihoods. The key is the likelihood value, and the value is the node to put as outgroup.
+    std::map <double, Node*> _LksToNodes;
+    std::vector <std::vector<double> > _likelihoodData;
+    bool _fillTables;
+    ReconciliationCache *_cache;
 
+    std::vector<int> &_num0lineages;
+    std::vector<int> &_num1lineages;
+    std::vector<int> &_num2lineages;
+    std::set<int> &_nodesToTryInNNISearch;
+    
 
 };
 

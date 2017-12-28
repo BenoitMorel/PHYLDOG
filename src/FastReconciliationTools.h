@@ -51,44 +51,21 @@ class FastReconciliationTools {
     void computeRootingLikelihood (Node * node,
         int sonNumber);
 
-    double computeSubtreeLikelihoodPostorder ( TreeTemplate<Node> & spTree,
-        TreeTemplate<Node> & geneTree,
-        Node * node,
-        const std::map<std::string, std::string > & seqSp,
-        const std::map<std::string, int > & spID,
-        std::vector <std::vector<double> > & likelihoodData,
-        const std::vector< double> & lossRates,
-        const std::vector < double> & duplicationRates,
-        std::vector <std::vector<int> > & speciesIDs,
-        std::vector <std::vector<int> > & dupData );
+    double computeSubtreeLikelihoodPostorder (Node * node);
 
-    double computeSubtreeLikelihoodPostorderIter ( TreeTemplate<Node> & spTree,
-        TreeTemplate<Node> & geneTree,
-        Node * node,
-        const std::map<std::string, std::string > & seqSp,
-        const std::map<std::string, int > & spID,
-        std::vector <std::vector<double> > & likelihoodData,
-        const std::vector< double> & lossRates,
-        const std::vector < double> & duplicationRates,
-        std::vector <std::vector<int> > & speciesIDs,
-        std::vector <std::vector<int> > & dupData ,
-        ReconciliationCache &cache);
+    double computeSubtreeLikelihoodPostorderIter (Node *node);
 
-    double computeConditionalLikelihoodAndAssignSpId ( TreeTemplate<Node> & tree,
-        std::vector <Node *> sons,
+    double computeConditionalLikelihoodAndAssignSpId (const std::vector <Node *> &sons,
         double & rootLikelihood,
         double & son0Likelihood,
         double & son1Likelihood,
-        const std::vector< double> & lossRates,
-        const std::vector< double> & duplicationRates,
         int & rootSpId,
-        const int & son0SpId,
-        const int & son1SpId,
+        int son0SpId,
+        int son1SpId,
         int & rootDupData,
         int & son0DupData,
         int & son1DupData,
-        bool atRoot,
-        ReconciliationCache &cache);
+        bool atRoot);
 
     void computeNumbersOfLineagesFromRoot ( TreeTemplate<Node> * spTree,
         TreeTemplate<Node> * geneTree,
@@ -118,13 +95,12 @@ class FastReconciliationTools {
         const std::map<std::string, std::string > & seqSp,
         const std::map<std::string, int > & spID );
 
-
-    void recoverLosses(Node *& node, int & a, const int & b, int & olda, const int & a0,
-        const TreeTemplate<Node> & tree,
-        double & likelihoodCell,
-        const std::vector< double> & lossRates,
-        const std::vector< double> & duplicationRates,
-        ReconciliationCache &cache);
+    void recoverLosses(Node *& node, 
+        int &a, 
+        int b, 
+        int &olda, 
+        int a0,
+        double &likelihoodCell);
 
     void recoverLossesWithDuplication ( const Node * nodeA,
         const int &a,
@@ -167,6 +143,8 @@ class FastReconciliationTools {
     static void resetVector(std::vector<double> & v);
    
 
+    bool isDescendant(Node *father, int descendantId);
+
     /* precompute stuff */
     void initialize();
 private:
@@ -183,7 +161,11 @@ private:
     std::map <double, Node*> _LksToNodes;
     std::vector <std::vector<double> > _likelihoodData;
     bool _fillTables;
+    
+    // cache
     ReconciliationCache *_cache;
+    std::vector<int> _speciesIdsPreorder;
+    std::vector<int> _speciesIdsLastSon;
 
     std::vector<int> &_num0lineages;
     std::vector<int> &_num1lineages;

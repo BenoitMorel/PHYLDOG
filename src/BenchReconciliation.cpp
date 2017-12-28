@@ -127,10 +127,9 @@ int main(int args, char ** argv)
   
   std::vector<int> nodes = speciesTree->getNodesId();
   const unsigned int ITERATIONS = 30;
-  for (unsigned int iteration = 0; iteration < ITERATIONS; ++iteration) {
-    std::cout << "Iteration" << std::endl;
-    for (unsigned int i = 0; i < nodes.size(); ++i) {
-      speciesTree->newOutGroup(nodes[i]);
+  for (unsigned int i = 0; i < nodes.size(); ++i) {
+    speciesTree->newOutGroup(nodes[i]);
+    for (unsigned int iteration = 0; iteration < ITERATIONS; ++iteration) {
       FastReconciliationTools rc(speciesTree, 
         geneTree, 
         genesToSpecies,

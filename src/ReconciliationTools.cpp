@@ -741,6 +741,7 @@ void computeDuplicationAndLossProbabilitiesForAllBranches ( const std::vector <i
 
 
 void computeAverageDuplicationAndLossProbabilitiesForAllBranches ( const std::vector <int> &numOGenes, const std::vector <int> &num1Genes, const std::vector <int> &num2Genes, std::vector <double> & lossProbabilities, std::vector<double> & duplicationProbabilities ) {
+  std::cout << "YOO computeAverageDuplicationAndLossProbabilitiesForAllBranches " << std::endl;
   //The trick for the root:
   /* int totNum0=0, totNum12=0;
    *     for (int i =1 ; i< lossProbabilities.size() ; i++) {

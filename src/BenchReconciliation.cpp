@@ -44,6 +44,7 @@ knowledge of the CeCILL license and that you accept its terms.
 #include <string>
 #include <fstream>
 #include "ReconciliationTools.h"
+#include "FastReconciliationTools.h" 
 #include <ctime>
 
 void parseLinkFile(const std::string &filename, std::map<std::string, std::string > &genesToSpecies)
@@ -129,8 +130,8 @@ int main(int args, char ** argv)
   for (unsigned int iteration = 0; iteration < ITERATIONS; ++iteration) {
     for (unsigned int i = 0; i < nodes.size(); ++i) {
       speciesTree->newOutGroup(nodes[i]);
-      
-      ll = findMLReconciliationDR(speciesTree, 
+      FastReconciliationTools rc;
+      ll = rc.findMLReconciliationDR(speciesTree, 
         geneTree, 
         genesToSpecies,
         speciesIDs, 

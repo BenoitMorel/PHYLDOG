@@ -38,6 +38,8 @@ SET(PHYLDOG_SRCS
 
 SET(PHYLDOGLIGHT_SRCS
   Constants.h
+  FastReconciliationTools.h
+  FastReconciliationTools.cpp
   ReconciliationTools.h
   ReconciliationTools.cpp
   GenericTreeExplorationAlgorithms.h

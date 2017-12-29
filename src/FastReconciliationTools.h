@@ -15,7 +15,6 @@
 
 using namespace bpp;
 
-struct ReconciliationCache;
 
 class FastReconciliationTools {
 
@@ -36,9 +35,7 @@ class FastReconciliationTools {
     
     double findMLReconciliationDR(int & MLindex);
 
-    static double computeLogBranchProbability ( const double & duplicationProbability, 
-        const double & lossProbability, 
-        const int numberOfLineages);
+  double computeLogBranchProbability (int branch, int numberOfLineages );
 
   private:
 
@@ -163,9 +160,9 @@ private:
     bool _fillTables;
     
     // cache
-    ReconciliationCache *_cache;
     std::vector<int> _speciesIdsPreorder;
     std::vector<int> _speciesIdsLastSon;
+    std::vector<std::vector< double > > _logBranchProbabilities;
 
     std::vector<int> &_num0lineages;
     std::vector<int> &_num1lineages;

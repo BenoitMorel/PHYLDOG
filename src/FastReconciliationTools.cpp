@@ -3,43 +3,6 @@
 
 using namespace std;
 
-struct ReconciliationCache {
-
-  ReconciliationCache(unsigned int spMaxId):
-    nodesIds(spMaxId + 1), logBranchProbabilities(3) 
-  {  
-    logBranchProbabilities[0] = std::vector<double>(spMaxId + 1, 0.0);
-    logBranchProbabilities[1] = std::vector<double>(spMaxId + 1, 0.0);
-    logBranchProbabilities[2] = std::vector<double>(spMaxId + 1, 0.0);
-  }
-
-  bool contains(Node *node, int element) {
-    unsigned int id = node->getId();
-    if (id == element)
-      return true;
-    if (!nodesIds[id].size()) {
-      TreeTemplateTools::getNodesId(*node, nodesIds[id]);
-    }
-    return VectorTools::contains(nodesIds[id], element);
-  }
-
-  double computeLogBranchProbabilityCached(unsigned int branch, 
-      unsigned int numberOfLineages, 
-      const std::vector<double> &duplicationsProbabilities, 
-      const std::vector<double> &lossProbabilities)
-  {
-    double res = logBranchProbabilities[numberOfLineages][branch];
-    if (res == 0.0) {
-      res = FastReconciliationTools::computeLogBranchProbability(duplicationsProbabilities[branch], lossProbabilities[branch], numberOfLineages);
-      logBranchProbabilities[numberOfLineages][branch] = res;
-    }
-    return res;
-  }
-
-  std::vector<std::vector< int > > nodesIds;
-  std::vector<std::vector< double > > logBranchProbabilities;
-};
-
 void computeMaxId(Node *node, int &maxId) 
 {
   maxId = std::max(maxId, node->getId());
@@ -88,7 +51,10 @@ void FastReconciliationTools::initialize()
   _speciesIdsLastSon = std::vector<int>(maxSpeciesId, 0);
   int currentId = 1;
   fillPreorderRec(_speciesTree.getRootNode(), currentId, _speciesIdsPreorder, _speciesIdsLastSon);
-  _cache = (new ReconciliationCache(maxSpeciesId));
+  _logBranchProbabilities.resize(3);
+  _logBranchProbabilities[0] = std::vector<double>(maxSpeciesId + 1, 0.0);
+  _logBranchProbabilities[1] = std::vector<double>(maxSpeciesId + 1, 0.0);
+  _logBranchProbabilities[2] = std::vector<double>(maxSpeciesId + 1, 0.0);
 }
 
 
@@ -128,7 +94,6 @@ FastReconciliationTools::FastReconciliationTools(TreeTemplate<Node> * spTree,
     
 FastReconciliationTools::~FastReconciliationTools()
 {
-  delete _cache;
 }
 
 double FastReconciliationTools::findMLReconciliationDR(int &MLindex) {
@@ -238,33 +203,33 @@ double FastReconciliationTools::computeConditionalLikelihoodAndAssignSpId (
     if ( ( a==a0 ) || ( b==b0 ) ) { //There has been a duplication !
       if ( ( a==a0 ) && ( b==b0 ) ) {
         rootDupData += son0DupData+son1DupData;
-        rootLikelihood-= ( computeLogBranchProbability (_duplicationRates[a0], _lossRates[a0], son0DupData ) +
-            computeLogBranchProbability ( _duplicationRates[b0], _lossRates[b0], son1DupData ) );
+        rootLikelihood-= ( computeLogBranchProbability (a0, son0DupData ) +
+            computeLogBranchProbability (b0, son1DupData ) );
       }//there has been no loss, here
       else if ( b==b0 ) { //The loss has occured before a0
         rootDupData += son1DupData+1;
-        rootLikelihood-=computeLogBranchProbability (_duplicationRates[b0], _lossRates[b0], son1DupData );
+        rootLikelihood-=computeLogBranchProbability (b0, son1DupData );
         recoverLossesWithDuplication ( temp0, a, olda, _speciesTree, rootLikelihood, _lossRates, _duplicationRates );
       }
       else { //The loss has occured before b0
         rootDupData += son0DupData+1;
-        rootLikelihood-=computeLogBranchProbability ( _duplicationRates[a0], _lossRates[a0], son0DupData );
+        rootLikelihood-=computeLogBranchProbability (a0, son0DupData );
         recoverLossesWithDuplication ( temp1, b, oldb, _speciesTree, rootLikelihood, _lossRates, _duplicationRates );
       }
       if ( atRoot ) {
-        rootLikelihood += computeLogBranchProbability ( _duplicationRates[a], _lossRates[a], rootDupData );
+        rootLikelihood += computeLogBranchProbability (a, rootDupData );
       }
       else {
-        rootLikelihood += computeLogBranchProbability ( _duplicationRates[a], _lossRates[a], rootDupData );
+        rootLikelihood += computeLogBranchProbability (a, rootDupData );
       }
     }
     else { //there was no duplication
       rootDupData = 1;
       if ( atRoot ) {
-        rootLikelihood += computeLogBranchProbability ( _duplicationRates[a], _lossRates[a], rootDupData );
+        rootLikelihood += computeLogBranchProbability (a, rootDupData );
       }
       else {
-        rootLikelihood += computeLogBranchProbability ( _duplicationRates[a], _lossRates[a], rootDupData );
+        rootLikelihood += computeLogBranchProbability (a, rootDupData );
       }
     }
     //Setting the lower conditional likelihood for the node of interest.
@@ -297,7 +262,7 @@ double FastReconciliationTools::computeSubtreeLikelihoodPostorderIter (Node *nod
     if ( _likelihoodData[id][0]==0.0 ) {
       _speciesIDs[id][0] = _speciesIDs[id][1] = _speciesIDs[id][2]= assignSpeciesIdToLeaf ( node, _seqSp, _spID );
       _likelihoodData[id][0]= _likelihoodData[id][1]= _likelihoodData[id][2] =
-        computeLogBranchProbability ( _duplicationRates[_speciesIDs[id][0]], _lossRates[_speciesIDs[id][0]], 1 );
+        computeLogBranchProbability ( _speciesIDs[id][0], 1 );
       _dupData[id][0] = _dupData[id][1] = _dupData[id][2] = 1;
     }
     return _likelihoodData[id][0];
@@ -487,8 +452,16 @@ double FastReconciliationTools::computeBranchProbability ( const double & duplic
 /**************************************************************************
  * Computes the log of the probability.
  **************************************************************************/
-double FastReconciliationTools::computeLogBranchProbability ( const double & duplicationProbability, const double & lossProbability, const int numberOfLineages ) {
-  return ( log ( computeBranchProbability ( duplicationProbability, lossProbability, numberOfLineages ) ) );
+double FastReconciliationTools::computeLogBranchProbability (int branch, int numberOfLineages ) {
+  if (numberOfLineages > 2) {
+      return  ( log ( computeBranchProbability ( _duplicationRates[branch], _lossRates[branch], numberOfLineages ) ) );
+  }
+  double res = _logBranchProbabilities[numberOfLineages][branch];
+    if (res == 0.0) {
+      res =  ( log ( computeBranchProbability ( _duplicationRates[branch], _lossRates[branch], numberOfLineages ) ) );
+      _logBranchProbabilities[numberOfLineages][branch] = res;
+    }
+    return res;
 }
 
 
@@ -613,18 +586,18 @@ void FastReconciliationTools::recoverLosses(Node *& node,
 
   {
     lostNodeId=nodeA->getSon(1)->getId();
-    likelihoodCell += _cache->computeLogBranchProbabilityCached(lostNodeId, 0, _duplicationRates, _lossRates);
+    likelihoodCell += computeLogBranchProbability(lostNodeId, 0);
   }
   else  if ((nodeA->getSon(1)->getId()==olda)
       && (!(isDescendant(nodeA->getSon(0), b) || (nodeA->getSon(0)->getId() == b)))
       && (b!=a))
   {
     lostNodeId=nodeA->getSon(0)->getId();
-    likelihoodCell += _cache->computeLogBranchProbabilityCached(lostNodeId, 0, _duplicationRates, _lossRates);
+    likelihoodCell += computeLogBranchProbability(lostNodeId, 0);
   }
 
   if ((olda!=a0)) {
-    likelihoodCell += _cache->computeLogBranchProbabilityCached(olda, 1, _duplicationRates, _lossRates);
+    likelihoodCell += computeLogBranchProbability(olda, 1);
   }
 }
 
@@ -654,7 +627,7 @@ void FastReconciliationTools::recoverLossesWithDuplication ( const Node * nodeA,
     lostNode=nodeOldA->getFather()->getSon ( 0 );
   }
   //We need to place the loss event in the right lineage
-  likelihoodCell += computeLogBranchProbability ( duplicationRates[lostNode->getId()], lossRates[lostNode->getId()], 0 );
+  likelihoodCell += computeLogBranchProbability ( lostNode->getId(), 0 );
 }
 
 
@@ -708,8 +681,6 @@ void FastReconciliationTools::computeNumbersOfLineagesInASubtree ( TreeTemplate<
 
     if ( ( a==a0 ) && ( b==b0 ) ) {
       rootDupData += son0DupData+son1DupData;
-      /* rootLikelihood-=(computeLogBranchProbability(duplicationRates[a0], lossRates[a0], son0DupData) +
-       *             computeLogBranchProbability(duplicationRates[b0], lossRates[b0], son1DupData));*/
       if ( son0DupData==1 ) {
         num1lineages[a0]=num1lineages[a0]-1;
       }
@@ -726,7 +697,6 @@ void FastReconciliationTools::computeNumbersOfLineagesInASubtree ( TreeTemplate<
     }//there has been no loss, here
     else if ( b==b0 ) { //The loss has occured before a0
       rootDupData += son1DupData+1;
-      //rootLikelihood-=computeLogBranchProbability(duplicationRates[b0], lossRates[b0], son1DupData);
       if ( son1DupData==1 ) {
         num1lineages[b0]=num1lineages[b0]-1;
       }
@@ -737,7 +707,6 @@ void FastReconciliationTools::computeNumbersOfLineagesInASubtree ( TreeTemplate<
     }
     else { //The loss has occured before b0
       rootDupData += son0DupData+1;
-      //rootLikelihood-=computeLogBranchProbability(duplicationRates[a0], lossRates[a0], son0DupData);
       if ( son0DupData==1 ) {
         num1lineages[a0]=num1lineages[a0]-1;
       }
@@ -799,11 +768,9 @@ void FastReconciliationTools::recoverLossesAndLineages ( Node *& node, int & a, 
     lostNodeId=nodeA->getSon ( 0 )->getId();
   }
   if ( lostNodeId!= -1 ) {
-    //likelihoodCell += computeLogBranchProbability(duplicationRates[lostNodeId], lossRates[lostNodeId], 0);
     num0lineages[lostNodeId]+=1;
   }
   if ( ( olda!=a0 ) ) {
-    //likelihoodCell += computeLogBranchProbability(duplicationRates[olda], lossRates[olda], 1);
     num1lineages[olda]+=1;
   }
 }
@@ -836,7 +803,6 @@ void FastReconciliationTools::recoverLossesAndLineagesWithDuplication ( const No
     lostNode=nodeOldA->getFather()->getSon ( 0 );
   }
   //We need to place the loss event in the right lineage
-  //likelihoodCell += computeLogBranchProbability(duplicationRates[lostNode->getId()], lossRates[lostNode->getId()], 0);
   num0lineages[lostNode->getId()]+=1;
   return;
 }

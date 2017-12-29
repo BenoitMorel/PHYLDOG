@@ -170,24 +170,42 @@ double FastReconciliationTools::findMLReconciliationDR(int &MLindex) {
  ****************************************************************************/
 double FastReconciliationTools::computeConditionalLikelihoodAndAssignSpId ( 
     double & rootLikelihood,
-    double & son0Likelihood,
-    double & son1Likelihood,
+    double son0Likelihood,
+    double son1Likelihood,
     int & rootSpId,
     int son0SpId,
     int son1SpId,
     int & rootDupData,
-    int & son0DupData,
-    int & son1DupData,
+    int son0DupData,
+    int son1DupData,
     bool atRoot)
 {
   if ( rootLikelihood == 0.0 ) {
+    std::pair<int, int> key;
+    key.first = son0SpId;
+    key.second = son1SpId;
+    Data data = _assignMap[key];
+    if (!atRoot && data.rootLikelihood != 0.0) {
+      rootLikelihood = data.rootLikelihood + son0Likelihood + son1Likelihood;
+      rootDupData = data.rootDupData;
+      rootSpId = data.rootSpId;
+      return rootLikelihood;;
+    }
+    key.first = son1SpId;
+    key.second = son0SpId;
+    data = _assignMap[key];
+    if (!atRoot && data.rootLikelihood != 0.0) {
+      rootLikelihood = data.rootLikelihood + son0Likelihood + son1Likelihood;
+      rootDupData = data.rootDupData;
+      rootSpId = data.rootSpId;
+      return rootLikelihood;;
+    }
     int a, a0, olda;
     int b, b0, oldb;
     a = a0 = olda = son0SpId;
     b = b0 = oldb = son1SpId;
     Node * temp0 = _speciesNodes[son0SpId];
     Node * temp1 = _speciesNodes[son1SpId];
-
 
     double oldLL = rootLikelihood;
     while ( a!=b ) { //There have been losses !
@@ -232,7 +250,11 @@ double FastReconciliationTools::computeConditionalLikelihoodAndAssignSpId (
       }
     }
     //Setting the lower conditional likelihood for the node of interest.
-    rootLikelihood += son0Likelihood + son1Likelihood;
+    data.rootLikelihood = rootLikelihood;
+    data.rootDupData = rootDupData;
+    data.rootSpId = rootSpId;
+    _assignMap[key] =  data;
+    rootLikelihood = data.rootLikelihood + son0Likelihood + son1Likelihood;
   }
   return ( rootLikelihood );
 }

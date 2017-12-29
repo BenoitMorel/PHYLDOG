@@ -53,14 +53,14 @@ class FastReconciliationTools {
     double computeSubtreeLikelihoodPostorderIter (Node *node);
 
     double computeConditionalLikelihoodAndAssignSpId (double & rootLikelihood,
-        double & son0Likelihood,
-        double & son1Likelihood,
+        double son0Likelihood,
+        double son1Likelihood,
         int & rootSpId,
         int son0SpId,
         int son1SpId,
         int & rootDupData,
-        int & son0DupData,
-        int & son1DupData,
+        int son0DupData,
+        int son1DupData,
         bool atRoot);
 
     void computeNumbersOfLineagesFromRoot ( TreeTemplate<Node> * spTree,
@@ -167,7 +167,16 @@ private:
     std::vector<int> &_num1lineages;
     std::vector<int> &_num2lineages;
     std::set<int> &_nodesToTryInNNISearch;
-    
+   
+    struct Data {
+      double rootLikelihood;
+      int rootSpId;
+      int rootDupData;
+      Data() {
+        rootLikelihood = 0.0;
+      }
+    };
+    std::map< std::pair <int, int>, Data > _assignMap;
 
 };
 

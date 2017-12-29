@@ -40,6 +40,14 @@ struct ReconciliationCache {
   std::vector<std::vector< double > > logBranchProbabilities;
 };
 
+void computeMaxId(Node *node, int &maxId) 
+{
+  maxId = std::max(maxId, node->getId());
+  for (unsigned int i = 0; i < node->getNumberOfSons(); ++i) {
+    computeMaxId(node->getSon(i), maxId);
+  }
+}
+
 void fillPreorderRec(Node *node, int &currentId, 
     std::vector<int> &preorderIds, 
     std::vector<int> &lastSons,
@@ -69,7 +77,8 @@ bool FastReconciliationTools::isDescendant(Node *father, int descendantId)
 
 void FastReconciliationTools::initialize()
 {
-  unsigned int maxSpeciesId = TreeTools::getMaxId(_speciesTree, _speciesTree.getRootId());
+  int maxSpeciesId = 0;
+  computeMaxId(_speciesTree.getRootNode(), maxSpeciesId);
   _speciesNodes = std::vector<Node *>(maxSpeciesId + 1, 0);
   std::vector<Node *> nodes = _speciesTree.getNodes();
   for (unsigned int i = 0; i < nodes.size(); ++i) {
@@ -79,6 +88,7 @@ void FastReconciliationTools::initialize()
   _speciesIdsLastSon = std::vector<int>(maxSpeciesId, 0);
   int currentId = 1;
   fillPreorderRec(_speciesTree.getRootNode(), currentId, _speciesIdsPreorder, _speciesIdsLastSon);
+  _cache = (new ReconciliationCache(maxSpeciesId));
 }
 
 
@@ -100,7 +110,6 @@ FastReconciliationTools::FastReconciliationTools(TreeTemplate<Node> * spTree,
   _lossRates(lossRates),
   _duplicationRates(duplicationRates),
   _fillTables(fillTables),
-  _cache(new ReconciliationCache(TreeTools::getMaxId(*spTree, spTree->getRootId()))),
   _num0lineages(num0lineages),
   _num1lineages(num1lineages),
   _num2lineages(num2lineages),

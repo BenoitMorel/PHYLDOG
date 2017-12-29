@@ -52,8 +52,7 @@ class FastReconciliationTools {
 
     double computeSubtreeLikelihoodPostorderIter (Node *node);
 
-    double computeConditionalLikelihoodAndAssignSpId (const std::vector <Node *> &sons,
-        double & rootLikelihood,
+    double computeConditionalLikelihoodAndAssignSpId (double & rootLikelihood,
         double & son0Likelihood,
         double & son1Likelihood,
         int & rootSpId,

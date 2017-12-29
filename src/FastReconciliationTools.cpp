@@ -169,7 +169,6 @@ double FastReconciliationTools::findMLReconciliationDR(int &MLindex) {
  *
  ****************************************************************************/
 double FastReconciliationTools::computeConditionalLikelihoodAndAssignSpId ( 
-    const std::vector <Node *> &sons,
     double & rootLikelihood,
     double & son0Likelihood,
     double & son1Likelihood,
@@ -277,7 +276,7 @@ double FastReconciliationTools::computeSubtreeLikelihoodPostorderIter (Node *nod
     unsigned int directionSon0 = 0;
     unsigned int directionSon1 = 0;
 
-    computeConditionalLikelihoodAndAssignSpId (sons,
+    computeConditionalLikelihoodAndAssignSpId (
         _likelihoodData[id][0],
         _likelihoodData[idSon0][directionSon0],
         _likelihoodData[idSon1][directionSon1],
@@ -306,15 +305,15 @@ void FastReconciliationTools::computeRootingLikelihood(Node * node,
   int geneNodeId = node->getId();
 
   int directionForFather;
-  std::vector <Node*> nodes;
-  nodes.push_back ( node->getFather() );
+  Node *node0 = node->getFather();
+  Node *node1 = 0;
   if ( sonNumber==0 ) { //If sonNumber==0, the subtree we're interested in is composed of son 1 and father of node.
-    nodes.push_back ( node->getSon ( 1 ) );
+    node1 = node->getSon(1);
   }
   else { //If sonNumber==1, the subtree we're interested in is composed of son 0 and father of node.
-    nodes.push_back ( node->getSon ( 0 ) );
+    node1 = node->getSon(0);
   }
-  if ( node->getFather()->getSon ( 0 ) ==node ) {
+  if ( node->getFather()->getSon ( 0 ) == node ) {
     directionForFather = 1; //node #1 is son 0, except at the root
   }
   else {
@@ -322,13 +321,13 @@ void FastReconciliationTools::computeRootingLikelihood(Node * node,
   }
 
   int idNode0, idNode1;
-  idNode0 = nodes[0]->getId();
-  idNode1 = nodes[1]->getId();
+  idNode0 = node0->getId();
+  idNode1 = node1->getId();
   unsigned int directionNode0, directionNode1;
   directionNode0 = directionForFather;
   directionNode1 = 0;
 
-  computeConditionalLikelihoodAndAssignSpId(nodes,
+  computeConditionalLikelihoodAndAssignSpId(
       _likelihoodData[geneNodeId][sonNumber+1],
       _likelihoodData[idNode0][directionNode0],
       _likelihoodData[idNode1][directionNode1],
@@ -342,12 +341,10 @@ void FastReconciliationTools::computeRootingLikelihood(Node * node,
   //as well as the conditional likelihood of the lower subtree (which we already had)
   //We can thus compute the total likelihood of the rooting.
 
-  std::vector <Node*> sons;
-  sons.push_back ( node );
-
-  sons.push_back ( node->getSon ( sonNumber ) );
+  node0 = node;
+  node1 = node->getSon(sonNumber);
   int idSon0 = geneNodeId;
-  int idSon1 = sons[1]->getId();
+  int idSon1 = node1->getId();
   unsigned int directionSon0, directionSon1;
   directionSon0 = sonNumber+1;
   directionSon1 = 0;
@@ -356,7 +353,7 @@ void FastReconciliationTools::computeRootingLikelihood(Node * node,
   int rootSpId;
   int rootDupData = 0;
 
-  computeConditionalLikelihoodAndAssignSpId (sons,
+  computeConditionalLikelihoodAndAssignSpId (
       rootLikelihood,
       _likelihoodData[idSon0][directionSon0],
       _likelihoodData[idSon1][directionSon1],
@@ -367,7 +364,7 @@ void FastReconciliationTools::computeRootingLikelihood(Node * node,
   while ( _LksToNodes.find ( rootLikelihood ) != _LksToNodes.end() ) {
     rootLikelihood+=SMALLPROBA;
   }
-  _LksToNodes[rootLikelihood] = node->getSon ( sonNumber );
+  _LksToNodes[rootLikelihood] = node1;
 }
 
 
@@ -581,7 +578,7 @@ void FastReconciliationTools::recoverLosses(Node *& node,
   else if (son0Id != olda && b != a && !isDescendant(son0, b))
     likelihoodCell += computeLogBranchProbability(son0Id, 0);
 
-  if ((olda!=a0))
+  if ((olda!=a0)) 
     likelihoodCell += computeLogBranchProbability(olda, 1);
 }
 

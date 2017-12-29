@@ -40,21 +40,21 @@ bool FastReconciliationTools::isDescendant(Node *father, int descendantId)
 
 void FastReconciliationTools::initialize()
 {
-  int maxSpeciesId = 0;
-  computeMaxId(_speciesTree.getRootNode(), maxSpeciesId);
-  _speciesNodes = std::vector<Node *>(maxSpeciesId + 1, 0);
+  _maxSpeciesId = 1;
+  computeMaxId(_speciesTree.getRootNode(), _maxSpeciesId);
+  _speciesNodes = std::vector<Node *>(_maxSpeciesId + 1, 0);
   std::vector<Node *> nodes = _speciesTree.getNodes();
   for (unsigned int i = 0; i < nodes.size(); ++i) {
     _speciesNodes[nodes[i]->getId()] = nodes[i];
   }
-  _speciesIdsPreorder = std::vector<int>(maxSpeciesId, 0);
-  _speciesIdsLastSon = std::vector<int>(maxSpeciesId, 0);
+  _speciesIdsPreorder = std::vector<int>(_maxSpeciesId, 0);
+  _speciesIdsLastSon = std::vector<int>(_maxSpeciesId, 0);
   int currentId = 1;
   fillPreorderRec(_speciesTree.getRootNode(), currentId, _speciesIdsPreorder, _speciesIdsLastSon);
   _logBranchProbabilities.resize(3);
-  _logBranchProbabilities[0] = std::vector<double>(maxSpeciesId + 1, 0.0);
-  _logBranchProbabilities[1] = std::vector<double>(maxSpeciesId + 1, 0.0);
-  _logBranchProbabilities[2] = std::vector<double>(maxSpeciesId + 1, 0.0);
+  _logBranchProbabilities[0] = std::vector<double>(_maxSpeciesId + 1, 0.0);
+  _logBranchProbabilities[1] = std::vector<double>(_maxSpeciesId + 1, 0.0);
+  _logBranchProbabilities[2] = std::vector<double>(_maxSpeciesId + 1, 0.0);
 }
 
 
@@ -181,19 +181,9 @@ double FastReconciliationTools::computeConditionalLikelihoodAndAssignSpId (
     bool atRoot)
 {
   if ( rootLikelihood == 0.0 ) {
-    std::pair<int, int> key;
-    key.first = son0SpId;
-    key.second = son1SpId;
+    int key = std::max(son0SpId, son1SpId) * 4242 +
+      std::min(son0SpId, son1SpId);
     Data data = _assignMap[key];
-    if (!atRoot && data.rootLikelihood != 0.0) {
-      rootLikelihood = data.rootLikelihood + son0Likelihood + son1Likelihood;
-      rootDupData = data.rootDupData;
-      rootSpId = data.rootSpId;
-      return rootLikelihood;;
-    }
-    key.first = son1SpId;
-    key.second = son0SpId;
-    data = _assignMap[key];
     if (!atRoot && data.rootLikelihood != 0.0) {
       rootLikelihood = data.rootLikelihood + son0Likelihood + son1Likelihood;
       rootDupData = data.rootDupData;

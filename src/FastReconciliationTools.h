@@ -157,7 +157,8 @@ private:
     std::map <double, Node*> _LksToNodes;
     std::vector <std::vector<double> > _likelihoodData;
     bool _fillTables;
-    
+    int _maxSpeciesId;
+
     // cache
     std::vector<int> _speciesIdsPreorder;
     std::vector<int> _speciesIdsLastSon;
@@ -176,7 +177,7 @@ private:
         rootLikelihood = 0.0;
       }
     };
-    std::map< std::pair <int, int>, Data > _assignMap;
+    std::map<int, Data > _assignMap;
 
 };
 

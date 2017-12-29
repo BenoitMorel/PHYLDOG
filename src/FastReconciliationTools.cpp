@@ -569,36 +569,20 @@ void FastReconciliationTools::recoverLosses(Node *& node,
     double &likelihoodCell)
 {
   olda = a;
-  Node* nodeA;
-  if (node->hasFather()) {
-    nodeA = node->getFather();
-  }
-  else {
-    std::cout <<"Problem in recoverLosses, nodeA has no father"<<std::endl;
-  }
-  a = nodeA->getId();
-  node = nodeA;
+  node = node->getFather();
+  a = node->getId();
+  Node *son0 = node->getSon(0);
+  Node *son1 = node->getSon(1);
+  int son0Id = son0->getId();
+  int son1Id = son1->getId();
+  
+  if (son1Id != olda && b != a && (!isDescendant(son1, b)))
+    likelihoodCell += computeLogBranchProbability(son1Id, 0);
+  else if (son0Id != olda && b != a && !isDescendant(son0, b))
+    likelihoodCell += computeLogBranchProbability(son0Id, 0);
 
-  int lostNodeId = -1;
-  if (   (nodeA->getSon(0)->getId()==olda)
-      && (!(isDescendant(nodeA->getSon(1), b) || (nodeA->getSon(1)->getId() == b)))
-      && (b!=a))
-
-  {
-    lostNodeId=nodeA->getSon(1)->getId();
-    likelihoodCell += computeLogBranchProbability(lostNodeId, 0);
-  }
-  else  if ((nodeA->getSon(1)->getId()==olda)
-      && (!(isDescendant(nodeA->getSon(0), b) || (nodeA->getSon(0)->getId() == b)))
-      && (b!=a))
-  {
-    lostNodeId=nodeA->getSon(0)->getId();
-    likelihoodCell += computeLogBranchProbability(lostNodeId, 0);
-  }
-
-  if ((olda!=a0)) {
+  if ((olda!=a0))
     likelihoodCell += computeLogBranchProbability(olda, 1);
-  }
 }
 
 /*****************************************************************************

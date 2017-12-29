@@ -427,7 +427,9 @@ void FastReconciliationTools::resetVector ( std::vector<double> & v ) {
 /**************************************************************************
  * Computes the probability of a given number of lineages numberOfLineages at the end of a branch given that there was only one at the beginning of the branch.
  **************************************************************************/
-double FastReconciliationTools::computeBranchProbability ( const double & duplicationProbability, const double & lossProbability, const int numberOfLineages ) {
+double FastReconciliationTools::computeBranchProbability (int branch, int numberOfLineages ) {
+  double lossProbability = _lossRates[branch];
+  double duplicationProbability = _duplicationRates[branch];
   double elm = exp ( duplicationProbability - lossProbability );
   double A = elm -1;
   double B = duplicationProbability * elm - lossProbability;
@@ -451,11 +453,11 @@ double FastReconciliationTools::computeBranchProbability ( const double & duplic
  **************************************************************************/
 double FastReconciliationTools::computeLogBranchProbability (int branch, int numberOfLineages ) {
   if (numberOfLineages > 2) {
-      return  ( log ( computeBranchProbability ( _duplicationRates[branch], _lossRates[branch], numberOfLineages ) ) );
+      return  ( log ( computeBranchProbability (branch, numberOfLineages)));
   }
   double res = _logBranchProbabilities[numberOfLineages][branch];
     if (res == 0.0) {
-      res =  ( log ( computeBranchProbability ( _duplicationRates[branch], _lossRates[branch], numberOfLineages ) ) );
+      res =  ( log ( computeBranchProbability (branch, numberOfLineages)));
       _logBranchProbabilities[numberOfLineages][branch] = res;
     }
     return res;

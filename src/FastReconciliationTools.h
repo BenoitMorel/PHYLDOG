@@ -131,7 +131,7 @@ class FastReconciliationTools {
         std::vector <int> &num2lineages,
         std::set <int> &branchesWithDuplications );
 
-    static double computeBranchProbability ( const double & duplicationProbability, const double & lossProbability, const int numberOfLineages);
+    double computeBranchProbability (int branch, int numberOfLineages);
 
     // todobenoit : template and use stl better
     static void resetVector(std::vector<unsigned int> & v);

@@ -86,14 +86,16 @@ int main(int args, char ** argv)
 {
   std::cout << "Bench reconciliation..." << std::endl;
   
-  if (args != 4) {
+  if (args != 6) {
     std::cerr << "Error: syntax is " << std::endl;
-    std::cerr << "./benchreconciliation speciesTree genesTree speciesToGenes" << std::endl;
+    std::cerr << "./benchreconciliation speciesTree genesTree speciesToGenes useFastRec iterations" << std::endl;
   }
 
   std::string speciesTreeFilename = argv[1];
   std::string geneTreeFilename = argv[2];
   std::string linksFilename = argv[3];
+  bool useFastRec = atoi(argv[4]);
+  int iterations = atoi(argv[5]);
 
 
   Newick newick;
@@ -125,39 +127,40 @@ int main(int args, char ** argv)
   ////////////// BEEENCH //////////////////////
   /////////////////////////////////////////////
   
+  std::cout << cout.precision(15);
   std::vector<int> nodes = speciesTree->getNodesId();
-  const unsigned int ITERATIONS = 30;
   for (unsigned int i = 0; i < nodes.size(); ++i) {
     speciesTree->newOutGroup(nodes[i]);
-    for (unsigned int iteration = 0; iteration < ITERATIONS; ++iteration) {
-      FastReconciliationTools rc(speciesTree, 
-        geneTree, 
-        genesToSpecies,
-        speciesIDs, 
-        lossRates,
-        duplicationRates,
-        num0lineages,
-        num1lineages,
-        num2lineages,
-        nodesToTryInNNISearch,
-        false);
-      ll = rc.findMLReconciliationDR(MLindex);
-      /*
-      ll = findMLReconciliationDR(speciesTree, 
-        geneTree, 
-        genesToSpecies,
-        speciesIDs, 
-        lossRates,
-        duplicationRates,
-        MLindex,
-        num0lineages,
-        num1lineages,
-        num2lineages,
-        nodesToTryInNNISearch,
-        true);
-        */
-      if (iteration == ITERATIONS - 1) 
-        std::cout << " Reconciliation ll: " << ll << std::endl;
+    for (unsigned int iteration = 0; iteration < iterations; ++iteration) {
+      if (useFastRec) {
+        FastReconciliationTools rc(speciesTree, 
+          geneTree, 
+          genesToSpecies,
+          speciesIDs, 
+          lossRates,
+          duplicationRates,
+          num0lineages,
+          num1lineages,
+          num2lineages,
+          nodesToTryInNNISearch,
+          false);
+        ll = rc.findMLReconciliationDR(MLindex);
+      } else {
+        ll = findMLReconciliationDR(speciesTree, 
+          geneTree, 
+          genesToSpecies,
+          speciesIDs, 
+          lossRates,
+          duplicationRates,
+          MLindex,
+          num0lineages,
+          num1lineages,
+          num2lineages,
+          nodesToTryInNNISearch,
+          false);
+      }
+      if (iteration == iterations - 1) 
+        std::cout << "ll: " << ll << " " << MLindex << std::endl;
     }
   }
   

@@ -1,112 +1,111 @@
 Bench reconciliation...
- Reconciliation ll: -1083.93
- Reconciliation ll: -1523.47
- Reconciliation ll: -1523.64
- Reconciliation ll: -1523.64
- Reconciliation ll: -1518.61
- Reconciliation ll: -1516.22
- Reconciliation ll: -1516.22
- Reconciliation ll: -1429.28
- Reconciliation ll: -1529.97
- Reconciliation ll: -1530.13
- Reconciliation ll: -1530.13
- Reconciliation ll: -1441.65
- Reconciliation ll: -1441.65
- Reconciliation ll: -1345.97
- Reconciliation ll: -1443.87
- Reconciliation ll: -1439.63
- Reconciliation ll: -1439.63
- Reconciliation ll: -1451.25
- Reconciliation ll: -1451.03
- Reconciliation ll: -1451.03
- Reconciliation ll: -1356.46
- Reconciliation ll: -1255.98
- Reconciliation ll: -1442.37
- Reconciliation ll: -1440.84
- Reconciliation ll: -1440.84
- Reconciliation ll: -1351.06
- Reconciliation ll: -1351.06
- Reconciliation ll: -1376.82
- Reconciliation ll: -1374.74
- Reconciliation ll: -1374.74
- Reconciliation ll: -1275.69
- Reconciliation ll: -1174.35
- Reconciliation ll: -1350.91
- Reconciliation ll: -1351.14
- Reconciliation ll: -1351.14
- Reconciliation ll: -1350.07
- Reconciliation ll: -1350.29
- Reconciliation ll: -1350.29
- Reconciliation ll: -1251.95
- Reconciliation ll: -1526.43
- Reconciliation ll: -1657.14
- Reconciliation ll: -1657.33
- Reconciliation ll: -1657.33
- Reconciliation ll: -1524.16
- Reconciliation ll: -1400.49
- Reconciliation ll: -1400.49
- Reconciliation ll: -1511.98
- Reconciliation ll: -1507.2
- Reconciliation ll: -1507.2
- Reconciliation ll: -1516.07
- Reconciliation ll: -1513.92
- Reconciliation ll: -1513.92
- Reconciliation ll: -1387.9
- Reconciliation ll: -1275.89
- Reconciliation ll: -1799.55
- Reconciliation ll: -1799.63
- Reconciliation ll: -1799.63
- Reconciliation ll: -1652.98
- Reconciliation ll: -1652.98
- Reconciliation ll: -1519.45
- Reconciliation ll: -1519.45
- Reconciliation ll: -1512.49
- Reconciliation ll: -1649.67
- Reconciliation ll: -1649.75
- Reconciliation ll: -1649.75
- Reconciliation ll: -1512.31
- Reconciliation ll: -1389.35
- Reconciliation ll: -1536.22
- Reconciliation ll: -1536.17
- Reconciliation ll: -1536.17
- Reconciliation ll: -1535.86
- Reconciliation ll: -1536.09
- Reconciliation ll: -1536.09
- Reconciliation ll: -1407.03
- Reconciliation ll: -1287.51
- Reconciliation ll: -1190.37
- Reconciliation ll: -1484.03
- Reconciliation ll: -1484.13
- Reconciliation ll: -1484.13
- Reconciliation ll: -1372.38
- Reconciliation ll: -1372.38
- Reconciliation ll: -1397.58
- Reconciliation ll: -1522.53
- Reconciliation ll: -1524.86
- Reconciliation ll: -1524.86
- Reconciliation ll: -1395.57
- Reconciliation ll: -1274.84
- Reconciliation ll: -1172.91
- Reconciliation ll: -1095.02
- Reconciliation ll: -1466.9
- Reconciliation ll: -1469.53
- Reconciliation ll: -1469.53
- Reconciliation ll: -1370.05
- Reconciliation ll: -1370.05
- Reconciliation ll: -1444.57
- Reconciliation ll: -1442.14
- Reconciliation ll: -1442.14
- Reconciliation ll: -1354.29
- Reconciliation ll: -1354.29
- Reconciliation ll: -1273.24
- Reconciliation ll: -1216.59
- Reconciliation ll: -1216.59
- Reconciliation ll: -1116.05
- Reconciliation ll: -1071.64
- Reconciliation ll: -1101.27
- Reconciliation ll: -1101.27
- Reconciliation ll: -1080.3
- Reconciliation ll: -1083.89
- Reconciliation ll: -1083.89
-ELAPSED 3.15
-/home/morelbt/github/PHYLDOG/build/bin/benchreconciliation /home/morelbt/github/PHYLDOG/benoitdata/DataExample/speciesTree.newick /home/morelbt/github/PHYLDOG/benoitdata/DataExample/RaxmlTrees/HBG011000.raxml.bestTree /home/morelbt/github/PHYLDOG/benoitdata/DataExample/LinkFiles/HBG011000.link
+6ll: -1083.92950242722 125
+ll: -1523.46883977528 82
+ll: -1523.64157726012 82
+ll: -1523.64157726012 82
+ll: -1518.60517341768 82
+ll: -1516.21832479859 63
+ll: -1516.21832479859 63
+ll: -1429.28065295226 82
+ll: -1529.96884099177 82
+ll: -1530.12700808894 82
+ll: -1530.12700808894 82
+ll: -1441.65009272178 83
+ll: -1441.65009272178 83
+ll: -1345.96889090885 82
+ll: -1443.87111368544 82
+ll: -1439.63424281714 82
+ll: -1439.63424281714 82
+ll: -1451.25136373447 82
+ll: -1451.03481946686 80
+ll: -1451.03481946686 80
+ll: -1356.45946984352 74
+ll: -1255.9784507254 77
+ll: -1442.37194412724 68
+ll: -1440.84497007175 82
+ll: -1440.84497007175 82
+ll: -1351.06117644094 82
+ll: -1351.06117644094 82
+ll: -1376.81663613359 82
+ll: -1374.74295084996 82
+ll: -1374.74295084996 82
+ll: -1275.68920688634 34
+ll: -1174.34531500095 82
+ll: -1350.90913662542 82
+ll: -1351.14198666415 145
+ll: -1351.14198666415 145
+ll: -1350.06765332952 82
+ll: -1350.28826532901 80
+ll: -1350.28826532901 80
+ll: -1251.95290044004 82
+ll: -1526.42657779658 82
+ll: -1657.14063643802 82
+ll: -1657.32579465875 80
+ll: -1657.32579465875 80
+ll: -1524.1635709805 63
+ll: -1400.48649333763 82
+ll: -1400.48649333763 82
+ll: -1511.97578792646 82
+ll: -1507.19589465684 82
+ll: -1507.19589465684 82
+ll: -1516.07066867555 80
+ll: -1513.91647405194 83
+ll: -1513.91647405194 83
+ll: -1387.90076795161 82
+ll: -1275.8949177848 82
+ll: -1799.54773363166 76
+ll: -1799.63061475098 68
+ll: -1799.63061475098 68
+ll: -1652.97719399728 80
+ll: -1652.97719399728 80
+ll: -1519.44863262672 146
+ll: -1519.44863262672 146
+ll: -1512.49271781399 82
+ll: -1649.66521093745 82
+ll: -1649.74510231952 7
+ll: -1649.74510231952 7
+ll: -1512.30564427747 61
+ll: -1389.35202694404 82
+ll: -1536.21823331655 76
+ll: -1536.17378894579 145
+ll: -1536.17378894579 145
+ll: -1535.85977232118 61
+ll: -1536.08865272932 82
+ll: -1536.08865272932 82
+ll: -1407.03065250568 82
+ll: -1287.51122411429 82
+ll: -1190.366739497 82
+ll: -1484.02930924515 80
+ll: -1484.13369502716 143
+ll: -1484.13369502716 143
+ll: -1372.3780209548 82
+ll: -1372.3780209548 82
+ll: -1397.58314169251 76
+ll: -1522.53057649397 82
+ll: -1524.85548659596 76
+ll: -1524.85548659596 76
+ll: -1395.5687344858 82
+ll: -1274.83624600079 74
+ll: -1172.90873937664 62
+ll: -1095.01664266917 82
+ll: -1466.89708896569 82
+ll: -1469.53283495534 82
+ll: -1469.53283495534 82
+ll: -1370.0512015859 68
+ll: -1370.0512015859 68
+ll: -1444.56727342831 82
+ll: -1442.14387489319 82
+ll: -1442.14387489319 82
+ll: -1354.28778464408 82
+ll: -1354.28778464408 82
+ll: -1273.24098726036 30
+ll: -1216.58840381993 83
+ll: -1216.58840381993 83
+ll: -1116.05302189632 80
+ll: -1071.63919479766 82
+ll: -1101.27402138977 132
+ll: -1101.27402138977 132
+ll: -1080.29578411026 125
+ll: -1083.88843198277 127
+ll: -1083.88843198277 127
+ELAPSED 7.1

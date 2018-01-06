@@ -130,7 +130,7 @@ int main(int args, char ** argv)
   for (unsigned int i = 0; i < nodes.size(); ++i) {
     speciesTree->newOutGroup(nodes[i]);
     for (unsigned int iteration = 0; iteration < ITERATIONS; ++iteration) {
-      FastReconciliationTools rc(speciesTree, 
+        FastReconciliationTools rc(speciesTree, 
         geneTree, 
         genesToSpecies,
         speciesIDs, 
@@ -142,6 +142,20 @@ int main(int args, char ** argv)
         nodesToTryInNNISearch,
         false);
       ll = rc.findMLReconciliationDR(MLindex);
+      /*
+      ll = findMLReconciliationDR(speciesTree, 
+        geneTree, 
+        genesToSpecies,
+        speciesIDs, 
+        lossRates,
+        duplicationRates,
+        MLindex,
+        num0lineages,
+        num1lineages,
+        num2lineages,
+        nodesToTryInNNISearch,
+        false);
+        */
       if (iteration == ITERATIONS - 1) 
         std::cout << " Reconciliation ll: " << ll << std::endl;
     }

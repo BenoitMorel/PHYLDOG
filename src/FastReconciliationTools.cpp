@@ -85,11 +85,8 @@ FastReconciliationTools::FastReconciliationTools(TreeTemplate<Node> * spTree,
   assert(geneTreeTree->isRooted());
  
   initialize();
-  std::vector <double> nodeData(3, 0.0);
-  _likelihoodData = std::vector <std::vector<double> >(_geneTree.getNumberOfNodes(), nodeData);
-  std::vector <int> nodeSpId(3, 0);
-  _speciesIDs = std::vector <std::vector<int> >(_geneTree.getNumberOfNodes(), nodeSpId);
-  _dupData = _speciesIDs;
+  std::vector <Cell> threeCells(3);
+  _cells = std::vector <std::vector<Cell> >(_geneTree.getNumberOfNodes(), threeCells);
 }
     
 FastReconciliationTools::~FastReconciliationTools()
@@ -109,12 +106,8 @@ double FastReconciliationTools::findMLReconciliationDR(int &MLindex) {
   //We fill the likelihood and species ID data for the root node.
   //We use "directions" 1 and 2 and leave "direction" 0 empty for coherence
   //with other nodes.
-  _likelihoodData[geneRoot->getId()][1] = _likelihoodData[geneRoot->getSon ( 1 )->getId()][0];
-  _likelihoodData[geneRoot->getId()][2] = _likelihoodData[geneRoot->getSon ( 0 )->getId()][0];
-  _speciesIDs[geneRoot->getId()][1] = _speciesIDs[geneRoot->getSon ( 1 )->getId()][0];
-  _speciesIDs[geneRoot->getId()][2] = _speciesIDs[geneRoot->getSon ( 0 )->getId()][0];
-  _dupData[geneRoot->getId()][1] = _dupData[geneRoot->getSon ( 1 )->getId()][0];
-  _dupData[geneRoot->getId()][2] = _dupData[geneRoot->getSon ( 0 )->getId()][0];
+  _cells[geneRoot->getId()][1] = _cells[geneRoot->getSon(1)->getId()][0];
+  _cells[geneRoot->getId()][2] = _cells[geneRoot->getSon(0)->getId()][0];
 
   for ( unsigned int i = 0; i< sons.size(); i++ ) {
     for ( unsigned int j =0; j<sons[i]->getNumberOfSons(); j++ ) {
@@ -137,8 +130,9 @@ double FastReconciliationTools::findMLReconciliationDR(int &MLindex) {
     //To this end, the needed tables should be filled by the postfix and prefix traversals. This has not been done yet.
     //resetting
     std::vector <int> nodeSpId(3, 0);
-    _speciesIDs = std::vector<std::vector<int> > ( _geneTree.getNumberOfNodes(), nodeSpId );
-    _dupData = _speciesIDs;
+    std::vector<std::vector<int> > speciesIDs = 
+      std::vector<std::vector<int> > ( _geneTree.getNumberOfNodes(), nodeSpId );
+    std::vector<std::vector<int> > dupData = speciesIDs;
     // Getting a well-rooted tree
     TreeTemplate<Node > * tree = _geneTree.clone();
     tree->newOutGroup ( _LksToNodes.rbegin()->second->getId() );
@@ -151,8 +145,8 @@ double FastReconciliationTools::findMLReconciliationDR(int &MLindex) {
         tree->getRootNode(),
         _seqSp, _spID,
         _num0lineages, _num1lineages,
-        _num2lineages, _speciesIDs,
-        _dupData, _nodesToTryInNNISearch );
+        _num2lineages, speciesIDs,
+        dupData, _nodesToTryInNNISearch );
     delete tree;
   }
   
@@ -169,84 +163,77 @@ double FastReconciliationTools::findMLReconciliationDR(int &MLindex) {
  *
  ****************************************************************************/
 double FastReconciliationTools::computeConditionalLikelihoodAndAssignSpId ( 
-    double & rootLikelihood,
-    double son0Likelihood,
-    double son1Likelihood,
-    int & rootSpId,
-    int son0SpId,
-    int son1SpId,
-    int & rootDupData,
-    int son0DupData,
-    int son1DupData,
+    Cell &cell,
+    const Cell &cell0,
+    const Cell &cell1,
     bool atRoot)
 {
-  if ( rootLikelihood == 0.0 ) {
-    int key = std::max(son0SpId, son1SpId) * 4242 +
-      std::min(son0SpId, son1SpId);
-    Data data = _assignMap[key];
-    if (!atRoot && data.rootLikelihood != 0.0) {
-      rootLikelihood = data.rootLikelihood + son0Likelihood + son1Likelihood;
-      rootDupData = data.rootDupData;
-      rootSpId = data.rootSpId;
-      return rootLikelihood;;
-    }
-    int a, a0, olda;
-    int b, b0, oldb;
-    a = a0 = olda = son0SpId;
-    b = b0 = oldb = son1SpId;
-    Node * temp0 = _speciesNodes[son0SpId];
-    Node * temp1 = _speciesNodes[son1SpId];
+  if (cell.ll != 0.0)
+    return cell.ll;
 
-    double oldLL = rootLikelihood;
-    while ( a!=b ) { //There have been losses !
-      if ( a>b ) {
-        recoverLosses(temp0, a, b, olda, a0, rootLikelihood);
-      }
-      else {
-        recoverLosses(temp1, b, a, oldb, b0, rootLikelihood);
-      }
-    }
-    rootSpId = a;
-    if ( ( a==a0 ) || ( b==b0 ) ) { //There has been a duplication !
-      if ( ( a==a0 ) && ( b==b0 ) ) {
-        rootDupData += son0DupData+son1DupData;
-        rootLikelihood-= ( computeLogBranchProbability (a0, son0DupData ) +
-            computeLogBranchProbability (b0, son1DupData ) );
-      }//there has been no loss, here
-      else if ( b==b0 ) { //The loss has occured before a0
-        rootDupData += son1DupData+1;
-        rootLikelihood-=computeLogBranchProbability (b0, son1DupData );
-        recoverLossesWithDuplication ( temp0, a, olda, _speciesTree, rootLikelihood, _lossRates, _duplicationRates );
-      }
-      else { //The loss has occured before b0
-        rootDupData += son0DupData+1;
-        rootLikelihood-=computeLogBranchProbability (a0, son0DupData );
-        recoverLossesWithDuplication ( temp1, b, oldb, _speciesTree, rootLikelihood, _lossRates, _duplicationRates );
-      }
-      if ( atRoot ) {
-        rootLikelihood += computeLogBranchProbability (a, rootDupData );
-      }
-      else {
-        rootLikelihood += computeLogBranchProbability (a, rootDupData );
-      }
-    }
-    else { //there was no duplication
-      rootDupData = 1;
-      if ( atRoot ) {
-        rootLikelihood += computeLogBranchProbability (a, rootDupData );
-      }
-      else {
-        rootLikelihood += computeLogBranchProbability (a, rootDupData );
-      }
-    }
-    //Setting the lower conditional likelihood for the node of interest.
-    data.rootLikelihood = rootLikelihood;
-    data.rootDupData = rootDupData;
-    data.rootSpId = rootSpId;
-    _assignMap[key] =  data;
-    rootLikelihood = data.rootLikelihood + son0Likelihood + son1Likelihood;
+  int key = std::max(cell0.spId, cell1.spId) * _maxSpeciesId +
+    std::min(cell0.spId, cell1.spId);
+  Cell cached = _assignMap[key];
+  if (!atRoot && cached.ll != 0.0) {
+    cell = cached;
+    cell.ll = cell.ll + cell0.ll + cell1.ll;
+    return cell.ll;
   }
-  return ( rootLikelihood );
+  int a, a0, olda;
+  int b, b0, oldb;
+  a = a0 = olda = cell0.spId;
+  b = b0 = oldb = cell1.spId;
+  Node * temp0 = _speciesNodes[a];
+  Node * temp1 = _speciesNodes[b];
+
+  double oldLL = 0.0;
+  while ( a!=b ) { //There have been losses !
+    if ( a>b ) {
+      recoverLosses(temp0, a, b, olda, a0, cell.ll);
+    }
+    else {
+      recoverLosses(temp1, b, a, oldb, b0, cell.ll);
+    }
+  }
+  cell.spId = a;
+  if ( ( a==a0 ) || ( b==b0 ) ) { //There has been a duplication !
+    if ( ( a==a0 ) && ( b==b0 ) ) {
+      cell.dupData += cell0.dupData + cell1.dupData;
+      cell.ll -= 
+        ( computeLogBranchProbability (a0, cell0.dupData ) +
+          computeLogBranchProbability (b0, cell1.dupData ) );
+    }//there has been no loss, here
+    else if ( b==b0 ) { //The loss has occured before a0
+      cell.dupData += cell1.dupData + 1;
+      cell.ll -= computeLogBranchProbability (b0, cell1.dupData );
+      recoverLossesWithDuplication ( temp0, a, olda, _speciesTree, cell.ll, _lossRates, _duplicationRates );
+    }
+    else { //The loss has occured before b0
+      cell.dupData += cell0.dupData + 1;
+      cell.ll-=computeLogBranchProbability (a0, cell0.dupData );
+      recoverLossesWithDuplication ( temp1, b, oldb, _speciesTree, cell.ll, _lossRates, _duplicationRates );
+    }
+    if ( atRoot ) {
+      cell.ll += computeLogBranchProbability (a, cell.dupData );
+    }
+    else {
+      cell.ll += computeLogBranchProbability (a, cell.dupData );
+    }
+  }
+  else { //there was no duplication
+    cell.dupData = 1;
+    if ( atRoot ) {
+      cell.ll += computeLogBranchProbability (a, cell.dupData );
+    }
+    else {
+      cell.ll += computeLogBranchProbability (a, cell.dupData );
+    }
+  }
+  //Setting the lower conditional likelihood for the node of interest.
+  cached = cell;
+  _assignMap[key] =  cached; 
+  cell.ll += cell0.ll + cell1.ll;
+  return cell.ll;
 }
 
 
@@ -270,13 +257,22 @@ double FastReconciliationTools::computeSubtreeLikelihoodPostorderIter (Node *nod
 {
   int id=node->getId();
   if ( node->isLeaf() ) {
-    if ( _likelihoodData[id][0]==0.0 ) {
-      _speciesIDs[id][0] = _speciesIDs[id][1] = _speciesIDs[id][2]= assignSpeciesIdToLeaf ( node, _seqSp, _spID );
-      _likelihoodData[id][0]= _likelihoodData[id][1]= _likelihoodData[id][2] =
-        computeLogBranchProbability ( _speciesIDs[id][0], 1 );
-      _dupData[id][0] = _dupData[id][1] = _dupData[id][2] = 1;
+    if (_cells[id][0].ll == 0.0) {
+      _cells[id][0].spId = 
+        _cells[id][1].spId = 
+        _cells[id][2].spId = 
+        assignSpeciesIdToLeaf ( node, _seqSp, _spID );
+      
+      _cells[id][0].ll =
+        _cells[id][1].ll =
+        _cells[id][2].ll = 
+        computeLogBranchProbability (_cells[id][0].spId, 1);
+      
+      _cells[id][0].dupData = 1;
+      _cells[id][1].dupData = 1;
+      _cells[id][2].dupData = 1;
     }
-    return _likelihoodData[id][0];
+    return _cells[id][0].ll;
   }
   else {
     std::vector <Node *> sons = node->getSons();
@@ -285,21 +281,12 @@ double FastReconciliationTools::computeSubtreeLikelihoodPostorderIter (Node *nod
     }
     int idSon0 = sons[0]->getId();
     int idSon1 = sons[1]->getId();
-    unsigned int directionSon0 = 0;
-    unsigned int directionSon1 = 0;
-
     computeConditionalLikelihoodAndAssignSpId (
-        _likelihoodData[id][0],
-        _likelihoodData[idSon0][directionSon0],
-        _likelihoodData[idSon1][directionSon1],
-        _speciesIDs[id][0],
-        _speciesIDs[idSon0][directionSon0],
-        _speciesIDs[idSon1][directionSon1],
-        _dupData[id][0],
-        _dupData[idSon0][directionSon0],
-        _dupData[idSon1][directionSon1],
+        _cells[id][0],
+        _cells[idSon0][0],
+        _cells[idSon1][0],
         TreeTemplateTools::isRoot ( *node ));
-    return _likelihoodData[id][0];
+    return _cells[id][0].ll;
   }
 }
 
@@ -319,10 +306,9 @@ void FastReconciliationTools::computeRootingLikelihood(Node * node,
   int directionForFather;
   Node *node0 = node->getFather();
   Node *node1 = 0;
-  if ( sonNumber==0 ) { //If sonNumber==0, the subtree we're interested in is composed of son 1 and father of node.
+  if ( sonNumber==0 ) { 
     node1 = node->getSon(1);
-  }
-  else { //If sonNumber==1, the subtree we're interested in is composed of son 0 and father of node.
+  } else { 
     node1 = node->getSon(0);
   }
   if ( node->getFather()->getSon ( 0 ) == node ) {
@@ -335,48 +321,31 @@ void FastReconciliationTools::computeRootingLikelihood(Node * node,
   int idNode0, idNode1;
   idNode0 = node0->getId();
   idNode1 = node1->getId();
-  unsigned int directionNode0, directionNode1;
-  directionNode0 = directionForFather;
-  directionNode1 = 0;
-
   computeConditionalLikelihoodAndAssignSpId(
-      _likelihoodData[geneNodeId][sonNumber+1],
-      _likelihoodData[idNode0][directionNode0],
-      _likelihoodData[idNode1][directionNode1],
-      _speciesIDs[geneNodeId][sonNumber+1],
-      _speciesIDs[idNode0][directionNode0],
-      _speciesIDs[idNode1][directionNode1],
-      _dupData[geneNodeId][sonNumber+1],
-      _dupData[idNode0][directionNode0],
-      _dupData[idNode1][directionNode1], false);
+      _cells[geneNodeId][sonNumber+1],
+      _cells[idNode0][directionForFather],
+      _cells[idNode1][0],
+      false);
+  
+  
   //Now we have the conditional likelihood of the upper subtree,
   //as well as the conditional likelihood of the lower subtree (which we already had)
   //We can thus compute the total likelihood of the rooting.
-
   node0 = node;
   node1 = node->getSon(sonNumber);
   int idSon0 = geneNodeId;
   int idSon1 = node1->getId();
-  unsigned int directionSon0, directionSon1;
-  directionSon0 = sonNumber+1;
-  directionSon1 = 0;
-
-  double rootLikelihood = 0.0;
-  int rootSpId;
-  int rootDupData = 0;
-
+  
+  Cell rootCell;
   computeConditionalLikelihoodAndAssignSpId (
-      rootLikelihood,
-      _likelihoodData[idSon0][directionSon0],
-      _likelihoodData[idSon1][directionSon1],
-      rootSpId, _speciesIDs[idSon0][directionSon0],
-      _speciesIDs[idSon1][directionSon1],
-      rootDupData, _dupData[idSon0][directionSon0],
-      _dupData[idSon1][directionSon1], true);
-  while ( _LksToNodes.find ( rootLikelihood ) != _LksToNodes.end() ) {
-    rootLikelihood+=SMALLPROBA;
+      rootCell,
+      _cells[idSon0][sonNumber + 1],
+      _cells[idSon1][0],
+      true);
+  while ( _LksToNodes.find (rootCell.ll) != _LksToNodes.end() ) {
+    rootCell.ll += SMALLPROBA;
   }
-  _LksToNodes[rootLikelihood] = node1;
+  _LksToNodes[rootCell.ll] = node1;
 }
 
 

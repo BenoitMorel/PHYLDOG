@@ -17,6 +17,14 @@ using namespace bpp;
 
 
 class FastReconciliationTools {
+    
+  struct Cell {
+      double ll;
+      int spId;
+      int dupData;
+      Cell() : ll(0.0), spId(0), dupData(0) {}
+    };
+
 
   public:
     FastReconciliationTools(TreeTemplate<Node> * speciesTree,
@@ -52,15 +60,10 @@ class FastReconciliationTools {
 
     double computeSubtreeLikelihoodPostorderIter (Node *node);
 
-    double computeConditionalLikelihoodAndAssignSpId (double & rootLikelihood,
-        double son0Likelihood,
-        double son1Likelihood,
-        int & rootSpId,
-        int son0SpId,
-        int son1SpId,
-        int & rootDupData,
-        int son0DupData,
-        int son1DupData,
+    double computeConditionalLikelihoodAndAssignSpId (
+        Cell &rootCell,
+        const Cell &son0Cell,
+        const Cell &son2Cell,
         bool atRoot);
 
     void computeNumbersOfLineagesFromRoot ( TreeTemplate<Node> * spTree,
@@ -144,6 +147,7 @@ class FastReconciliationTools {
     /* precompute stuff */
     void initialize();
 private:
+    
     TreeTemplate<Node> &_speciesTree;
     TreeTemplate<Node> &_geneTree;
     std::vector<Node *> _speciesNodes;
@@ -151,11 +155,9 @@ private:
     std::map<std::string, int > _spID;
     std::vector<double> _lossRates;
     std::vector<double> _duplicationRates;
-    std::vector <std::vector<int> > _speciesIDs;
-    std::vector <std::vector<int> > _dupData;
+    std::vector < std::vector< Cell > > _cells;
     //This std::map keeps rootings likelihoods. The key is the likelihood value, and the value is the node to put as outgroup.
     std::map <double, Node*> _LksToNodes;
-    std::vector <std::vector<double> > _likelihoodData;
     bool _fillTables;
     int _maxSpeciesId;
 
@@ -169,15 +171,7 @@ private:
     std::vector<int> &_num2lineages;
     std::set<int> &_nodesToTryInNNISearch;
    
-    struct Data {
-      double rootLikelihood;
-      int rootSpId;
-      int rootDupData;
-      Data() {
-        rootLikelihood = 0.0;
-      }
-    };
-    std::map<int, Data > _assignMap;
+    std::map<int, Cell > _assignMap;
 
 };
 

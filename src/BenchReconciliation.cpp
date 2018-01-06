@@ -127,7 +127,7 @@ int main(int args, char ** argv)
   ////////////// BEEENCH //////////////////////
   /////////////////////////////////////////////
   
-  std::cout << cout.precision(15);
+  std::cout << cout.precision(10);
   std::vector<int> nodes = speciesTree->getNodesId();
   for (unsigned int i = 0; i < nodes.size(); ++i) {
     speciesTree->newOutGroup(nodes[i]);
@@ -160,7 +160,7 @@ int main(int args, char ** argv)
           false);
       }
       if (iteration == iterations - 1) 
-        std::cout << "ll: " << ll << " " << MLindex << std::endl;
+        std::cout << "ll: " << ll << std::endl;
     }
   }
   

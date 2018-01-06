@@ -328,9 +328,6 @@ void FastReconciliationTools::computeRootingLikelihood(Node * node,
       rootCell,
       _cells[idSon0][sonNumber + 1],
       _cells[idSon1][0]);
-  while ( _LksToNodes.find (rootCell.ll) != _LksToNodes.end() ) {
-    rootCell.ll += SMALLPROBA;
-  }
   _LksToNodes[rootCell.ll] = node1;
 }
 

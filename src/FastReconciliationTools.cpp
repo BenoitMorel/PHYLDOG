@@ -166,8 +166,7 @@ void FastReconciliationTools::initialize()
 double FastReconciliationTools::computeCell ( 
     Cell &cell,
     const Cell &cell0,
-    const Cell &cell1,
-    bool atRoot)
+    const Cell &cell1)
 {
   if (cell.ll != 0.0)
     return cell.ll;
@@ -175,7 +174,7 @@ double FastReconciliationTools::computeCell (
   int key = std::max(cell0.spId, cell1.spId) * _maxSpeciesId +
     std::min(cell0.spId, cell1.spId);
   Cell cached = _assignMap[key];
-  if (!atRoot && cached.ll != 0.0) {
+  if (cached.ll != 0.0) {
     cell = cached;
     cell.ll = cell.ll + cell0.ll + cell1.ll;
     return cell.ll;
@@ -214,21 +213,11 @@ double FastReconciliationTools::computeCell (
       cell.ll-=computeLogBranchProbability (a0, cell0.dupData );
       recoverLossesWithDuplication ( temp1, b, oldb, _speciesTree, cell.ll, _lossRates, _duplicationRates );
     }
-    if ( atRoot ) {
-      cell.ll += computeLogBranchProbability (a, cell.dupData );
-    }
-    else {
-      cell.ll += computeLogBranchProbability (a, cell.dupData );
-    }
+    cell.ll += computeLogBranchProbability (a, cell.dupData );
   }
   else { //there was no duplication
     cell.dupData = 1;
-    if ( atRoot ) {
-      cell.ll += computeLogBranchProbability (a, cell.dupData );
-    }
-    else {
-      cell.ll += computeLogBranchProbability (a, cell.dupData );
-    }
+    cell.ll += computeLogBranchProbability (a, 1);
   }
   //Setting the lower conditional likelihood for the node of interest.
   cached = cell;
@@ -288,8 +277,7 @@ double FastReconciliationTools::computeSubtreeLikelihoodPostorder (Node *rootNod
       computeCell (
           _cells[id][0],
           _cells[idSon0][0],
-          _cells[idSon1][0],
-          TreeTemplateTools::isRoot ( *node ));
+          _cells[idSon1][0]);
     }
   }
   return _cells[id][0].ll;
@@ -324,8 +312,7 @@ void FastReconciliationTools::computeRootingLikelihood(Node * node,
   computeCell(
       _cells[geneNodeId][sonNumber+1],
       _cells[idNode0][directionForFather],
-      _cells[idNode1][0],
-      false);
+      _cells[idNode1][0]);
   
   
   //Now we have the conditional likelihood of the upper subtree,
@@ -340,8 +327,7 @@ void FastReconciliationTools::computeRootingLikelihood(Node * node,
   computeCell (
       rootCell,
       _cells[idSon0][sonNumber + 1],
-      _cells[idSon1][0],
-      true);
+      _cells[idSon1][0]);
   while ( _LksToNodes.find (rootCell.ll) != _LksToNodes.end() ) {
     rootCell.ll += SMALLPROBA;
   }

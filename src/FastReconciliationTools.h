@@ -59,8 +59,7 @@ class FastReconciliationTools {
     double computeCell(
         Cell &cell,
         const Cell &cell0,
-        const Cell &cell1,
-        bool atRoot);
+        const Cell &cell1);
 
     void computeNumbersOfLineagesFromRoot ( TreeTemplate<Node> * spTree,
         TreeTemplate<Node> * geneTree,

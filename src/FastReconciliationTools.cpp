@@ -24,40 +24,6 @@ void fillPreorderRec(Node *node, int &currentId,
   lastSons[node->getId()] = currentId;
 }
 
-bool FastReconciliationTools::isDescendant(Node *father, int descendantId)
-{
-  if (father->getId() == descendantId)
-    return true;
-  if (father->isLeaf()) 
-    return false;
-  if (!father->hasFather()) 
-    return true;
-  unsigned int preorderFather = _speciesIdsPreorder[father->getId()]; 
-  unsigned int preorderDescendant = _speciesIdsPreorder[descendantId]; 
-  unsigned int lastSon = _speciesIdsLastSon[father->getId()];
-  return preorderFather < preorderDescendant && preorderDescendant < lastSon;
-}
-
-void FastReconciliationTools::initialize()
-{
-  _maxSpeciesId = 1;
-  computeMaxId(_speciesTree.getRootNode(), _maxSpeciesId);
-  _speciesNodes = std::vector<Node *>(_maxSpeciesId + 1, 0);
-  std::vector<Node *> nodes = _speciesTree.getNodes();
-  for (unsigned int i = 0; i < nodes.size(); ++i) {
-    _speciesNodes[nodes[i]->getId()] = nodes[i];
-  }
-  _speciesIdsPreorder = std::vector<int>(_maxSpeciesId, 0);
-  _speciesIdsLastSon = std::vector<int>(_maxSpeciesId, 0);
-  int currentId = 1;
-  fillPreorderRec(_speciesTree.getRootNode(), currentId, _speciesIdsPreorder, _speciesIdsLastSon);
-  _logBranchProbabilities.resize(3);
-  _logBranchProbabilities[0] = std::vector<double>(_maxSpeciesId + 1, 0.0);
-  _logBranchProbabilities[1] = std::vector<double>(_maxSpeciesId + 1, 0.0);
-  _logBranchProbabilities[2] = std::vector<double>(_maxSpeciesId + 1, 0.0);
-}
-
-
 FastReconciliationTools::FastReconciliationTools(TreeTemplate<Node> * spTree,
         TreeTemplate<Node> * geneTree,
         const std::map<std::string, std::string > seqSp,
@@ -83,10 +49,9 @@ FastReconciliationTools::FastReconciliationTools(TreeTemplate<Node> * spTree,
 {
   assert(speciesTree->isRooted());
   assert(geneTreeTree->isRooted());
- 
-  initialize();
   std::vector <Cell> threeCells(3);
   _cells = std::vector <std::vector<Cell> >(_geneTree.getNumberOfNodes(), threeCells);
+  initialize();
 }
     
 FastReconciliationTools::~FastReconciliationTools()
@@ -156,13 +121,50 @@ double FastReconciliationTools::findMLReconciliationDR(int &MLindex) {
 }
 
 
+bool FastReconciliationTools::isDescendant(Node *father, int descendantId)
+{
+  if (father->getId() == descendantId)
+    return true;
+  if (father->isLeaf()) 
+    return false;
+  if (!father->hasFather()) 
+    return true;
+  unsigned int preorderFather = _speciesIdsPreorder[father->getId()]; 
+  unsigned int preorderDescendant = _speciesIdsPreorder[descendantId]; 
+  unsigned int lastSon = _speciesIdsLastSon[father->getId()];
+  return preorderFather < preorderDescendant && preorderDescendant < lastSon;
+}
+
+void FastReconciliationTools::initialize()
+{
+  _maxSpeciesId = 1;
+  computeMaxId(_speciesTree.getRootNode(), _maxSpeciesId);
+  _speciesNodes = std::vector<Node *>(_maxSpeciesId + 1, 0);
+  std::vector<Node *> nodes = _speciesTree.getNodes();
+  for (unsigned int i = 0; i < nodes.size(); ++i) {
+    _speciesNodes[nodes[i]->getId()] = nodes[i];
+  }
+  _speciesIdsPreorder = std::vector<int>(_maxSpeciesId, 0);
+  _speciesIdsLastSon = std::vector<int>(_maxSpeciesId, 0);
+  int currentId = 1;
+  fillPreorderRec(_speciesTree.getRootNode(), currentId, _speciesIdsPreorder, _speciesIdsLastSon);
+  _logBranchProbabilities.resize(3);
+  _logBranchProbabilities[0] = std::vector<double>(_maxSpeciesId + 1, 0.0);
+  _logBranchProbabilities[1] = std::vector<double>(_maxSpeciesId + 1, 0.0);
+  _logBranchProbabilities[2] = std::vector<double>(_maxSpeciesId + 1, 0.0);
+}
+
+
+
+
+
 /*****************************************************************************
  * This function computes the lower conditional likelihood of a subtree and
  * assigns its summit node a species ID. Notations are influenced by
  * Zmasek and Eddy algorithm (2001).
  *
  ****************************************************************************/
-double FastReconciliationTools::computeConditionalLikelihoodAndAssignSpId ( 
+double FastReconciliationTools::computeCell ( 
     Cell &cell,
     const Cell &cell0,
     const Cell &cell1,
@@ -248,46 +250,50 @@ double FastReconciliationTools::computeConditionalLikelihoodAndAssignSpId (
  * speciesIDs contains all species IDs for all nodes.
  *
  ****************************************************************************/
-double FastReconciliationTools::computeSubtreeLikelihoodPostorder (Node *node) 
+double FastReconciliationTools::computeSubtreeLikelihoodPostorder (Node *rootNode) 
 {
-  return computeSubtreeLikelihoodPostorderIter(node);
-}
-
-double FastReconciliationTools::computeSubtreeLikelihoodPostorderIter (Node *node)
-{
-  int id=node->getId();
-  if ( node->isLeaf() ) {
-    if (_cells[id][0].ll == 0.0) {
-      _cells[id][0].spId = 
-        _cells[id][1].spId = 
-        _cells[id][2].spId = 
-        assignSpeciesIdToLeaf ( node, _seqSp, _spID );
-      
-      _cells[id][0].ll =
-        _cells[id][1].ll =
-        _cells[id][2].ll = 
-        computeLogBranchProbability (_cells[id][0].spId, 1);
-      
-      _cells[id][0].dupData = 1;
-      _cells[id][1].dupData = 1;
-      _cells[id][2].dupData = 1;
+  std::vector<Node *> nodes;
+  nodes.push_back(rootNode);
+  int id = 0;
+  for (unsigned int n = 0; n < nodes.size(); ++n) {
+    Node *node = nodes[n];
+      std::vector <Node *> sons = node->getSons();
+      for ( unsigned int i = 0; i< sons.size(); i++ ) {
+        nodes.push_back(sons[i]);
+      }
+  }  
+  for (int n = nodes.size() - 1; n >= 0; --n) {
+    Node *node = nodes[n];
+    id=node->getId();
+    if ( node->isLeaf() ) {
+      if (_cells[id][0].ll == 0.0) {
+        _cells[id][0].spId = 
+          _cells[id][1].spId = 
+          _cells[id][2].spId = 
+          assignSpeciesIdToLeaf ( node, _seqSp, _spID );
+        
+        _cells[id][0].ll =
+          _cells[id][1].ll =
+          _cells[id][2].ll = 
+          computeLogBranchProbability (_cells[id][0].spId, 1);
+        
+        _cells[id][0].dupData = 1;
+        _cells[id][1].dupData = 1;
+        _cells[id][2].dupData = 1;
+      }
     }
-    return _cells[id][0].ll;
-  }
-  else {
-    std::vector <Node *> sons = node->getSons();
-    for ( unsigned int i = 0; i< sons.size(); i++ ) {
-      computeSubtreeLikelihoodPostorderIter (sons[i]);
+    else {
+      std::vector <Node *> sons = node->getSons();
+      int idSon0 = sons[0]->getId();
+      int idSon1 = sons[1]->getId();
+      computeCell (
+          _cells[id][0],
+          _cells[idSon0][0],
+          _cells[idSon1][0],
+          TreeTemplateTools::isRoot ( *node ));
     }
-    int idSon0 = sons[0]->getId();
-    int idSon1 = sons[1]->getId();
-    computeConditionalLikelihoodAndAssignSpId (
-        _cells[id][0],
-        _cells[idSon0][0],
-        _cells[idSon1][0],
-        TreeTemplateTools::isRoot ( *node ));
-    return _cells[id][0].ll;
   }
+  return _cells[id][0].ll;
 }
 
 
@@ -321,7 +327,7 @@ void FastReconciliationTools::computeRootingLikelihood(Node * node,
   int idNode0, idNode1;
   idNode0 = node0->getId();
   idNode1 = node1->getId();
-  computeConditionalLikelihoodAndAssignSpId(
+  computeCell(
       _cells[geneNodeId][sonNumber+1],
       _cells[idNode0][directionForFather],
       _cells[idNode1][0],
@@ -337,7 +343,7 @@ void FastReconciliationTools::computeRootingLikelihood(Node * node,
   int idSon1 = node1->getId();
   
   Cell rootCell;
-  computeConditionalLikelihoodAndAssignSpId (
+  computeCell (
       rootCell,
       _cells[idSon0][sonNumber + 1],
       _cells[idSon1][0],
@@ -348,8 +354,6 @@ void FastReconciliationTools::computeRootingLikelihood(Node * node,
   _LksToNodes[rootCell.ll] = node1;
 }
 
-
-
 /*****************************************************************************
  * This function performs a preorder tree traversal in order to find likelihoods for rootings.
  * When used after the postorder tree traversal function, likelihoods for all rootings are computed.
@@ -358,31 +362,29 @@ void FastReconciliationTools::computeRootingLikelihood(Node * node,
  *
  ****************************************************************************/
 void FastReconciliationTools::computeSubtreeLikelihoodPreorder (
-    Node * node,
-    int sonNumber)
+    Node * rootNode,
+    int rootSonNumber)
 
 {
-  computeSubtreeLikelihoodPreorderIter(node, sonNumber);
+  std::vector<Node *> nodes;
+  std::vector<int> sonNumbers;
+  nodes.push_back(rootNode);
+  sonNumbers.push_back(rootSonNumber);
+  for (unsigned int i = 0; i < nodes.size(); ++i) {
+    Node *node = nodes[i];
+    int sonNumber = sonNumbers[i];
+    computeRootingLikelihood(node, sonNumber);
+    if (node->isLeaf())
+      continue;
+    Node * son = node->getSon((sonNumber == 1) ? 1 : 0);
+    for (unsigned int j = 0; j < son->getNumberOfSons(); j++) {
+      nodes.push_back(son);
+      sonNumbers.push_back(j);
+    }
+  }
 }
 
-void FastReconciliationTools::computeSubtreeLikelihoodPreorderIter (Node * node,
-    int sonNumber)
-{
-  computeRootingLikelihood(node, sonNumber);
-  if ( node->isLeaf() ) {
-    return;
-  }
-  Node * son;
-  if ( sonNumber == 1 ) {
-    son = node->getSon ( 1 );
-  }
-  else {
-    son = node->getSon ( 0 );
-  }
-  for ( unsigned int j =0; j<son->getNumberOfSons(); j++ ) {
-    computeSubtreeLikelihoodPreorderIter (son, j);
-  }
-}
+
 
 void FastReconciliationTools::resetVector ( std::vector<unsigned int> & v ) {
   unsigned int temp=v.size();
@@ -437,11 +439,11 @@ double FastReconciliationTools::computeLogBranchProbability (int branch, int num
       return  ( log ( computeBranchProbability (branch, numberOfLineages)));
   }
   double res = _logBranchProbabilities[numberOfLineages][branch];
-    if (res == 0.0) {
-      res =  ( log ( computeBranchProbability (branch, numberOfLineages)));
-      _logBranchProbabilities[numberOfLineages][branch] = res;
-    }
-    return res;
+  if (res == 0.0) {
+    res =  ( log ( computeBranchProbability (branch, numberOfLineages)));
+    _logBranchProbabilities[numberOfLineages][branch] = res;
+  }
+  return res;
 }
 
 

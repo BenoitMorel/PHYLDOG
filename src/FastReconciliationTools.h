@@ -43,14 +43,11 @@ class FastReconciliationTools {
     
     double findMLReconciliationDR(int & MLindex);
 
-  double computeLogBranchProbability (int branch, int numberOfLineages );
+    double computeLogBranchProbability (int branch, int numberOfLineages );
 
   private:
 
     void computeSubtreeLikelihoodPreorder (Node * node,
-        int sonNumber);
-
-    void computeSubtreeLikelihoodPreorderIter (Node * node,
         int sonNumber);
 
     void computeRootingLikelihood (Node * node,
@@ -58,12 +55,11 @@ class FastReconciliationTools {
 
     double computeSubtreeLikelihoodPostorder (Node * node);
 
-    double computeSubtreeLikelihoodPostorderIter (Node *node);
 
-    double computeConditionalLikelihoodAndAssignSpId (
-        Cell &rootCell,
-        const Cell &son0Cell,
-        const Cell &son2Cell,
+    double computeCell(
+        Cell &cell,
+        const Cell &cell0,
+        const Cell &cell1,
         bool atRoot);
 
     void computeNumbersOfLineagesFromRoot ( TreeTemplate<Node> * spTree,

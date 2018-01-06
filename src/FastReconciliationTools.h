@@ -151,8 +151,8 @@ private:
     std::vector<double> _lossRates;
     std::vector<double> _duplicationRates;
     std::vector < std::vector< Cell > > _cells;
-    //This std::map keeps rootings likelihoods. The key is the likelihood value, and the value is the node to put as outgroup.
-    std::map <double, Node*> _LksToNodes;
+    Node *_bestNode;
+    double _bestll;
     bool _fillTables;
     int _maxSpeciesId;
 

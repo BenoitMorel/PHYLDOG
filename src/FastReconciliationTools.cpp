@@ -67,7 +67,8 @@ double FastReconciliationTools::findMLReconciliationDR(int &MLindex) {
   if ( sons.size() !=2 ) {
     std::cerr <<"Error: "<<sons.size() << "sons at the root!"<<std::endl;
   }
-  _LksToNodes[initialLikelihood] = sons[0];
+  _bestll = initialLikelihood;
+  _bestNode = sons[0];
   //We fill the likelihood and species ID data for the root node.
   //We use "directions" 1 and 2 and leave "direction" 0 empty for coherence
   //with other nodes.
@@ -87,7 +88,7 @@ double FastReconciliationTools::findMLReconciliationDR(int &MLindex) {
     }
   }
 
-  _LksToNodes.rbegin()->second->setNodeProperty ( "outgroupNode", BppString ( "here" ) );
+  _bestNode->setNodeProperty ( "outgroupNode", BppString ( "here" ) );
 
   if ( _fillTables ) {
     //Now the best root has been found. I can thus run a function with this best root to fill all the needed tables. This additional tree traversal could be avoided.
@@ -99,7 +100,7 @@ double FastReconciliationTools::findMLReconciliationDR(int &MLindex) {
     std::vector<std::vector<int> > dupData = speciesIDs;
     // Getting a well-rooted tree
     TreeTemplate<Node > * tree = _geneTree.clone();
-    tree->newOutGroup ( _LksToNodes.rbegin()->second->getId() );
+    tree->newOutGroup ( _bestNode->getId() );
     _nodesToTryInNNISearch.clear();
     //Resetting numLineages std::vectors
     resetVector ( _num0lineages );
@@ -115,8 +116,8 @@ double FastReconciliationTools::findMLReconciliationDR(int &MLindex) {
   }
   
   //We return the best likelihood
-  MLindex = _LksToNodes.rbegin()->second->getId();
-  return _LksToNodes.rbegin()->first;
+  MLindex = _bestNode->getId();
+  return _bestll;
 }
 
 
@@ -328,7 +329,11 @@ void FastReconciliationTools::computeRootingLikelihood(Node * node,
       rootCell,
       _cells[idSon0][sonNumber + 1],
       _cells[idSon1][0]);
-  _LksToNodes[rootCell.ll] = node1;
+  
+  if (rootCell.ll > _bestll) {
+    _bestll = rootCell.ll;
+    _bestNode = node1;
+  }
 }
 
 /*****************************************************************************

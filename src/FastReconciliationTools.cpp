@@ -16,7 +16,7 @@ void fillPreorderRec(Node *node, int &currentId,
     std::vector<int> &lastSons,
     unsigned int tab = 0) {
   preorderIds[node->getId()] = currentId++;
-  if (node->isLeaf())
+  if (!node->getNumberOfSons())
     return;
   for (unsigned int i = 0; i < node->getNumberOfSons(); ++i) {
     fillPreorderRec(node->getSon(i), currentId, preorderIds, lastSons, tab + 1);
@@ -125,7 +125,7 @@ bool FastReconciliationTools::isDescendant(Node *father, int descendantId)
 {
   if (father->getId() == descendantId)
     return true;
-  if (father->isLeaf()) 
+  if (!father->getNumberOfSons()) 
     return false;
   if (!father->hasFather()) 
     return true;
@@ -265,7 +265,7 @@ double FastReconciliationTools::computeSubtreeLikelihoodPostorder (Node *rootNod
   for (int n = nodes.size() - 1; n >= 0; --n) {
     Node *node = nodes[n];
     id=node->getId();
-    if ( node->isLeaf() ) {
+    if (!node->getNumberOfSons()) {
       if (_cells[id][0].ll == 0.0) {
         _cells[id][0].spId = 
           _cells[id][1].spId = 
@@ -374,7 +374,7 @@ void FastReconciliationTools::computeSubtreeLikelihoodPreorder (
     Node *node = nodes[i];
     int sonNumber = sonNumbers[i];
     computeRootingLikelihood(node, sonNumber);
-    if (node->isLeaf())
+    if (!node->getNumberOfSons())
       continue;
     Node * son = node->getSon((sonNumber == 1) ? 1 : 0);
     for (unsigned int j = 0; j < son->getNumberOfSons(); j++) {
@@ -477,7 +477,7 @@ void FastReconciliationTools::computeNumbersOfLineagesFromRootIter ( TreeTemplat
     std::set <int> & branchesWithDuplications )
 {
   int id=node->getId();
-  if ( node->isLeaf() ) {
+  if (!node->getNumberOfSons() ) {
     speciesIDs[id][0]=speciesIDs[id][1]=speciesIDs[id][2]=assignSpeciesIdToLeaf ( node, seqSp, spID );
     num1lineages[speciesIDs[id][0]]+=1;
     dupData[id][0] = dupData[id][1] = dupData[id][2] = 1;

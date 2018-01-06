@@ -90,7 +90,6 @@ double FastReconciliationTools::findMLReconciliationDR(int &MLindex) {
   _LksToNodes.rbegin()->second->setNodeProperty ( "outgroupNode", BppString ( "here" ) );
 
   if ( _fillTables ) {
-
     //Now the best root has been found. I can thus run a function with this best root to fill all the needed tables. This additional tree traversal could be avoided.
     //To this end, the needed tables should be filled by the postfix and prefix traversals. This has not been done yet.
     //resetting
@@ -311,13 +310,8 @@ void FastReconciliationTools::computeRootingLikelihood(Node * node,
 
   int directionForFather;
   Node *node0 = node->getFather();
-  Node *node1 = 0;
-  if ( sonNumber==0 ) { 
-    node1 = node->getSon(1);
-  } else { 
-    node1 = node->getSon(0);
-  }
-  if ( node->getFather()->getSon ( 0 ) == node ) {
+  Node *node1 = node->getSon(1 - sonNumber);
+  if ( node0->getSon ( 0 ) == node ) {
     directionForFather = 1; //node #1 is son 0, except at the root
   }
   else {

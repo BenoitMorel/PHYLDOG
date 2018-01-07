@@ -153,12 +153,12 @@ int main(int args, char ** argv)
       speciesIDs, 
       lossRates,
       duplicationRates,
-      true);
-    ll2 = rc.findMLReconciliationDR(MLindex,
       num0lineages2,
       num1lineages2,
       num2lineages2,
-      nodesToTryInNNISearch);
+      nodesToTryInNNISearch,
+      true);
+    ll2 = rc.findMLReconciliationDR(MLindex);
     if (fabs(ll - ll2) > 0.000001) {
       std::cerr << "diff ll: " << ll << " " << ll2 << std::endl;
     }
@@ -190,12 +190,12 @@ int main(int args, char ** argv)
           speciesIDs, 
           lossRates,
           duplicationRates,
-          true);
-        ll = rc.findMLReconciliationDR(MLindex,
           num0lineages,
           num1lineages,
           num2lineages,
-          nodesToTryInNNISearch);
+          nodesToTryInNNISearch,
+          true);
+        ll = rc.findMLReconciliationDR(MLindex);
       } else {
         ll = findMLReconciliationDR(speciesTree, 
           geneTree, 

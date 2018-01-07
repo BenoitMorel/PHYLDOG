@@ -30,6 +30,10 @@ FastReconciliationTools::FastReconciliationTools(TreeTemplate<Node> * spTree,
         const std::map<std::string, int > spID,
         std::vector< double> lossRates,
         std::vector < double> duplicationRates,
+        std::vector <int> &num0lineages,
+        std::vector <int> &num1lineages,
+        std::vector <int> &num2lineages,
+        std::set <int> &nodesToTryInNNISearch,
         bool fillTables):
   _speciesTree(*spTree),
   _geneTree(*geneTree),
@@ -37,7 +41,11 @@ FastReconciliationTools::FastReconciliationTools(TreeTemplate<Node> * spTree,
   _spID(spID),
   _lossRates(lossRates),
   _duplicationRates(duplicationRates),
-  _fillTables(fillTables)
+  _fillTables(fillTables),
+  _num0lineages(num0lineages),
+  _num1lineages(num1lineages),
+  _num2lineages(num2lineages),
+  _nodesToTryInNNISearch(nodesToTryInNNISearch)
 {
   assert(speciesTree->isRooted());
   assert(geneTreeTree->isRooted());
@@ -50,11 +58,7 @@ FastReconciliationTools::~FastReconciliationTools()
 {
 }
 
-double FastReconciliationTools::findMLReconciliationDR(int &MLindex,
-  std::vector <int> &num0lineages,
-  std::vector <int> &num1lineages,
-  std::vector <int> &num2lineages,
-  std::set <int> &nodesToTryInNNISearch)
+double FastReconciliationTools::findMLReconciliationDR(int &MLindex)
 {
   Node * geneRoot = _geneTree.getRootNode();
   double initialLikelihood = computeSubtreeLikelihoodPostorder (geneRoot);
@@ -98,17 +102,16 @@ double FastReconciliationTools::findMLReconciliationDR(int &MLindex,
     // Getting a well-rooted tree
     TreeTemplate<Node > * tree = _geneTree.clone();
     tree->newOutGroup ( _bestNode->getId() );
-    nodesToTryInNNISearch.clear();
+    _nodesToTryInNNISearch.clear();
     //Resetting numLineages std::vectors
-    std::fill(num0lineages.begin(), num0lineages.end(), 0);
-    std::fill(num1lineages.begin(), num1lineages.end(), 0);
-    std::fill(num2lineages.begin(), num2lineages.end(), 0);
+    std::fill(_num0lineages.begin(), _num0lineages.end(), 0);
+    std::fill(_num1lineages.begin(), _num1lineages.end(), 0);
+    std::fill(_num2lineages.begin(), _num2lineages.end(), 0);
     computeNumbersOfLineagesFromRoot ( &_speciesTree, tree,
         tree->getRootNode(),
         _seqSp, _spID,
-        num0lineages, num1lineages,
-        num2lineages, speciesIDs,
-        dupData, nodesToTryInNNISearch );
+        speciesIDs,
+        dupData, _nodesToTryInNNISearch );
     delete tree;
   }
   //We return the best likelihood
@@ -410,15 +413,11 @@ void FastReconciliationTools::computeNumbersOfLineagesFromRoot ( TreeTemplate<No
     Node * node,
     const std::map<std::string, std::string > &seqSp,
     const std::map<std::string, int > &spID,
-    std::vector <int> &num0lineages,
-    std::vector <int> &num1lineages,
-    std::vector <int> &num2lineages,
     std::vector <std::vector<int> > & speciesIDs,
     std::vector <std::vector<int> > & dupData,
     std::set <int> & branchesWithDuplications )
 {
-  computeNumbersOfLineagesFromRootIter(spTree,geneTree,node,seqSp,spID,num0lineages,
-      num1lineages,num2lineages,speciesIDs,dupData,branchesWithDuplications);
+  computeNumbersOfLineagesFromRootIter(spTree,geneTree,node,seqSp,spID,speciesIDs,dupData,branchesWithDuplications);
 }
 
 void FastReconciliationTools::computeNumbersOfLineagesFromRootIter ( TreeTemplate<Node> * spTree,
@@ -426,9 +425,6 @@ void FastReconciliationTools::computeNumbersOfLineagesFromRootIter ( TreeTemplat
     Node * node,
     const std::map<std::string, std::string > &seqSp,
     const std::map<std::string, int > &spID,
-    std::vector <int> &num0lineages,
-    std::vector <int> &num1lineages,
-    std::vector <int> &num2lineages,
     std::vector <std::vector<int> > & speciesIDs,
     std::vector <std::vector<int> > & dupData,
     std::set <int> & branchesWithDuplications )
@@ -436,7 +432,7 @@ void FastReconciliationTools::computeNumbersOfLineagesFromRootIter ( TreeTemplat
   int id=node->getId();
   if (!node->getNumberOfSons() ) {
     speciesIDs[id][0]=speciesIDs[id][1]=speciesIDs[id][2]=assignSpeciesIdToLeaf ( node, seqSp, spID );
-    num1lineages[speciesIDs[id][0]]+=1;
+    _num1lineages[speciesIDs[id][0]]+=1;
     dupData[id][0] = dupData[id][1] = dupData[id][2] = 1;
     return;
   }
@@ -445,8 +441,7 @@ void FastReconciliationTools::computeNumbersOfLineagesFromRootIter ( TreeTemplat
     {
       for ( unsigned int i = 0; i< sons.size(); i++ ) {
         computeNumbersOfLineagesFromRootIter ( spTree, geneTree, sons[i],
-            seqSp, spID, num0lineages,
-            num1lineages, num2lineages,
+            seqSp, spID,
             speciesIDs, dupData,
             branchesWithDuplications );
       }
@@ -463,8 +458,7 @@ void FastReconciliationTools::computeNumbersOfLineagesFromRootIter ( TreeTemplat
         dupData[id][0], dupData[idSon0][directionSon0],
         dupData[idSon1][directionSon1],
         TreeTemplateTools::isRoot ( *node ),
-        num0lineages, num1lineages,
-        num2lineages, branchesWithDuplications );
+        branchesWithDuplications );
   }
 }
 
@@ -564,9 +558,6 @@ void FastReconciliationTools::computeNumbersOfLineagesInASubtree ( TreeTemplate<
     int & son0DupData,
     int & son1DupData,
     bool atRoot,
-    std::vector <int> &num0lineages,
-    std::vector <int> &num1lineages,
-    std::vector <int> &num2lineages,
     std::set <int> &branchesWithDuplications )
 {
   int a, a0, olda;
@@ -580,10 +571,10 @@ void FastReconciliationTools::computeNumbersOfLineagesInASubtree ( TreeTemplate<
 
   while ( a!=b ) { //There have been losses !
     if ( a>b ) {
-      recoverLossesAndLineages ( temp0, a, b, olda, a0, tree, son0DupData, num0lineages, num1lineages );
+      recoverLossesAndLineages ( temp0, a, b, olda, a0);
     }
     else {
-      recoverLossesAndLineages ( temp1, b, a, oldb, b0, tree, son1DupData, num0lineages, num1lineages );
+      recoverLossesAndLineages ( temp1, b, a, oldb, b0);
     }
   }
   rootSpId = a;
@@ -605,51 +596,50 @@ void FastReconciliationTools::computeNumbersOfLineagesInASubtree ( TreeTemplate<
     if ( ( a==a0 ) && ( b==b0 ) ) {
       rootDupData += son0DupData+son1DupData;
       if ( son0DupData==1 ) {
-        num1lineages[a0]=num1lineages[a0]-1;
+        _num1lineages[a0]--;
       }
       else if ( son0DupData>=2 ) { //All branches with 2 or more lineages
-        num2lineages[a0]=num2lineages[a0]-1;
+        _num2lineages[a0]--;
       }
       if ( son1DupData==1 ) {
-        num1lineages[b0]=num1lineages[b0]-1;
+        _num1lineages[b0]--;
       }
       else if ( son1DupData>=2 ) { //All branches with 2 or more lineages
-        num2lineages[b0]=num2lineages[b0]-1;
+        _num2lineages[b0]--;
       }
-
     }//there has been no loss, here
     else if ( b==b0 ) { //The loss has occured before a0
       rootDupData += son1DupData+1;
       if ( son1DupData==1 ) {
-        num1lineages[b0]=num1lineages[b0]-1;
+        _num1lineages[b0]--;
       }
       else if ( son1DupData>=2 ) { //All branches with 2 or more lineages
-        num2lineages[b0]=num2lineages[b0]-1;
+        _num2lineages[b0]--;
       }
-      recoverLossesAndLineagesWithDuplication ( temp0, a, olda, tree, num0lineages );
+      recoverLossesAndLineagesWithDuplication ( temp0, a, olda, tree);
     }
     else { //The loss has occured before b0
       rootDupData += son0DupData+1;
       if ( son0DupData==1 ) {
-        num1lineages[a0]=num1lineages[a0]-1;
+        _num1lineages[a0]--;
       }
       else if ( son0DupData>=2 ) { //All branches with 2 or more lineages
-        num2lineages[a0]=num2lineages[a0]-1;
+        _num2lineages[a0]--;
       }
-      recoverLossesAndLineagesWithDuplication ( temp1, b, oldb, tree, num0lineages );
+      recoverLossesAndLineagesWithDuplication ( temp1, b, oldb, tree);
     }
     //Counting the duplication(s) event(s)
     if ( rootDupData==1 ) {
-      num1lineages[rootSpId]+=1;
+      _num1lineages[rootSpId]+=1;
     }
     else if ( rootDupData>=2 ) { //All branches with 2 or more lineages
-      num2lineages[rootSpId]+=1;
+      _num2lineages[rootSpId]+=1;
     }
     //  }
   }
   else { //there was no duplication
     rootDupData = 1;
-    num1lineages[rootSpId]+=1;
+    _num1lineages[rootSpId]+=1;
   }
 }
 
@@ -661,35 +651,22 @@ void FastReconciliationTools::computeNumbersOfLineagesInASubtree ( TreeTemplate<
  * std::vector<int> branchesWithDuplications.
  * This std::vector can be useful for making NNIs only around nodes showing duplications.
  ****************************************************************************/
-void FastReconciliationTools::recoverLossesAndLineages ( Node *& node, int & a, const int & b, int & olda, int & a0,
-    const TreeTemplate<Node> & tree,
-    int & dupData, std::vector<int> &num0lineages, std::vector<int> &num1lineages )
+void FastReconciliationTools::recoverLossesAndLineages ( Node *& node, int & a, const int & b, int & olda, int & a0)
 {
   olda=a;
-  Node* nodeA;
-  if ( node->hasFather() ) {
-    nodeA = node->getFather();
+  node = node->getFather();
+  Node *son0 = node->getSon(0);
+  Node *son1 = node->getSon(1);
+  int son0id = son0->getId();
+  int son1id = son1->getId();
+  a = node->getId();
+  if ((son0id == olda) && (b != a) && (!isDescendant(son1, b))) {
+    _num0lineages[son1id]++;
+  } else if ((son1id == olda) && (b != a) && (!isDescendant(son0, b))) {
+    _num0lineages[son0id]++;
   }
-  else {
-    std::cout <<"Problem in recoverLossesAndLineages, nodeA has no father"<<std::endl;
-  }
-  a = nodeA->getId();
-  node = nodeA;
-  int lostNodeId = -1;
-
-  if ( ( nodeA->getSon ( 0 )->getId() ==olda ) && ( ! isDescendant(nodeA->getSon(1), b)) && ( b!=a ) ) {
-
-    lostNodeId=nodeA->getSon ( 1 )->getId();
-  }
-  else  if ( ( nodeA->getSon ( 1 )->getId() ==olda ) && ( !isDescendant(nodeA->getSon(0), b)) && ( b!=a ) ) {
-
-    lostNodeId=nodeA->getSon ( 0 )->getId();
-  }
-  if ( lostNodeId!= -1 ) {
-    num0lineages[lostNodeId]+=1;
-  }
-  if ( ( olda!=a0 ) ) {
-    num1lineages[olda]+=1;
+  if (olda != a0) {
+    _num1lineages[olda]+=1;
   }
 }
 
@@ -705,8 +682,7 @@ void FastReconciliationTools::recoverLossesAndLineages ( Node *& node, int & a, 
 void FastReconciliationTools::recoverLossesAndLineagesWithDuplication ( const Node * nodeA,
     const int &a,
     const int &olda,
-    const TreeTemplate<Node> & tree,
-    std::vector <int> &num0lineages )
+    const TreeTemplate<Node> & tree)
 {
   //The loss has occured before a0
   //  const Node * nodeA = tree.getNode(a);
@@ -721,7 +697,7 @@ void FastReconciliationTools::recoverLossesAndLineagesWithDuplication ( const No
     lostNode=nodeOldA->getFather()->getSon ( 0 );
   }
   //We need to place the loss event in the right lineage
-  num0lineages[lostNode->getId()]+=1;
+  _num0lineages[lostNode->getId()]+=1;
   return;
 }
 

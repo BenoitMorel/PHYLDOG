@@ -33,15 +33,15 @@ class FastReconciliationTools {
         const std::map<std::string, int > spID,
         std::vector< double> lossRates,
         std::vector < double> duplicationRates,
+        std::vector <int> &num0lineages,
+        std::vector <int> &num1lineages,
+        std::vector <int> &num2lineages,
+        std::set <int> &nodesToTryInNNISearch,
         const bool fillTables = true );
 
     ~FastReconciliationTools();
     
-    double findMLReconciliationDR(int & MLindex,
-        std::vector <int> &num0lineages,
-        std::vector <int> &num1lineages,
-        std::vector <int> &num2lineages,
-        std::set <int> &nodesToTryInNNISearch);
+    double findMLReconciliationDR(int & MLindex);
 
     double computeLogBranchProbability (int branch, int numberOfLineages );
 
@@ -66,9 +66,6 @@ class FastReconciliationTools {
         Node * node,
         const std::map<std::string, std::string > &seqSp,
         const std::map<std::string, int > &spID,
-        std::vector <int> &num0lineages,
-        std::vector <int> &num1lineages,
-        std::vector <int> &num2lineages,
         std::vector <std::vector<int> > & speciesIDs,
         std::vector <std::vector<int> > & dupData,
         std::set <int> & branchesWithDuplications );
@@ -78,9 +75,6 @@ class FastReconciliationTools {
         Node * node,
         const std::map<std::string, std::string > &seqSp,
         const std::map<std::string, int > &spID,
-        std::vector <int> &num0lineages,
-        std::vector <int> &num1lineages,
-        std::vector <int> &num2lineages,
         std::vector <std::vector<int> > & speciesIDs,
         std::vector <std::vector<int> > & dupData,
         std::set <int> & branchesWithDuplications );
@@ -105,15 +99,12 @@ class FastReconciliationTools {
         const std::vector< double> & duplicationRates );
 
 
-    void recoverLossesAndLineages ( Node *& node, int & a, const int & b, int & olda, int & a0,
-        const TreeTemplate<Node> & tree,
-        int & dupData, std::vector<int> &num0lineages, std::vector<int> &num1lineages );
+    void recoverLossesAndLineages ( Node *& node, int & a, const int & b, int & olda, int & a0);
 
     void recoverLossesAndLineagesWithDuplication ( const Node * nodeA,
         const int &a,
         const int &olda,
-        const TreeTemplate<Node> & tree,
-        std::vector <int> &num0lineages );
+        const TreeTemplate<Node> & tree);
 
     void computeNumbersOfLineagesInASubtree ( TreeTemplate<Node> & tree,
         std::vector <Node *> sons,
@@ -124,18 +115,9 @@ class FastReconciliationTools {
         int & son0DupData,
         int & son1DupData,
         bool atRoot,
-        std::vector <int> &num0lineages,
-        std::vector <int> &num1lineages,
-        std::vector <int> &num2lineages,
         std::set <int> &branchesWithDuplications );
 
     double computeBranchProbability (int branch, int numberOfLineages);
-
-    // todobenoit : template and use stl better
-    static void resetVector(std::vector<unsigned int> & v);
-    static void resetVector(std::vector<int> & v);
-    static void resetVector(std::vector<double> & v);
-   
 
     bool isDescendant(Node *father, int descendantId);
 
@@ -155,6 +137,10 @@ private:
     double _bestll;
     bool _fillTables;
     int _maxSpeciesId;
+    std::vector<int> &_num0lineages;
+    std::vector<int> &_num1lineages;
+    std::vector<int> &_num2lineages;
+    std::set <int> &_nodesToTryInNNISearch;
 
     // cache
     std::vector<int> _speciesIdsPreorder;

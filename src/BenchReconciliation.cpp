@@ -94,7 +94,7 @@ int main(int args, char ** argv)
   std::string speciesTreeFilename = argv[1];
   std::string geneTreeFilename = argv[2];
   std::string linksFilename = argv[3];
-  bool useFastRec = atoi(argv[4]);
+  int useFastRec = atoi(argv[4]);
   int iterations = atoi(argv[5]);
 
 
@@ -113,22 +113,73 @@ int main(int args, char ** argv)
   std::vector<int> num0lineages(speciesTree->getNumberOfNodes(), 0);
   std::vector<int> num1lineages(speciesTree->getNumberOfNodes(), 0);
   std::vector<int> num2lineages(speciesTree->getNumberOfNodes(), 0);
+  std::vector<int> num0lineages2(speciesTree->getNumberOfNodes(), 0);
+  std::vector<int> num1lineages2(speciesTree->getNumberOfNodes(), 0);
+  std::vector<int> num2lineages2(speciesTree->getNumberOfNodes(), 0);
   std::set<int> nodesToTryInNNISearch;
 
   parseLinkFile(linksFilename, genesToSpecies);
   //initSpeciesIDs(speciesTree, speciesIDs);
   initRates(lossRates, duplicationRates, speciesTree->getNumberOfNodes());
  
+  std::vector<int> nodes = speciesTree->getNodesId();
   double ll = 0;
+  double ll2 = 0;
 
+
+
+  /////////////////////////////////////////////
+  //////////////// TEST //////////////////////
+  /////////////////////////////////////////////
+  std::cout << cout.precision(10);
+
+  for (unsigned int i = 0; i < nodes.size(); ++i) {
+    speciesTree->newOutGroup(nodes[i]);
+    ll = findMLReconciliationDR(speciesTree, 
+      geneTree, 
+      genesToSpecies,
+      speciesIDs, 
+      lossRates,
+      duplicationRates,
+      MLindex,
+      num0lineages,
+      num1lineages,
+      num2lineages,
+      nodesToTryInNNISearch,
+      true);
+    FastReconciliationTools rc(speciesTree, 
+      geneTree, 
+      genesToSpecies,
+      speciesIDs, 
+      lossRates,
+      duplicationRates,
+      true);
+    ll2 = rc.findMLReconciliationDR(MLindex,
+      num0lineages2,
+      num1lineages2,
+      num2lineages2,
+      nodesToTryInNNISearch);
+    if (fabs(ll - ll2) > 0.000001) {
+      std::cerr << "diff ll: " << ll << " " << ll2 << std::endl;
+    }
+    unsigned int diff = 0;
+    for (unsigned int j = 0; j < num0lineages.size(); ++j) {
+      diff += num0lineages[j] != num0lineages2[j];
+      diff += num1lineages[j] != num1lineages2[j];
+      diff += num2lineages[j] != num2lineages2[j];
+    }
+    if (diff) {
+      std::cerr << "diff lineages: " << diff << std::endl;
+    }
+  }
+  
+  
+  
   clock_t begin = clock();
-
   /////////////////////////////////////////////
   ////////////// BEEENCH //////////////////////
   /////////////////////////////////////////////
   
-  std::cout << cout.precision(10);
-  std::vector<int> nodes = speciesTree->getNodesId();
   for (unsigned int i = 0; i < nodes.size(); ++i) {
     speciesTree->newOutGroup(nodes[i]);
     for (unsigned int iteration = 0; iteration < iterations; ++iteration) {
@@ -139,12 +190,12 @@ int main(int args, char ** argv)
           speciesIDs, 
           lossRates,
           duplicationRates,
+          true);
+        ll = rc.findMLReconciliationDR(MLindex,
           num0lineages,
           num1lineages,
           num2lineages,
-          nodesToTryInNNISearch,
-          false);
-        ll = rc.findMLReconciliationDR(MLindex);
+          nodesToTryInNNISearch);
       } else {
         ll = findMLReconciliationDR(speciesTree, 
           geneTree, 
@@ -157,10 +208,8 @@ int main(int args, char ** argv)
           num1lineages,
           num2lineages,
           nodesToTryInNNISearch,
-          false);
+          true);
       }
-      if (iteration == iterations - 1) 
-        std::cout << "ll: " << ll << std::endl;
     }
   }
   

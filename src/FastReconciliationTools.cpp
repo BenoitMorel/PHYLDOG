@@ -30,10 +30,6 @@ FastReconciliationTools::FastReconciliationTools(TreeTemplate<Node> * spTree,
         const std::map<std::string, int > spID,
         std::vector< double> lossRates,
         std::vector < double> duplicationRates,
-        std::vector <int> &num0lineages,
-        std::vector <int> &num1lineages,
-        std::vector <int> &num2lineages,
-        std::set <int> &nodesToTryInNNISearch,
         bool fillTables):
   _speciesTree(*spTree),
   _geneTree(*geneTree),
@@ -41,11 +37,7 @@ FastReconciliationTools::FastReconciliationTools(TreeTemplate<Node> * spTree,
   _spID(spID),
   _lossRates(lossRates),
   _duplicationRates(duplicationRates),
-  _fillTables(fillTables),
-  _num0lineages(num0lineages),
-  _num1lineages(num1lineages),
-  _num2lineages(num2lineages),
-  _nodesToTryInNNISearch(nodesToTryInNNISearch)
+  _fillTables(fillTables)
 {
   assert(speciesTree->isRooted());
   assert(geneTreeTree->isRooted());
@@ -58,7 +50,12 @@ FastReconciliationTools::~FastReconciliationTools()
 {
 }
 
-double FastReconciliationTools::findMLReconciliationDR(int &MLindex) {
+double FastReconciliationTools::findMLReconciliationDR(int &MLindex,
+  std::vector <int> &num0lineages,
+  std::vector <int> &num1lineages,
+  std::vector <int> &num2lineages,
+  std::set <int> &nodesToTryInNNISearch)
+{
   Node * geneRoot = _geneTree.getRootNode();
   double initialLikelihood = computeSubtreeLikelihoodPostorder (geneRoot);
 
@@ -101,20 +98,19 @@ double FastReconciliationTools::findMLReconciliationDR(int &MLindex) {
     // Getting a well-rooted tree
     TreeTemplate<Node > * tree = _geneTree.clone();
     tree->newOutGroup ( _bestNode->getId() );
-    _nodesToTryInNNISearch.clear();
+    nodesToTryInNNISearch.clear();
     //Resetting numLineages std::vectors
-    resetVector ( _num0lineages );
-    resetVector ( _num1lineages );
-    resetVector ( _num2lineages );
+    resetVector ( num0lineages );
+    resetVector ( num1lineages );
+    resetVector ( num2lineages );
     computeNumbersOfLineagesFromRoot ( &_speciesTree, tree,
         tree->getRootNode(),
         _seqSp, _spID,
-        _num0lineages, _num1lineages,
-        _num2lineages, speciesIDs,
-        dupData, _nodesToTryInNNISearch );
+        num0lineages, num1lineages,
+        num2lineages, speciesIDs,
+        dupData, nodesToTryInNNISearch );
     delete tree;
   }
-  
   //We return the best likelihood
   MLindex = _bestNode->getId();
   return _bestll;

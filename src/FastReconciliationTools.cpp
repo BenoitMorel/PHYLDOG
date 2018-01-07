@@ -100,9 +100,9 @@ double FastReconciliationTools::findMLReconciliationDR(int &MLindex,
     tree->newOutGroup ( _bestNode->getId() );
     nodesToTryInNNISearch.clear();
     //Resetting numLineages std::vectors
-    resetVector ( num0lineages );
-    resetVector ( num1lineages );
-    resetVector ( num2lineages );
+    std::fill(num0lineages.begin(), num0lineages.end(), 0);
+    std::fill(num1lineages.begin(), num1lineages.end(), 0);
+    std::fill(num2lineages.begin(), num2lineages.end(), 0);
     computeNumbersOfLineagesFromRoot ( &_speciesTree, tree,
         tree->getRootNode(),
         _seqSp, _spID,
@@ -363,27 +363,6 @@ void FastReconciliationTools::computeSubtreeLikelihoodPreorder (
 }
 
 
-
-void FastReconciliationTools::resetVector ( std::vector<unsigned int> & v ) {
-  unsigned int temp=v.size();
-  for ( unsigned int i=0; i<temp ; i++ ) {
-    v[i]=0;
-  }
-}
-
-void FastReconciliationTools::resetVector ( std::vector<int> & v ) {
-  unsigned int temp=v.size();
-  for ( unsigned int i=0; i<temp ; i++ ) {
-    v[i]=0;
-  }
-}
-
-void FastReconciliationTools::resetVector ( std::vector<double> & v ) {
-  unsigned int temp=v.size();
-  for ( unsigned int i=0; i<temp ; i++ ) {
-    v[i]=0.0;
-  }
-}
 
 /**************************************************************************
  * Computes the probability of a given number of lineages numberOfLineages at the end of a branch given that there was only one at the beginning of the branch.

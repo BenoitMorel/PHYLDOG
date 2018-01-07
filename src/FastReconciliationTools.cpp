@@ -574,8 +574,8 @@ void FastReconciliationTools::computeNumbersOfLineagesInASubtree ( TreeTemplate<
   a = a0 = olda = son0SpId;
   b = b0 = oldb = son1SpId;
 
-  Node * temp0 = tree.getNode ( son0SpId );
-  Node * temp1 = tree.getNode ( son1SpId );
+  Node * temp0 = _speciesNodes[son0SpId];
+  Node * temp1 = _speciesNodes[son1SpId];
 
 
   while ( a!=b ) { //There have been losses !
@@ -651,7 +651,6 @@ void FastReconciliationTools::computeNumbersOfLineagesInASubtree ( TreeTemplate<
     rootDupData = 1;
     num1lineages[rootSpId]+=1;
   }
-  return;
 }
 
 /*****************************************************************************
@@ -676,17 +675,13 @@ void FastReconciliationTools::recoverLossesAndLineages ( Node *& node, int & a, 
   }
   a = nodeA->getId();
   node = nodeA;
-  std::vector <int> nodesIds0 = TreeTemplateTools::getNodesId ( * ( nodeA->getSon ( 0 ) ) );
-  nodesIds0.push_back ( nodeA->getSon ( 0 )->getId() );
-  std::vector <int> nodesIds1 = TreeTemplateTools::getNodesId ( * ( nodeA->getSon ( 1 ) ) );
-  nodesIds1.push_back ( nodeA->getSon ( 1 )->getId() );
   int lostNodeId = -1;
 
-  if ( ( nodeA->getSon ( 0 )->getId() ==olda ) && ( ! ( VectorTools::contains ( nodesIds1, b ) ) ) && ( b!=a ) ) {
+  if ( ( nodeA->getSon ( 0 )->getId() ==olda ) && ( ! isDescendant(nodeA->getSon(1), b)) && ( b!=a ) ) {
 
     lostNodeId=nodeA->getSon ( 1 )->getId();
   }
-  else  if ( ( nodeA->getSon ( 1 )->getId() ==olda ) && ( ! ( VectorTools::contains ( nodesIds0, b ) ) ) && ( b!=a ) ) {
+  else  if ( ( nodeA->getSon ( 1 )->getId() ==olda ) && ( !isDescendant(nodeA->getSon(0), b)) && ( b!=a ) ) {
 
     lostNodeId=nodeA->getSon ( 0 )->getId();
   }

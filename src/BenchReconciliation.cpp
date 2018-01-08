@@ -117,6 +117,7 @@ int main(int args, char ** argv)
   std::vector<int> num1lineages2(speciesTree->getNumberOfNodes(), 0);
   std::vector<int> num2lineages2(speciesTree->getNumberOfNodes(), 0);
   std::set<int> nodesToTryInNNISearch;
+  std::set<int> nodesToTryInNNISearch2;
 
   parseLinkFile(linksFilename, genesToSpecies);
   //initSpeciesIDs(speciesTree, speciesIDs);
@@ -131,7 +132,8 @@ int main(int args, char ** argv)
   /////////////////////////////////////////////
   //////////////// TEST //////////////////////
   /////////////////////////////////////////////
-  std::cout << cout.precision(10);
+  std::cout << cout.precision(15);
+  std::cerr << cerr.precision(15);
 
   for (unsigned int i = 0; i < nodes.size(); ++i) {
     speciesTree->newOutGroup(nodes[i]);
@@ -156,10 +158,10 @@ int main(int args, char ** argv)
       num0lineages2,
       num1lineages2,
       num2lineages2,
-      nodesToTryInNNISearch,
+      nodesToTryInNNISearch2,
       true);
     ll2 = rc.findMLReconciliationDR(MLindex);
-    if (fabs(ll - ll2) > 0.000001) {
+    if (fabs(ll - ll2) > 0.000000001) {
       std::cerr << "diff ll: " << ll << " " << ll2 << std::endl;
     }
     unsigned int diff = 0;
@@ -170,6 +172,10 @@ int main(int args, char ** argv)
     }
     if (diff) {
       std::cerr << "diff lineages: " << diff << std::endl;
+    }
+    if (nodesToTryInNNISearch != nodesToTryInNNISearch2) {
+      std::cerr << "diff nodes to try " << nodesToTryInNNISearch.size()
+        << " " << nodesToTryInNNISearch2.size() << std::endl;
     }
   }
   

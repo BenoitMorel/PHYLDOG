@@ -4,6 +4,8 @@ SET(PHYLDOG_SRCS
   MPI_SpeciesTreeLikelihood.h
   MPI_SpeciesTreeExploration.h
   MPI_SpeciesTreeExploration.cpp
+  FastReconciliationTools.h
+  FastReconciliationTools.cpp
   ReconciliationTools.h
   ReconciliationTools.cpp
   DLGeneTreeLikelihood.cpp
@@ -26,15 +28,15 @@ SET(PHYLDOG_SRCS
   LikelihoodEvaluator.cpp
   )
   
-#ADD_EXECUTABLE(phyldog Phyldog.cpp ${PHYLDOG_SRCS})
-#target_link_libraries(phyldog 
-#  ${Boost_SERIALIZATION_LIBRARY}
-#  ${Boost_MPI_LIBRARY}
-#  ${MPI_LIBRARIES}
-#  ${PLL_LIBRARIES}
-#  ${PLLMODULES_LIBRARIES}
-#  ${BPP_LIBRARIES}
-#)
+ADD_EXECUTABLE(phyldog Phyldog.cpp ${PHYLDOG_SRCS})
+target_link_libraries(phyldog 
+  ${Boost_SERIALIZATION_LIBRARY}
+  ${Boost_MPI_LIBRARY}
+  ${MPI_LIBRARIES}
+  ${PLL_LIBRARIES}
+  ${PLLMODULES_LIBRARIES}
+  ${BPP_LIBRARIES}
+)
 
 SET(PHYLDOGLIGHT_SRCS
   Constants.h

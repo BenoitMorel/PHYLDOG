@@ -174,7 +174,7 @@ double FastReconciliationTools::computeCell (
   int key = std::max(cell0.spId, cell1.spId) * _maxSpeciesId +
     std::min(cell0.spId, cell1.spId);
   Cell cached = _assignMap[key];
-  if (cached.ll != 0.0) {
+  if (false && cached.ll != 0.0) {
     cell = cached;
     cell.ll = cell.ll + cell0.ll + cell1.ll;
     return cell.ll;

@@ -41,6 +41,7 @@
 /* This file contains various functions useful for reconciliations, such as reconciliation computation, printing of trees with integer indexes, search of a root with reconciliation...*/
 
 #include "ReconciliationTools.h"
+#include "FastReconciliationTools.h"
 
 //#include "mpi.h" //SHOULD BE CORRECTED 13062017
 
@@ -2188,7 +2189,11 @@ double findMLReconciliationDR ( TreeTemplate<Node> * spTree,
     std::set <int> &nodesToTryInNNISearch,
     const bool fillTables )
 {
-
+  /*
+  FastReconciliationTools rec(spTree, geneTree, seqSp, spID, lossRates, duplicationRates,
+      num0lineages, num1lineages, num2lineages, nodesToTryInNNISearch, fillTables);
+  return rec.findMLReconciliationDR(MLindex);
+  */
   /*  std::cout<< "findMLReconciliationDR "<<std::endl;
       VectorTools::print(lossRates);
       VectorTools::print(duplicationRates);
@@ -2609,22 +2614,22 @@ void computeDuplicationAndLossRatesForTheSpeciesTree ( std::string &branchProbaO
 {
   //outputting trees with branch lengths in numbers of events, before correction.
   computeDuplicationAndLossProbabilitiesForAllBranches ( num0Lineages, num1Lineages, num2Lineages, lossExpectedNumbers, duplicationExpectedNumbers );
-  std::cout << "Species tree with expected numbers of duplications as branch lengths:"<<std::endl;
+  //std::cout << "Species tree with expected numbers of duplications as branch lengths:"<<std::endl;
   for ( unsigned int i =0; i<num0Lineages.size() ; i++ ) {
     tree.getNode ( i )->setBranchProperty ( "DUPLICATIONS", Number<double> ( duplicationExpectedNumbers[i] ) );
     if ( tree.getNode ( i )->hasFather() ) {
       tree.getNode ( i )->setDistanceToFather ( duplicationExpectedNumbers[i] );
     }
   }
-  std::cout << treeToParenthesisWithDoubleNodeValues ( tree, false, "DUPLICATIONS" ) <<std::endl;
-  std::cout << "Species tree with expected numbers of losses as branch lengths:"<<std::endl;
+  //std::cout << treeToParenthesisWithDoubleNodeValues ( tree, false, "DUPLICATIONS" ) <<std::endl;
+  //std::cout << "Species tree with expected numbers of losses as branch lengths:"<<std::endl;
   for ( unsigned int i =0; i<num0Lineages.size() ; i++ ) {
     tree.getNode ( i )->setBranchProperty ( "LOSSES", Number<double> ( lossExpectedNumbers[i] ) );
     if ( tree.getNode ( i )->hasFather() ) {
       tree.getNode ( i )->setDistanceToFather ( lossExpectedNumbers[i] );
     }
   }
-  std::cout << treeToParenthesisWithDoubleNodeValues ( tree, false, "LOSSES" ) <<std::endl;
+  //std::cout << treeToParenthesisWithDoubleNodeValues ( tree, false, "LOSSES" ) <<std::endl;
 
   //Doing the correction:
   if ( branchProbaOptimization=="average" ) {

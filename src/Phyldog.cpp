@@ -165,6 +165,8 @@ int main(int args, char ** argv)
   size = world.size();
   std::string line;
 
+  ApplicationTools::message = new NullOutputStream();
+
   if (size==1) {
     std::cout <<"\n\n\n\t\tError: this program can only run if 2 or more processes are used."<<std::endl;
     std::cout <<"\t\tUse 'mpirun -np k phyldog ...', where k>=2"<<std::endl;
@@ -223,6 +225,7 @@ int main(int args, char ** argv)
       spTL.MLSearch();
 
       std::cout << "PHYLDOG's done. Bye." << std::endl;
+      ApplicationTools::message = new StdOut();
       ApplicationTools::displayTime("Total execution time:");
       MPI_Barrier(world);
       MPI::Finalize( );

@@ -93,7 +93,7 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
    *****************************************************************************/
 
   //First we read the species tree from the char[] sent by the server
-  spTree_=TreeTemplateTools::parenthesisToTree(currentSpeciesTree_, false, "", true);
+  spTree_=TreeTemplateTools::parenthesisToTree(currentSpeciesTree_, false, "", true, false);
 
   resetLossesAndDuplications(*spTree_, lossExpectedNumbers_, duplicationExpectedNumbers_);
   //To make the correspondance between species name and id:
@@ -170,7 +170,7 @@ void ClientComputingGeneLikelihoods::parseOptions()  {
   if ( numberOfGeneFamilies_ > 0)
   {
     if (spTree_) delete spTree_;
-    spTree_=TreeTemplateTools::parenthesisToTree(currentSpeciesTree_, false, "", true);
+    spTree_=TreeTemplateTools::parenthesisToTree(currentSpeciesTree_, false, "", true, false);
     spId_ = computeSpeciesNamesToIdsMap(*spTree_);
   }
   startRecordingTreesFrom_ = 1;
@@ -375,7 +375,7 @@ void ClientComputingGeneLikelihoods::parseAssignedGeneFamilies()
 
   delete spTree_;
 
-  spTree_=TreeTemplateTools::parenthesisToTree(currentSpeciesTree_, false, "", true);
+  spTree_=TreeTemplateTools::parenthesisToTree(currentSpeciesTree_, false, "", true, false);
 
   spId_ = computeSpeciesNamesToIdsMap(*spTree_);
 
@@ -668,8 +668,8 @@ void ClientComputingGeneLikelihoods::MLSearchIterationAfterCommunication()
 
   if ( numberOfGeneFamilies_ > 0)
   {
-    if (spTree_) delete spTree_;
-    spTree_=TreeTemplateTools::parenthesisToTree(currentSpeciesTree_, false, "", true);
+    if (spTree_) delete spTree_; 
+    spTree_=TreeTemplateTools::parenthesisToTree(currentSpeciesTree_, false, "", true, false);
     spId_ = computeSpeciesNamesToIdsMap(*spTree_);
   }
   //if we reset the gene trees by resetting treeLikelihoods_:
@@ -903,10 +903,11 @@ void ClientComputingGeneLikelihoods::NNIRearrange (bool timing, size_t i, double
   else if (reconciliationModel_ == "COAL") {
     dynamic_cast<COALGeneTreeLikelihood*> (treeLikelihoods_[i])->refineGeneTreeNNIs(allParams_[i]);
   }
+  /*
   if (timing && rearrange_)
   {
     totalTime = ApplicationTools::getTime() - startingTime;
     std::cout << "Family "<< assignedFilenames_[i] <<"; Time for NNI exploration: "<<  totalTime << " s." <<std::endl;
   }
-  return;
+  return;*/
 }

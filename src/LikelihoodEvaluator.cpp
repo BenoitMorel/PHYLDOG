@@ -569,6 +569,9 @@ unsigned int * read_from_fasta(const char *fasta_file, pll_sequences &sequences)
     buffer[i] = sequences[i]->seq;
   }
   unsigned int *weights = pll_compress_site_patterns(buffer, pll_map_nt, count, &length);
+  if (!weights) {
+    weights = pll_compress_site_patterns(buffer, pll_map_aa, count, &length);
+  } 
   for (unsigned int i = 0; i < count; ++i) {
     sequences[i]->len = length;
   }
@@ -697,6 +700,7 @@ pllmod_treeinfo_t * LikelihoodEvaluator::buildTreeinfo(const bpp::TreeTemplate<N
   unsigned int partitions_number = 1; 
 
   // sequences 
+  std::cout << fileNamePrefix + "alignment.fasta" << endl;
   std::string fileName = fileNamePrefix + "alignment.fasta"; 
   const char* fasta_file = fileName.c_str();
   pll_sequences sequences;
@@ -1566,7 +1570,7 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
 {
   WHEREAMI( __FILE__ , __LINE__ );
   std::cout << "LikelihoodEvaluator::BPP_evaluate " << std::endl;
-
+  
   // preparing the tree
   TreeTemplate<Node>* treeForBPP = (*treeToEvaluate)->clone();
 
@@ -1587,12 +1591,13 @@ double LikelihoodEvaluator::BPP_evaluate(TreeTemplate<Node>** treeToEvaluate)
 
 
   NNIHomogeneousTreeLikelihood * drlk = 0;
-  drlk  = new NNIHomogeneousTreeLikelihood (**treeToEvaluate,
+  assert(false);
+  drlk  = 0; /*new NNIHomogeneousTreeLikelihood (**treeToEvaluate,
       *(nniLk->getData()),
       (bpp::TransitionModel*)nniLk->getSubstitutionModel(),
       nniLk->getRateDistribution(),
       true, false);
-
+*/
   drlk->initialize();
   auto_ptr<BackupListener> backupListener;
   int tlEvalMax = 100;
@@ -1899,7 +1904,11 @@ void LikelihoodEvaluator::writeAlignmentFilesForPLL()
   if(aligmentFilesForPllWritten_)
     return;
   WHEREAMI( __FILE__ , __LINE__ );
-  fileNamePrefix = "tmpPLL_" + name + "_" ;
+
+  std::string sequencePath = ApplicationTools::getStringParameter("input.sequence.file",params,"rnd");
+  std::replace( sequencePath.begin(), sequencePath.end(), '/', '_');
+  std::replace( sequencePath.begin(), sequencePath.end(), '.', '_');
+  fileNamePrefix = "tmpPLL_" + sequencePath + "_" ;
   ofstream alignementFile(string(fileNamePrefix + "alignment.fasta").c_str(), ofstream::out);
 
   //preparing the file for the alignment
